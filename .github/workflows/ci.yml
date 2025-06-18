@@ -1,0 +1,35 @@
+﻿# CI Workflow: Build & Package JM Equipment CRM with Pipeline
+# Triggers on push to main or tags
+
+name: CI Build & Release
+on:
+  push:
+    branches: [ main ]
+    tags: ['v*']
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React App
+        run: npm run build
+
+      - name: Package Electron App (Win x64)
+        run: npx electron-builder --win --x64 --publish never
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: JMEquipmentCRM-Installer
+          path: dist/*.exe

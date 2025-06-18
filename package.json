@@ -1,0 +1,31 @@
+{
+  "name": "jm-crm",
+  "version": "1.0.0",
+  "description": "JM Equipment CRM Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "react-scripts build",
+    "dist": "electron-builder"
+  },
+  "author": "JM Equipment",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "16.0.0",
+    "electron-builder": "22.14.13"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "build": {
+    "appId": "com.jmequipment.crm",
+    "productName": "JM CRM",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}

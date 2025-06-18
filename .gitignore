@@ -1,0 +1,11 @@
+﻿# dependencies
+node_modules/
+# build artifacts
+dist/
+*.exe
+# OS / editor files
+.vscode/
+.DS_Store
+Thumbs.db
+# Git metadata (if you ever nested repos)
+.git/

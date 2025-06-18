@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JM CRM Dashboard</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f5f5f5; }
+    h1 { color: #004080; }
+    .container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.5rem; border: 1px solid #ccc; text-align: left; }
+    input, select, button { padding: 0.5rem; margin: 0.3rem 0.5rem 0.3rem 0; }
+    .toolbar, .entry-form { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📇 JM Equipment CRM</h1>
+
+    <div class="entry-form">
+      <h3>Add Client</h3>
+      <input id="name" placeholder="Name" />
+      <input id="company" placeholder="Company" />
+      <input id="status" placeholder="Status" />
+      <select id="stage">
+        <option value="">Stage</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+      </select>
+      <select id="priority">
+        <option value="">Priority</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <button onclick="addClient()">➕ Add</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="file" id="importFile" accept=".csv" />
+      <button onclick="exportCSV()">📤 Export CSV</button>
+      <button onclick="saveJSON()">💾 Backup JSON</button>
+      <input type="file" id="restoreFile" accept=".json" />
+      <button onclick="restoreJSON()">🔁 Restore</button>
+      <select id="filterStage" onchange="filterClients()">
+        <option value="">All Stages</option>
+        <option value="New">New</option>
+        <option value="Contacted">Contacted</option>
+        <option value="Qualified">Qualified</option>
+      </select>
+    </div>
+
+    <table id="clientTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Status</th>
+          <th>Stage</th>
+          <th>Priority</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const clientTable = document.getElementById('clientTable').getElementsByTagName('tbody')[0];
+
+    function loadClients() {
+      const data = JSON.parse(localStorage.getItem('jm_crm_clients') || '[]');
+      renderTable(data);
+    }
+
+    function renderTable(data) {
+      clientTable.innerHTML = '';
+      data.forEach(client => {
+        const row = clientTable.insertRow();
+        row.insertCell().textContent = client.name;
+        row.insertCell().textContent = client.company;
+        row.insertCell().textContent = client.status;
+        row.insertCell().textContent = client.stage;
+        row.insertCell().textContent = client.priority;
+      });
+    }
+
+    function addClient() {
+      const name = document.getElementById('name').value;
+      const company = document.getElementById('company').value;
+      const status = document.getElementById('status').value;
+      const stage = document.getElementById('stage').value;
+      const priority = document.getElementById('priority').value;
+      if (!name || !company) return alert('Name and Company are required');
+      const data = JSON.parse(localStorage.getItem('jm_crm_clients') || '[]');
+      data.push({ name, company, status, stage, priority });
+      localStorage.setItem('jm_crm_clients', JSON.stringify(data));
+      loadClients();
+    }
+
+    function filterClients() {
+      const stage = document.getElementById('filterStage').value;
+      let clients = JSON.parse(localStorage.getItem('jm_crm_clients') || '[]');
+      if (stage) {
+        clients = clients.filter(c => c.stage === stage);
+      }
+      renderTable(clients);
+    }
+
+    function exportCSV() {
+      const data = JSON.parse(localStorage.getItem('jm_crm_clients') || '[]');
+      const headers = ["Name", "Company", "Status", "Stage", "Priority"];
+      const rows = data.map(c => [c.name, c.company, c.status, c.stage, c.priority]);
+      let csv = headers.join(",") + "\n";
+      rows.forEach(r => csv += r.join(",") + "\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "clients.csv";
+      a.click();
+    }
+
+    function saveJSON() {
+      const data = localStorage.getItem('jm_crm_clients') || '[]';
+      const blob = new Blob([data], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "jm_clients_backup.json";
+      a.click();
+    }
+
+    function restoreJSON() {
+      const file = document.getElementById('restoreFile').files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const data = JSON.parse(event.target.result);
+          localStorage.setItem('jm_crm_clients', JSON.stringify(data));
+          loadClients();
+        } catch (e) {
+          alert('Invalid JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.onload = loadClients;
+  </script>
+</body>
+</html>
