@@ -29,7 +29,7 @@ jobs:
         run: npx electron-builder --win --x64 --publish never
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: JMEquipmentCRM-Installer
           path: dist/*.exe
