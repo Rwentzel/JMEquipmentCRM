@@ -1,0 +1,611 @@
+/*
+Theme Name: JM Equipment Child Theme
+Theme URI: https://jmequipment.com
+Description: Custom child theme for JM Equipment Inc. - Converting machinery solutions since 1989. Built on GeneratePress framework with custom product pages, solution-focused content, and manufacturing industry optimizations.
+Author: JM Equipment Inc.
+Author URI: https://jmequipment.com
+Template: generatepress
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: jm-equipment-child
+Tags: manufacturing, industrial, equipment, b2b, converting-machinery
+*/
+
+/* ============================================
+   JM Equipment Brand Colors
+   ============================================ */
+:root {
+    --jm-red: #7C0E14;
+    --jm-red-hover: #9A1B23;
+    --jm-red-dark: #5A0A0F;
+    --jm-gray-dark: #1a1a1a;
+    --jm-gray-medium: #4a4a4a;
+    --jm-gray-light: #f5f5f5;
+    --jm-white: #ffffff;
+    --jm-accent-blue: #0066cc;
+}
+
+/* ============================================
+   Typography Enhancements
+   ============================================ */
+body {
+    font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #333;
+    line-height: 1.7;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 700;
+    color: var(--jm-gray-dark);
+    line-height: 1.3;
+}
+
+.site-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ============================================
+   Primary Navigation
+   ============================================ */
+.main-navigation {
+    background-color: var(--jm-gray-dark);
+}
+
+.main-navigation a {
+    color: var(--jm-white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+.main-navigation a:hover,
+.main-navigation a:focus {
+    color: var(--jm-red);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.main-navigation .current-menu-item > a {
+    color: var(--jm-red);
+    border-bottom: 2px solid var(--jm-red);
+}
+
+/* Dropdown menus */
+.main-navigation ul ul {
+    background-color: #2a2a2a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.main-navigation ul ul a {
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   Buttons & CTAs
+   ============================================ */
+.button,
+.wp-block-button__link,
+button[type="submit"],
+input[type="submit"],
+.jm-cta-button {
+    background-color: var(--jm-red);
+    color: var(--jm-white);
+    padding: 14px 32px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(124, 14, 20, 0.3);
+}
+
+.button:hover,
+.wp-block-button__link:hover,
+button[type="submit"]:hover,
+input[type="submit"]:hover,
+.jm-cta-button:hover {
+    background-color: var(--jm-red-hover);
+    color: var(--jm-white);
+    box-shadow: 0 4px 12px rgba(124, 14, 20, 0.4);
+    transform: translateY(-2px);
+}
+
+.button:active,
+.jm-cta-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(124, 14, 20, 0.3);
+}
+
+/* Secondary button style */
+.button-secondary,
+.jm-cta-button-secondary {
+    background-color: transparent;
+    color: var(--jm-red);
+    border: 2px solid var(--jm-red);
+    box-shadow: none;
+}
+
+.button-secondary:hover,
+.jm-cta-button-secondary:hover {
+    background-color: var(--jm-red);
+    color: var(--jm-white);
+    border-color: var(--jm-red);
+}
+
+/* ============================================
+   Product Pages
+   ============================================ */
+.product-page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.product-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 60px;
+    align-items: start;
+}
+
+.product-image-gallery {
+    position: sticky;
+    top: 100px;
+}
+
+.product-image-main {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.product-image-thumbnails {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.product-image-thumbnails img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+.product-image-thumbnails img:hover,
+.product-image-thumbnails img.active {
+    border-color: var(--jm-red);
+}
+
+.product-details {
+    padding: 20px 0;
+}
+
+.product-tagline {
+    font-size: 20px;
+    color: var(--jm-red);
+    font-weight: 600;
+    margin-bottom: 15px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.product-title {
+    font-size: 42px;
+    margin-bottom: 20px;
+    color: var(--jm-gray-dark);
+}
+
+.product-description {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    color: #555;
+}
+
+.product-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+    padding: 30px;
+    background-color: var(--jm-gray-light);
+    border-radius: 8px;
+}
+
+.meta-item {
+    text-align: center;
+}
+
+.meta-label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.meta-value {
+    display: block;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--jm-red);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.product-features {
+    margin: 40px 0;
+}
+
+.product-features h3 {
+    font-size: 28px;
+    margin-bottom: 25px;
+    color: var(--jm-gray-dark);
+}
+
+.features-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.features-list li {
+    padding: 15px 15px 15px 45px;
+    background-color: var(--jm-gray-light);
+    border-radius: 6px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.features-list li:before {
+    content: "✓";
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    color: var(--jm-red);
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.features-list li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-specs {
+    margin: 40px 0;
+}
+
+.specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--jm-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.specs-table th,
+.specs-table td {
+    padding: 18px 24px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.specs-table th {
+    background-color: var(--jm-gray-dark);
+    color: var(--jm-white);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+}
+
+.specs-table tr:last-child td {
+    border-bottom: none;
+}
+
+.specs-table tr:hover {
+    background-color: rgba(124, 14, 20, 0.03);
+}
+
+.product-cta-section {
+    background-color: var(--jm-gray-dark);
+    color: var(--jm-white);
+    padding: 50px;
+    border-radius: 8px;
+    text-align: center;
+    margin: 60px 0;
+}
+
+.product-cta-section h3 {
+    color: var(--jm-white);
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.product-cta-section p {
+    font-size: 18px;
+    margin-bottom: 30px;
+    color: #ccc;
+}
+
+/* ============================================
+   Solution Pages (Problem-Focused)
+   ============================================ */
+.solution-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.problem-statement {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+    padding: 40px;
+    border-left: 5px solid var(--jm-red);
+    margin-bottom: 40px;
+    border-radius: 4px;
+}
+
+.problem-statement h2 {
+    color: var(--jm-red);
+    font-size: 28px;
+    margin-bottom: 15px;
+}
+
+.solution-overview {
+    background-color: var(--jm-white);
+    padding: 40px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    margin-bottom: 40px;
+}
+
+.solution-benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.benefit-card {
+    background-color: var(--jm-white);
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.benefit-icon {
+    width: 60px;
+    height: 60px;
+    background-color: var(--jm-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    color: var(--jm-white);
+    font-size: 28px;
+}
+
+.benefit-card h3 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: var(--jm-gray-dark);
+}
+
+/* ============================================
+   Forms
+   ============================================ */
+.wpforms-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.wpforms-field-label {
+    font-weight: 600;
+    color: var(--jm-gray-dark);
+    margin-bottom: 8px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.wpforms-field input[type="text"],
+.wpforms-field input[type="email"],
+.wpforms-field input[type="tel"],
+.wpforms-field select,
+.wpforms-field textarea {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    padding: 12px 15px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    width: 100%;
+}
+
+.wpforms-field input:focus,
+.wpforms-field select:focus,
+.wpforms-field textarea:focus {
+    outline: none;
+    border-color: var(--jm-red);
+    box-shadow: 0 0 0 3px rgba(124, 14, 20, 0.1);
+}
+
+.wpforms-submit-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.site-footer {
+    background-color: var(--jm-gray-dark);
+    color: #ccc;
+    padding: 60px 0 30px;
+}
+
+.footer-widgets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.footer-widget-area h3 {
+    color: var(--jm-white);
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.footer-widget-area a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: block;
+    padding: 5px 0;
+}
+
+.footer-widget-area a:hover {
+    color: var(--jm-red);
+    padding-left: 5px;
+}
+
+.site-info {
+    text-align: center;
+    padding: 30px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 40px;
+    color: #888;
+    font-size: 14px;
+}
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 1024px) {
+    .product-hero {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .product-image-gallery {
+        position: relative;
+        top: 0;
+    }
+
+    .product-title {
+        font-size: 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .product-title {
+        font-size: 28px;
+    }
+
+    .product-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .features-list {
+        grid-template-columns: 1fr;
+    }
+
+    .solution-benefits {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-widgets {
+        grid-template-columns: 1fr;
+    }
+
+    .main-navigation a {
+        font-size: 13px;
+        padding: 12px 15px;
+    }
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-center {
+    text-align: center;
+}
+
+.text-red {
+    color: var(--jm-red);
+}
+
+.bg-gray-light {
+    background-color: var(--jm-gray-light);
+}
+
+.margin-bottom-large {
+    margin-bottom: 60px;
+}
+
+.padding-large {
+    padding: 60px 40px;
+}
+
+/* Accessibility */
+.screen-reader-text {
+    clip: rect(1px, 1px, 1px, 1px);
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+}
+
+.screen-reader-text:focus {
+    background-color: #f1f1f1;
+    border-radius: 3px;
+    box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
+    clip: auto !important;
+    color: var(--jm-red);
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    height: auto;
+    left: 5px;
+    line-height: normal;
+    padding: 15px 23px 14px;
+    text-decoration: none;
+    top: 5px;
+    width: auto;
+    z-index: 100000;
+}

@@ -1,0 +1,165 @@
+# JM Equipment Inc. - robots.txt
+# Website: https://jmequipment.com
+# Updated: 2025-11-19
+
+# ============================================
+# GENERAL RULES FOR ALL BOTS
+# ============================================
+User-agent: *
+Allow: /
+
+# ============================================
+# DISALLOW WORDPRESS ADMIN & SYSTEM FOLDERS
+# ============================================
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+Disallow: /wp-includes/
+Disallow: /wp-content/plugins/
+Disallow: /wp-content/cache/
+Disallow: /wp-content/uploads/wpo-plugins-tables-list.json
+
+# ============================================
+# DISALLOW SEARCH & FILTERED PAGES
+# ============================================
+Disallow: /search/
+Disallow: /?s=
+Disallow: /*/feed/
+Disallow: /*/trackback/
+Disallow: /*/attachment/
+Disallow: /author/
+Disallow: /tag/
+Disallow: /?replytocom=
+
+# ============================================
+# DISALLOW PRIVATE & SYSTEM FILES
+# ============================================
+Disallow: /readme.html
+Disallow: /license.txt
+Disallow: /wp-config.php
+Disallow: /*.php$
+Disallow: /cgi-bin/
+Disallow: /wp-*.php
+
+# ============================================
+# ALLOW IMPORTANT FOLDERS
+# ============================================
+Allow: /wp-content/uploads/
+Allow: /wp-content/themes/jm-equipment-child/
+Allow: /*.css$
+Allow: /*.js$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /*.pdf$
+
+# ============================================
+# SPECIFIC BOT RULES
+# ============================================
+
+# Google Bot
+User-agent: Googlebot
+Allow: /
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+Crawl-delay: 1
+
+# Google Image Bot
+User-agent: Googlebot-Image
+Allow: /wp-content/uploads/
+
+# Bing Bot
+User-agent: Bingbot
+Allow: /
+Disallow: /wp-admin/
+Crawl-delay: 1
+
+# Yahoo Bot
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+# DuckDuckGo Bot
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# ============================================
+# BLOCK BAD BOTS (adjust as needed)
+# ============================================
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: 008
+Disallow: /
+
+# ============================================
+# AI BOTS (Optional - comment out if you want AI training)
+# ============================================
+# Uncomment these lines to block AI/LLM training bots:
+
+# User-agent: GPTBot
+# Disallow: /
+
+# User-agent: ChatGPT-User
+# Disallow: /
+
+# User-agent: CCBot
+# Disallow: /
+
+# User-agent: anthropic-ai
+# Disallow: /
+
+# User-agent: Claude-Web
+# Disallow: /
+
+# User-agent: Google-Extended
+# Disallow: /
+
+# ============================================
+# SITEMAPS
+# ============================================
+# XML Sitemap (Rank Math or Yoast SEO generates this)
+Sitemap: https://jmequipment.com/sitemap_index.xml
+
+# Additional sitemaps if using multiple
+# Sitemap: https://jmequipment.com/equipment-sitemap.xml
+# Sitemap: https://jmequipment.com/page-sitemap.xml
+
+# ============================================
+# CRAWL RATE
+# ============================================
+# These are suggestions; actual rate is controlled by Google Search Console
+Crawl-delay: 1
+
+# ============================================
+# NOTES
+# ============================================
+# This robots.txt file:
+# - Allows all major search engines to crawl the site
+# - Blocks access to WordPress admin and system files
+# - Allows access to uploaded media and static assets
+# - Blocks common spam/scraper bots
+# - References XML sitemap for better indexing
+#
+# To verify this file is working:
+# 1. Visit https://jmequipment.com/robots.txt
+# 2. Test with Google Search Console → robots.txt Tester
+# 3. Check for any crawl errors in Search Console
+#
+# Update the sitemap URL after installing Rank Math SEO
+# Monitor crawl stats in Google Search Console
