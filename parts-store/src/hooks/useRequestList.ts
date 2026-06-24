@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { RequestItem } from "@/data/types";
 
-const RKEY = "jme_request_v1";
+const RKEY = "jme_request_v2";
 const EVT = "jme-req";
 
 function read(): RequestItem[] {

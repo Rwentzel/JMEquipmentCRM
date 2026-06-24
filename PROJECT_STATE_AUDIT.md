@@ -10,11 +10,14 @@
 > in this session under `parts-store/`. Figures here describe what is actually in
 > the tree, not the earlier reported state.
 
-> **RFQ-first revision.** The first build exposed budgetary prices publicly. That
-> is being revised to **RFQ-first** (no public prices, no exact quantities, status
-> bands + Request-Quote/Call/Freight/Backorder CTAs). See `IMPLEMENTATION_PLAN_REVISED.md`,
-> `DATA_BOUNDARIES.md`, and `SECURITY_NOTES.md`. References to public prices in §8/§11
-> below describe the **as-built** state being superseded.
+> **RFQ-first revision — DONE.** The first build exposed budgetary prices publicly.
+> It has been refactored to **RFQ-first**: no public prices, no exact quantities,
+> public **status bands** + Request-Quote/Call/Freight/Backorder CTAs, an allowlist
+> sanitizer (`data/sanitize.ts`), a hardened `/api/quote` (honeypot + rate-limit +
+> no-PII-logging + safe ref), `app/robots.ts` (Disallow: /), and security headers.
+> typecheck/lint/build pass; bundle grep confirms no price/quantity leak.
+> Any mention of public prices in §8/§11 below describes the **superseded** as-built
+> state. See `IMPLEMENTATION_PLAN_REVISED.md`, `DATA_BOUNDARIES.md`, `SECURITY_NOTES.md`.
 
 ## 0. Raw reconciliation outputs
 ```

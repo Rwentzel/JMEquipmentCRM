@@ -1,11 +1,11 @@
 import type { Catalog } from "./types";
 
 /**
- * JME Parts Store — public catalog (sandbox demo data).
+ * JME Parts Store — public catalog (sandbox demo data, RFQ-first).
  *
- * Mirrors the design-bundle data, with a `purchasePath` added per item so the
- * UI can route customers to the correct flow (Buy Now / Request Quote / Call /
- * Freight Quote). PUBLIC-SAFE FIELDS ONLY — see data/types.ts.
+ * PUBLIC-SAFE FIELDS ONLY (see data/types.ts and DATA_BOUNDARIES.md):
+ * no price, no cost, no exact quantity, no vendor/OEM/bin/QuickBooks data.
+ * Availability is expressed only as one of the 7 allowed status bands.
  */
 export const catalog: Catalog = {
   contact: {
@@ -24,8 +24,8 @@ export const catalog: Catalog = {
       family: "Core Splitter",
       tag: "consult",
       tagLabel: "Consult",
-      status: "lead",
-      statusLabel: "10–12 Wk Build",
+      statusBand: "Quote Required",
+      action: "request-quote",
       photo: "core-splitter.png",
       fit: "contain",
       blurb:
@@ -36,7 +36,6 @@ export const catalog: Catalog = {
         { k: "Footprint", v: "30 × 30 in" },
         { k: "Wall Capacity", v: "¼–⅝ in" },
       ],
-      purchasePath: "quote-only",
     },
     {
       sku: "GMC-TCII-1650",
@@ -44,8 +43,8 @@ export const catalog: Catalog = {
       family: "Sheeter",
       tag: "blue",
       tagLabel: "Goodstrong · Factory-Direct",
-      status: "lead",
-      statusLabel: "10–14 Wk",
+      statusBand: "Quote Required",
+      action: "request-quote",
       photo: "sheeter-1650.jpg",
       fit: "cover",
       blurb:
@@ -56,7 +55,6 @@ export const catalog: Catalog = {
         { k: "Speed", v: "180 m/min" },
         { k: "Knives", v: "Dual rotary" },
       ],
-      purchasePath: "quote-only",
     },
     {
       sku: "MRS-72",
@@ -64,8 +62,8 @@ export const catalog: Catalog = {
       family: "Rollstand",
       tag: "green",
       tagLabel: "Martin · Rebuilt OEM+",
-      status: "stock",
-      statusLabel: "In Stock",
+      statusBand: "In Stock",
+      action: "request-quote",
       photo: null,
       blurb:
         "Rebuilt to tighter-than-original spec, pressure-tested to 150% of operating.",
@@ -75,7 +73,6 @@ export const catalog: Catalog = {
         { k: "Brake", v: "Pneumatic" },
         { k: "Tolerance", v: "OEM+" },
       ],
-      purchasePath: "request-quote",
     },
     {
       sku: "JME-GC-52",
@@ -83,8 +80,8 @@ export const catalog: Catalog = {
       family: "Cutter",
       tag: "default",
       tagLabel: "New / Rebuilt",
-      status: "lead",
-      statusLabel: "Consult",
+      statusBand: "Quote Required",
+      action: "request-quote",
       photo: null,
       blurb:
         "Precision sheet trimming and ream cutting for finished converting lines.",
@@ -94,7 +91,6 @@ export const catalog: Catalog = {
         { k: "Clamp", v: "Hydraulic" },
         { k: "Safety", v: "Two-hand + light curtain" },
       ],
-      purchasePath: "quote-only",
     },
     {
       sku: "JME-AS-08",
@@ -102,8 +98,8 @@ export const catalog: Catalog = {
       family: "Splicer",
       tag: "default",
       tagLabel: "New / Rebuilt",
-      status: "lead",
-      statusLabel: "Consult",
+      statusBand: "Quote Required",
+      action: "request-quote",
       photo: null,
       blurb:
         "Zero-speed flying splice keeps the web running through roll changes.",
@@ -113,7 +109,6 @@ export const catalog: Catalog = {
         { k: "Roll Dia", v: "to 60 in" },
         { k: "Control", v: "PLC / HMI" },
       ],
-      purchasePath: "quote-only",
     },
     {
       sku: "JME-DC-04",
@@ -121,8 +116,8 @@ export const catalog: Catalog = {
       family: "Decurler",
       tag: "default",
       tagLabel: "JME Build",
-      status: "lead",
-      statusLabel: "Consult",
+      statusBand: "Quote Required",
+      action: "request-quote",
       photo: null,
       blurb:
         "Removes residual roll curl ahead of the sheeter for flatter stacks.",
@@ -132,91 +127,18 @@ export const catalog: Catalog = {
         { k: "Mount", v: "Inline" },
         { k: "Drive", v: "Idler" },
       ],
-      purchasePath: "quote-only",
     },
   ],
   parts: [
-    {
-      sku: "JM108",
-      name: "Knife Bearing — Lower",
-      cat: "Sheeter",
-      price: 142.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "VCS-SK-12",
-      name: "Hydraulic Seal Kit",
-      cat: "Core Splitter",
-      price: 184.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "VCS-BL-04",
-      name: "Splitter Blade Assembly",
-      cat: "Core Splitter",
-      price: 612.0,
-      status: "lead",
-      statusLabel: "2 Wk",
-      purchasePath: "request-quote",
-    },
-    {
-      sku: "D03-PSAB",
-      name: "Directional Control Valve D03",
-      cat: "Hydraulic",
-      price: 268.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "VCS-LS-22",
-      name: "Safety Limit Switch",
-      cat: "Core Splitter",
-      price: 58.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "GS-FLT-10",
-      name: "Return Filter — 10 Micron",
-      cat: "Hydraulic",
-      price: 41.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "MR-CHK-16",
-      name: "Expanding Chuck — 16 in",
-      cat: "Rollstand",
-      price: 96.0,
-      status: "stock",
-      statusLabel: "In Stock",
-      purchasePath: "buy-now",
-    },
-    {
-      sku: "GS-KNF-650",
-      name: "Rotary Knife — 1650mm",
-      cat: "Sheeter",
-      price: 1180.0,
-      status: "lead",
-      statusLabel: "3–4 Wk",
-      purchasePath: "freight-quote",
-    },
-    {
-      sku: "VCS-PMP-3",
-      name: "Hydraulic Pump 3HP",
-      cat: "Core Splitter",
-      price: 1420.0,
-      status: "lead",
-      statusLabel: "2 Wk",
-      purchasePath: "freight-quote",
-    },
+    { sku: "JM108", name: "Knife Bearing — Lower", cat: "Sheeter", statusBand: "In Stock", action: "request-quote" },
+    { sku: "VCS-SK-12", name: "Hydraulic Seal Kit", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
+    { sku: "VCS-BL-04", name: "Splitter Blade Assembly", cat: "Core Splitter", statusBand: "Backorder", action: "backorder" },
+    { sku: "D03-PSAB", name: "Directional Control Valve D03", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
+    { sku: "VCS-LS-22", name: "Safety Limit Switch", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
+    { sku: "GS-FLT-10", name: "Return Filter — 10 Micron", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
+    { sku: "MR-CHK-16", name: "Expanding Chuck — 16 in", cat: "Rollstand", statusBand: "Limited Stock", action: "request-quote" },
+    { sku: "GS-KNF-650", name: "Rotary Knife — 1650mm", cat: "Sheeter", statusBand: "Freight Quote Required", action: "freight-quote" },
+    { sku: "VCS-PMP-3", name: "Hydraulic Pump 3HP", cat: "Core Splitter", statusBand: "Freight Quote Required", action: "freight-quote" },
   ],
   cats: ["All", "Core Splitter", "Sheeter", "Rollstand", "Hydraulic"],
 };

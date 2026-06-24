@@ -2,6 +2,22 @@
    JME Parts Store — storefront page styles (ps-*)
    ============================================================================ */
 
+/* ------------------------------------------------------------ Skip link --- */
+.ps-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: var(--s-2) var(--s-4);
+  background: var(--jme-red);
+  color: #fff;
+  font-weight: var(--fw-bold);
+}
+.ps-skip:focus {
+  left: var(--s-3);
+  top: var(--s-3);
+}
+
 /* --------------------------------------------------------------- Layout --- */
 .ps-wrap {
   max-width: var(--wrap-max);

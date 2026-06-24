@@ -1,8 +1,8 @@
 import type { MachineDetail } from "./types";
 
 /**
- * Per-machine deep content for /machine/[sku]. Sandbox demo data.
- * Base prices are budgetary/indicative only — confirmed in writing before any order.
+ * Per-machine deep content for /machine/[sku]. Sandbox demo data, RFQ-first.
+ * Configurator options carry NO prices — selections build an RFQ spec only.
  */
 export const details: Record<string, MachineDetail> = {
   "JME-VCS12-75": {
@@ -14,23 +14,22 @@ export const details: Record<string, MachineDetail> = {
       { value: "5 HP", label: "230V 1Ø PLC" },
       { html: "13<em>mo</em>", label: "Typical payback" },
     ],
-    badge: { status: "lead", label: "10–12 Week Build" },
+    badge: { band: "Quote Required" },
     gallery: [
       { src: "core-splitter.png", cap: "Full machine — 75″ frame", fit: "contain" },
       { src: "core-splitter-pump.png", cap: "Hydraulic power pack — 5 HP", fit: "contain" },
       { src: "core-splitter-panel.png", cap: "AB Micro 810 control panel", fit: "contain" },
       { src: "split-core.png", cap: "Split core — recyclable", fit: "contain" },
     ],
-    basePrice: 16000,
     options: [
       {
         id: "power",
         label: "Power",
         type: "radio",
         choices: [
-          { v: "5 HP / 230V 1Ø", sku: "P1", price: 0, note: "Standard" },
-          { v: "5 HP / 230V 3Ø", sku: "P3", price: 450 },
-          { v: "5 HP / 460V 3Ø", sku: "P4", price: 650 },
+          { v: "5 HP / 230V 1Ø", sku: "P1", note: "Standard" },
+          { v: "5 HP / 230V 3Ø", sku: "P3" },
+          { v: "5 HP / 460V 3Ø", sku: "P4" },
         ],
       },
       {
@@ -38,8 +37,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Frame height",
         type: "radio",
         choices: [
-          { v: "75 in (12″ head)", sku: "F75", price: 0, note: "Standard" },
-          { v: "90 in (16″ head)", sku: "F90", price: 1850, note: "Extended" },
+          { v: "75 in (12″ head)", sku: "F75", note: "Standard" },
+          { v: "90 in (16″ head)", sku: "F90", note: "Extended" },
         ],
       },
       {
@@ -47,8 +46,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Guarding",
         type: "radio",
         choices: [
-          { v: "Mesh cage + interlock", sku: "G1", price: 0, note: "Standard" },
-          { v: "Light curtain", sku: "G2", price: 1200 },
+          { v: "Mesh cage + interlock", sku: "G1", note: "Standard" },
+          { v: "Light curtain", sku: "G2" },
         ],
       },
       {
@@ -56,10 +55,10 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Crating for freight", sku: "CR", price: 800, note: "Recommended" },
-          { v: "Spare blade set (4)", sku: "SB", price: 612 },
-          { v: "Discharge chute", sku: "DC", price: 480 },
-          { v: "Casters + leveling feet", sku: "CF", price: 320 },
+          { v: "Crating for freight", sku: "CR", note: "Recommended" },
+          { v: "Spare blade set (4)", sku: "SB" },
+          { v: "Discharge chute", sku: "DC" },
+          { v: "Casters + leveling feet", sku: "CF" },
         ],
       },
     ],
@@ -71,10 +70,10 @@ export const details: Record<string, MachineDetail> = {
     ],
     apps: ["Paper mills", "Tissue & towel", "Folding carton", "Film & flexible", "Label & narrow web", "Recycling / MRF"],
     proof: {
-      stat: "$16.5K",
-      label: "Est. annual savings",
+      stat: "~13 mo",
+      label: "Typical payback",
       quote:
-        "Based on 30 cores/day × 250 days/year vs. dumpster haul — a ~13-month payback and $65,751 net over 5 years. Estimates only, not a financial guarantee.",
+        "Based on roughly 30 cores/day over 250 days/year versus dumpster haul — about a 13-month payback. Estimates only, not a financial guarantee; figures confirmed for your operation on request.",
     },
     partsCat: "Core Splitter",
     downloads: [
@@ -92,21 +91,20 @@ export const details: Record<string, MachineDetail> = {
       { value: "180 m/min", label: "Web speed" },
       { html: "±0.4<em>mm</em>", label: "Cutoff accuracy" },
     ],
-    badge: { status: "lead", label: "10–14 Week Lead" },
+    badge: { band: "Quote Required" },
     gallery: [
       { src: "sheeter-1650.jpg", cap: "GMC-TCII 1650 sheeting line", fit: "cover" },
       { src: "sheeter-1600e.jpg", cap: "GMC-TCII 1600-E variant", fit: "cover" },
     ],
-    basePrice: 168000,
     options: [
       {
         id: "width",
         label: "Trim width",
         type: "radio",
         choices: [
-          { v: "1650 mm (65 in)", sku: "W65", price: 0, note: "Standard" },
-          { v: "1600 mm (63 in) E", sku: "W63", price: -3200, note: "Economy" },
-          { v: "1900 mm (75 in)", sku: "W75", price: 12400 },
+          { v: "1650 mm (65 in)", sku: "W65", note: "Standard" },
+          { v: "1600 mm (63 in) E", sku: "W63", note: "Economy" },
+          { v: "1900 mm (75 in)", sku: "W75" },
         ],
       },
       {
@@ -114,8 +112,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Web stations",
         type: "radio",
         choices: [
-          { v: "2 web", sku: "B2", price: 0, note: "Standard" },
-          { v: "4 web", sku: "B4", price: 28500 },
+          { v: "2 web", sku: "B2", note: "Standard" },
+          { v: "4 web", sku: "B4" },
         ],
       },
       {
@@ -123,10 +121,10 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Tidland-style slitters", sku: "SL", price: 6400 },
-          { v: "Motorized decurler", sku: "DC", price: 8900 },
-          { v: "Overlap / shingle table", sku: "OL", price: 5200 },
-          { v: "Non-stop pallet change", sku: "NS", price: 14800 },
+          { v: "Tidland-style slitters", sku: "SL" },
+          { v: "Motorized decurler", sku: "DC" },
+          { v: "Overlap / shingle table", sku: "OL" },
+          { v: "Non-stop pallet change", sku: "NS" },
         ],
       },
     ],
@@ -157,18 +155,17 @@ export const details: Record<string, MachineDetail> = {
       { value: "OEM+", label: "Rebuild spec" },
       { html: "150<em>%</em>", label: "Test pressure" },
     ],
-    badge: { status: "stock", label: "In Stock / Rebuilt to Order" },
+    badge: { band: "In Stock" },
     gallery: [],
-    basePrice: 24500,
     options: [
       {
         id: "chuck",
         label: "Chucks",
         type: "radio",
         choices: [
-          { v: "Ribbed expanding", sku: "CR", price: 0, note: "Standard" },
-          { v: "Mechanical expanding", sku: "CM", price: 1450 },
-          { v: "Air-shaft", sku: "CA", price: 2600 },
+          { v: "Ribbed expanding", sku: "CR", note: "Standard" },
+          { v: "Mechanical expanding", sku: "CM" },
+          { v: "Air-shaft", sku: "CA" },
         ],
       },
       {
@@ -176,8 +173,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Brake",
         type: "radio",
         choices: [
-          { v: "Pneumatic", sku: "BP", price: 0, note: "Standard" },
-          { v: "Magnetic-particle", sku: "BM", price: 3200 },
+          { v: "Pneumatic", sku: "BP", note: "Standard" },
+          { v: "Magnetic-particle", sku: "BM" },
         ],
       },
       {
@@ -185,9 +182,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Powered web guide", sku: "WG", price: 4200 },
-          { v: "Load/unload arms", sku: "LA", price: 3800 },
-          { v: "Custom paint to brand color", sku: "PT", price: 650 },
+          { v: "Powered web guide", sku: "WG" },
+          { v: "Load/unload arms", sku: "LA" },
+          { v: "Custom paint to brand color", sku: "PT" },
         ],
       },
     ],
@@ -216,17 +213,16 @@ export const details: Record<string, MachineDetail> = {
       { value: "PLC", label: "Programmable gauge" },
       { value: "2-hand", label: "Safety + curtain" },
     ],
-    badge: { status: "lead", label: "Consult / Quote" },
+    badge: { band: "Quote Required" },
     gallery: [],
-    basePrice: 38500,
     options: [
       {
         id: "width",
         label: "Cut width",
         type: "radio",
         choices: [
-          { v: "42 in", sku: "C42", price: 0, note: "Standard" },
-          { v: "52 in", sku: "C52", price: 7800 },
+          { v: "42 in", sku: "C42", note: "Standard" },
+          { v: "52 in", sku: "C52" },
         ],
       },
       {
@@ -234,9 +230,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Air table", sku: "AT", price: 2400 },
-          { v: "Backgauge memory", sku: "BG", price: 1900 },
-          { v: "Side tables", sku: "ST", price: 1500 },
+          { v: "Air table", sku: "AT" },
+          { v: "Backgauge memory", sku: "BG" },
+          { v: "Side tables", sku: "ST" },
         ],
       },
     ],
@@ -264,17 +260,16 @@ export const details: Record<string, MachineDetail> = {
       { value: "Zero-speed", label: "Splice type" },
       { value: "to 60 in", label: "Roll diameter" },
     ],
-    badge: { status: "lead", label: "Consult / Quote" },
+    badge: { band: "Quote Required" },
     gallery: [],
-    basePrice: 142000,
     options: [
       {
         id: "width",
         label: "Web width",
         type: "radio",
         choices: [
-          { v: "1650 mm", sku: "W65", price: 0, note: "Standard" },
-          { v: "1900 mm", sku: "W75", price: 9400 },
+          { v: "1650 mm", sku: "W65", note: "Standard" },
+          { v: "1900 mm", sku: "W75" },
         ],
       },
       {
@@ -282,9 +277,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Turret unwind", sku: "TU", price: 18500 },
-          { v: "Splice-detect sensor", sku: "SD", price: 2200 },
-          { v: "Dancer tension control", sku: "DT", price: 6800 },
+          { v: "Turret unwind", sku: "TU" },
+          { v: "Splice-detect sensor", sku: "SD" },
+          { v: "Dancer tension control", sku: "DT" },
         ],
       },
     ],
@@ -312,17 +307,16 @@ export const details: Record<string, MachineDetail> = {
       { value: "Inline", label: "Mounting" },
       { value: "Adj.", label: "Decurl bars" },
     ],
-    badge: { status: "lead", label: "JME Build / Quote" },
+    badge: { band: "Quote Required" },
     gallery: [],
-    basePrice: 12800,
     options: [
       {
         id: "width",
         label: "Web width",
         type: "radio",
         choices: [
-          { v: "1650 mm", sku: "W65", price: 0, note: "Standard" },
-          { v: "1900 mm", sku: "W75", price: 2600 },
+          { v: "1650 mm", sku: "W65", note: "Standard" },
+          { v: "1900 mm", sku: "W75" },
         ],
       },
       {
@@ -330,8 +324,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Quick-release bars", sku: "QR", price: 900 },
-          { v: "Operator scale / indicator", sku: "SC", price: 600 },
+          { v: "Quick-release bars", sku: "QR" },
+          { v: "Operator scale / indicator", sku: "SC" },
         ],
       },
     ],

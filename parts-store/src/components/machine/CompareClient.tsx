@@ -1,22 +1,20 @@
 "use client";
 
-import { Badge, Button, Diamond, Eyebrow, Tag, Toast } from "@/components/ui";
+import { Button, Diamond, Eyebrow, StatusBand, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
-import { usd } from "@/lib/utils";
-import type { TagTone } from "@/data/types";
+import { actionLabel } from "@/lib/utils";
+import type { RfqAction, StatusBand as Band, TagTone } from "@/data/types";
 
 export interface CompareRow {
   sku: string;
   name: string;
   family: string;
-  leadTime: string;
-  basePrice: number | null;
+  statusBand: Band;
   tagLabel: string;
   tag: TagTone;
-  spec1Label: string;
+  action: RfqAction;
   spec1: string;
-  spec2Label: string;
   spec2: string;
   power: string;
   apps: string;
@@ -33,17 +31,11 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
   const { add, count } = useRequestList();
   const { message, show } = useToast();
 
-  const attrRows: { label: string; values: string[]; mono?: boolean }[] = [
+  const attrRows: { label: string; values: string[] }[] = [
     { label: "Family", values: rows.map((r) => r.family) },
-    { label: "Availability", values: rows.map((r) => r.leadTime) },
-    {
-      label: "Budgetary base",
-      values: rows.map((r) => (r.basePrice == null ? "Quote" : usd(r.basePrice))),
-      mono: true,
-    },
-    { label: "Key spec", values: rows.map((r) => `${r.spec1}`), mono: true },
-    { label: "Secondary", values: rows.map((r) => `${r.spec2}`), mono: true },
-    { label: "Power / rate", values: rows.map((r) => r.power), mono: true },
+    { label: "Key spec", values: rows.map((r) => r.spec1) },
+    { label: "Secondary", values: rows.map((r) => r.spec2) },
+    { label: "Power / rate", values: rows.map((r) => r.power) },
     { label: "Applications", values: rows.map((r) => r.apps) },
   ];
 
@@ -72,8 +64,8 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
           <Eyebrow>Compare the line</Eyebrow>
           <h1 className="cmp-h1">Machine comparison</h1>
           <p style={{ color: "var(--paper-dim)", maxWidth: "70ch" }}>
-            Budgetary base prices are indicative only and exclude options, freight, and tax. Every machine is quoted
-            individually and confirmed in writing.
+            Every machine is quoted individually. Pricing, freight, and lead time are confirmed in writing on your
+            request — not shown online.
           </p>
         </div>
       </div>
@@ -84,7 +76,7 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
             <tr>
               <th />
               {rows.map((r) => (
-                <th key={r.sku}>
+                <th key={r.sku} scope="col">
                   <h3>{r.name}</h3>
                   <div className="cmp-sku">{r.sku}</div>
                   <div style={{ marginTop: 6 }}>
@@ -95,14 +87,22 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
             </tr>
           </thead>
           <tbody>
+            <tr>
+              <td className="cmp-attr">Availability</td>
+              {rows.map((r) => (
+                <td key={r.sku} className="cmp-val">
+                  <StatusBand band={r.statusBand} />
+                </td>
+              ))}
+            </tr>
             {attrRows.map((ar) => {
               const flags = diffFlags(ar.values);
               return (
                 <tr key={ar.label}>
                   <td className="cmp-attr">{ar.label}</td>
                   {ar.values.map((v, i) => (
-                    <td key={i} className={"cmp-val" + (ar.mono ? "" : "") + (flags[i] ? " diff" : "")}>
-                      {ar.label === "Availability" ? <Badge status="default">{v}</Badge> : v}
+                    <td key={i} className={"cmp-val" + (flags[i] ? " diff" : "")}>
+                      {v}
                     </td>
                   ))}
                 </tr>
@@ -118,11 +118,11 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
                     size="sm"
                     block
                     onClick={() => {
-                      add({ sku: r.sku, name: r.name, price: null });
+                      add({ sku: r.sku, name: r.name });
                       show("Added to request");
                     }}
                   >
-                    Add to request
+                    {actionLabel(r.action)}
                   </Button>
                 </td>
               ))}
@@ -131,7 +131,7 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
         </table>
       </div>
 
-      <div className={"ps-toastwrap" + (message ? " show" : "")}>
+      <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
         {message && <Toast tone="green">{message}</Toast>}
       </div>
     </div>

@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Button, Callout, DataPlate, Diamond, Eyebrow, SmartImg, SpecTable, StatBlock, Tag, Toast } from "@/components/ui";
+import { Button, Callout, DataPlate, Diamond, Eyebrow, SmartImg, SpecTable, StatBlock, StatusBand, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useScrollSpy } from "@/hooks/useScrollSpy";
-import { usd, asset } from "@/lib/utils";
+import { asset, actionLabel } from "@/lib/utils";
 import type { Machine, MachineDetail, Part } from "@/data/types";
 
 const SECTIONS: [string, string][] = [
@@ -42,19 +42,19 @@ export function MachineDetailClient({
   });
   const [checks, setChecks] = useState<Set<string>>(new Set());
 
-  const total = useMemo(() => {
-    let t = detail.basePrice;
+  // Build a human list of the current selection (no prices — feeds the RFQ).
+  const selection = useMemo(() => {
+    const lines: string[] = [];
     detail.options.forEach((o) => {
       if (o.type === "radio") {
         const sel = o.choices.find((c) => c.sku === radio[o.id]);
-        if (sel) t += sel.price;
+        if (sel) lines.push(`${o.label}: ${sel.v}`);
       } else {
-        o.choices.forEach((c) => {
-          if (checks.has(o.id + ":" + c.sku)) t += c.price;
-        });
+        const picked = o.choices.filter((c) => checks.has(o.id + ":" + c.sku));
+        if (picked.length) lines.push(`${o.label}: ${picked.map((c) => c.v).join(", ")}`);
       }
     });
-    return t;
+    return lines;
   }, [detail, radio, checks]);
 
   const jump = (id: string) => {
@@ -63,7 +63,7 @@ export function MachineDetailClient({
   };
 
   const addMachine = () => {
-    add({ sku: machine.sku, name: machine.name, price: null });
+    add({ sku: machine.sku, name: machine.name });
     show("Added to request");
   };
 
@@ -123,14 +123,14 @@ export function MachineDetailClient({
             </div>
             <div className="md-hero__cta">
               <Button size="lg" onClick={addMachine}>
-                Add to request
+                {actionLabel(machine.action)}
               </Button>
               <Button size="lg" variant="ghost" onClick={() => jump("configure")}>
                 Configure
               </Button>
             </div>
             <div className="md-hero__meta">
-              <Badge status={detail.badge.status}>{detail.badge.label}</Badge>
+              <StatusBand band={detail.badge.band} />
             </div>
           </div>
           <div className="md-hero__photo">
@@ -185,8 +185,8 @@ export function MachineDetailClient({
                             <span>{c.v}</span>
                             {c.note && <span className="md-choice__note">{c.note}</span>}
                           </div>
-                          <span className="md-choice__price">
-                            {c.price === 0 ? "Included" : (c.price > 0 ? "+" : "−") + usd(Math.abs(c.price))}
+                          <span className="md-choice__price" aria-hidden>
+                            {on ? "✓" : ""}
                           </span>
                         </div>
                       );
@@ -198,20 +198,28 @@ export function MachineDetailClient({
             <div className="md-config__summary">
               <div className="jme-card">
                 <div className="jme-card__hd">
-                  <h3>Budgetary estimate</h3>
+                  <h3>Your configuration</h3>
+                  <StatusBand band={detail.badge.band} />
                 </div>
                 <div className="jme-card__body">
-                  <div className="md-config__total">
-                    <span>Configured price</span>
-                    <b className="jme-mono">{usd(total)}</b>
-                  </div>
-                  <Callout title="Budgetary only">
-                    Indicative configuration price for planning. Final price, freight, and lead time are confirmed in
-                    writing by the parts desk — this is not a binding quote.
+                  {selection.length === 0 ? (
+                    <p style={{ color: "var(--paper-dim)", fontSize: "var(--t-sm)" }}>
+                      Standard configuration. Select options to refine your request.
+                    </p>
+                  ) : (
+                    <ul className="md-config__list">
+                      {selection.map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                  )}
+                  <Callout title="Quoted individually">
+                    Pricing, freight, and lead time are confirmed in writing by the parts desk. Add your configuration
+                    to the request list to get a firm written quotation.
                   </Callout>
                   <div style={{ marginTop: 16 }}>
                     <Button block onClick={addMachine}>
-                      Add to request
+                      {actionLabel(machine.action)}
                     </Button>
                   </div>
                 </div>
@@ -286,7 +294,6 @@ export function MachineDetailClient({
                 { key: "sku", label: "Part #" },
                 { key: "name", label: "Description" },
                 { key: "status", label: "Availability" },
-                { key: "price", label: "Budgetary", align: "right" },
                 { key: "act", label: "", align: "right" },
               ]}
             >
@@ -297,19 +304,18 @@ export function MachineDetailClient({
                   </td>
                   <td>{p.name}</td>
                   <td>
-                    <Badge status={p.status}>{p.statusLabel}</Badge>
+                    <StatusBand band={p.statusBand} />
                   </td>
-                  <td className="r">{p.price == null ? "Quote" : usd(p.price)}</td>
                   <td className="r">
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => {
-                        add({ sku: p.sku, name: p.name, price: p.price });
+                        add({ sku: p.sku, name: p.name });
                         show("Added to request");
                       }}
                     >
-                      Add
+                      {actionLabel(p.action)}
                     </Button>
                   </td>
                 </tr>

@@ -9,5 +9,6 @@ export { Field } from "./Field";
 export { SmartImg } from "./SmartImg";
 export { SpecTable } from "./SpecTable";
 export { StatBlock } from "./StatBlock";
+export { StatusBand } from "./StatusBand";
 export { Tag } from "./Tag";
 export { Toast } from "./Toast";

@@ -9,14 +9,14 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ---
 
-### 0. RFQ-first gates (new — must all hold)
-- ⬜ No public sell prices anywhere (parts grid, request list, compare, configurator)
-- ⬜ No exact inventory quantities — only the 7 status bands
-- ⬜ Status bands limited to: In Stock · Limited Stock · Backorder · Call for Availability · Quote Required · Freight Quote Required · Discontinued / Contact JM
-- ⬜ RFQ-first CTAs (Request Quote / Call / Freight / Backorder / Contact); no public Buy Now
-- ⬜ Quote API: honeypot + rate-limit + no PII logging + safe ref + generic responses
-- ⬜ `app/robots.ts` (Disallow: /) + security headers configured
-- ⬜ Build-output grep clean (no `$`/price/cost/margin/vendor/qty leaks)
+### 0. RFQ-first gates (implemented + verified in sandbox)
+- ✅ No public sell prices anywhere (parts grid, request list, compare, configurator)
+- ✅ No exact inventory quantities — only the 7 status bands (`StatusBand` component)
+- ✅ Status bands limited to: In Stock · Limited Stock · Backorder · Call for Availability · Quote Required · Freight Quote Required · Discontinued / Contact JM
+- ✅ RFQ-first CTAs (Request Quote / Call / Freight / Backorder / Contact); no public Buy Now
+- ✅ Quote API: honeypot + rate-limit + no PII logging + safe ref + generic responses (smoke-tested: 200/422/429/silent-honeypot)
+- ✅ `app/robots.ts` (Disallow: /) + security headers in `next.config.mjs`
+- ✅ Build-output grep clean (old price numbers absent; "price" only in prose + sanitizer guard list)
 
 ### 1. Data sanitation
 - ✅ Data model excludes vendor/cost/margin/bin/supplier/QuickBooks fields

@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import {
-  Badge,
   Button,
   DataPlate,
   Diamond,
@@ -10,6 +9,7 @@ import {
   Field,
   SmartImg,
   StatBlock,
+  StatusBand,
   Tag,
   Toast,
 } from "@/components/ui";
@@ -17,10 +17,16 @@ import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useReveal } from "@/hooks/useReveal";
 import { catalog } from "@/data/catalog";
+import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
-import { usd, asset } from "@/lib/utils";
+import { asset, actionLabel } from "@/lib/utils";
 
-const D = catalog;
+const D = {
+  contact: catalog.contact,
+  machines: catalog.machines.map(toPublicMachine),
+  parts: catalog.parts.map(toPublicPart),
+  cats: catalog.cats,
+};
 
 /* ---------------------------------------------------------------- Photo --- */
 function MachinePhoto({ m }: { m: Machine }) {
@@ -41,7 +47,7 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
   return (
     <nav className="ps-nav">
       <div className="ps-nav__in">
-        <a className="brand" onClick={() => onJump("top")}>
+        <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); onJump("top"); }}>
           <Diamond size={30} />
           <span>
             <b>JM Equipment</b>
@@ -49,11 +55,14 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
           </span>
         </a>
         <div className="ps-nav__links">
-          {links.map((l) => (
-            <a key={l} onClick={() => onJump(l.toLowerCase().replace(/[^a-z]/g, ""))}>
-              {l}
-            </a>
-          ))}
+          {links.map((l) => {
+            const id = l.toLowerCase().replace(/[^a-z]/g, "");
+            return (
+              <a key={l} href={`#${id}`} onClick={(e) => { e.preventDefault(); onJump(id); }}>
+                {l}
+              </a>
+            );
+          })}
           <a href="/compare">Compare</a>
         </div>
         <Button size="sm" onClick={() => onJump("request")}>
@@ -110,7 +119,7 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
 }
 
 /* ------------------------------------------------------------- Machines --- */
-function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string; price: number | null }) => void }) {
+function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   return (
     <section id="machines" className="ps-sec">
       <div className="ps-wrap">
@@ -120,7 +129,7 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string; price: n
             <h2 className="jme-h2">Machines</h2>
           </div>
           <p>
-            Factory-direct sheeters, rebuilt rollstands, and the hydraulic core splitter. Machine pricing is quoted
+            Factory-direct sheeters, rebuilt rollstands, and the hydraulic core splitter. Every machine is quoted
             individually — add to your request to start.
             <a className="ps-comparelink" href="/compare">
               Compare the full line →
@@ -140,13 +149,13 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string; price: n
                 <DataPlate title={m.name} sku={m.sku} rows={m.specs} />
                 <p className="ps-machine__blurb">{m.blurb}</p>
                 <div className="ps-machine__foot">
-                  <Badge status={m.status}>{m.statusLabel}</Badge>
+                  <StatusBand band={m.statusBand} />
                   <div className="ps-machine__acts">
                     <a className="ps-machine__link" href={`/machine/${m.sku}`}>
                       View machine →
                     </a>
-                    <Button size="sm" onClick={() => onAdd({ sku: m.sku, name: m.name, price: null })}>
-                      Add
+                    <Button size="sm" onClick={() => onAdd({ sku: m.sku, name: m.name })}>
+                      {actionLabel(m.action)}
                     </Button>
                   </div>
                 </div>
@@ -197,7 +206,7 @@ function Industries() {
 }
 
 /* ----------------------------------------------------------------- Parts --- */
-function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string; price: number | null }) => void }) {
+function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
   const results = useMemo<Part[]>(
@@ -218,8 +227,8 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string; price: numb
             <h2 className="jme-h2">Order parts</h2>
           </div>
           <p>
-            98% of stocked parts ship same day from Sturgis. Search by number or description — can&apos;t find it? Send a
-            custom request and the desk answers in writing.
+            98% of stocked parts ship same day from Sturgis. Search by number or description — pricing and lead time
+            are confirmed in writing on your request.
           </p>
         </div>
         <div className="ps-search">
@@ -229,11 +238,17 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string; price: numb
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search — e.g. JM108, blade, filter, valve"
+            aria-label="Search parts"
           />
         </div>
-        <div className="ps-chips">
+        <div className="ps-chips" role="group" aria-label="Filter by category">
           {D.cats.map((c) => (
-            <button key={c} className={"ps-chip" + (c === cat ? " on" : "")} onClick={() => setCat(c)}>
+            <button
+              key={c}
+              className={"ps-chip" + (c === cat ? " on" : "")}
+              aria-pressed={c === cat}
+              onClick={() => setCat(c)}
+            >
               {c}
             </button>
           ))}
@@ -246,14 +261,13 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string; price: numb
             <div className="ps-part" key={p.sku}>
               <div className="ps-part__top">
                 <span className="jme-mono ps-part__sku">{p.sku}</span>
-                <Badge status={p.status}>{p.statusLabel}</Badge>
+                <StatusBand band={p.statusBand} />
               </div>
               <div className="ps-part__name">{p.name}</div>
               <Tag>{p.cat}</Tag>
               <div className="ps-part__foot">
-                <span className="ps-part__price jme-mono">{p.price == null ? "Quote" : usd(p.price)}</span>
-                <Button size="sm" variant="ghost" onClick={() => onAdd({ sku: p.sku, name: p.name, price: p.price })}>
-                  Add
+                <Button size="sm" variant="ghost" block onClick={() => onAdd({ sku: p.sku, name: p.name })}>
+                  {actionLabel(p.action)}
                 </Button>
               </div>
             </div>
@@ -302,6 +316,8 @@ interface ContactForm {
   email: string;
   phone: string;
   serial: string;
+  /** Honeypot — must stay empty; bots fill it. */
+  website: string;
 }
 
 function Request({
@@ -321,9 +337,6 @@ function Request({
   onSend: () => void;
   onPrint: () => void;
 }) {
-  const lines = items.filter((i) => i.price != null);
-  const subtotal = lines.reduce((s, i) => s + (i.price as number) * i.qty, 0);
-  const consult = items.filter((i) => i.price == null);
   const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact({ ...contact, [k]: e.target.value });
 
@@ -345,29 +358,23 @@ function Request({
             <div className="jme-card__hd">
               <h3>Who should we answer?</h3>
               <span className="jme-mono" style={{ fontSize: 12, color: "var(--jme-gold)" }}>
-                R-260622-1
+                RFQ
               </span>
             </div>
             <div className="jme-card__body">
               <div className="ps-fgrid">
-                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} />
-                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} />
-                <Field
-                  label="Email"
-                  type="email"
-                  placeholder="you@company.com"
-                  value={contact.email}
-                  onChange={set("email")}
-                />
+                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required />
+                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required />
+                <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required />
                 <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
               </div>
               <div style={{ marginTop: 14 }}>
-                <Field
-                  label="Sheeter serial number"
-                  placeholder="From the machine dataplate"
-                  value={contact.serial}
-                  onChange={set("serial")}
-                />
+                <Field label="Machine serial number" hint="optional" placeholder="From the machine dataplate" value={contact.serial} onChange={set("serial")} />
+              </div>
+              {/* Honeypot: visually hidden, must remain empty */}
+              <div aria-hidden style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+                <label htmlFor="ps-website">Website</label>
+                <input id="ps-website" name="website" tabIndex={-1} autoComplete="off" value={contact.website} onChange={set("website")} />
               </div>
             </div>
           </div>
@@ -390,31 +397,15 @@ function Request({
                       type="number"
                       min={1}
                       value={i.qty}
+                      aria-label={`Quantity for ${i.sku}`}
                       onChange={(e) => onQty(i.sku, Math.max(1, Number(e.target.value) || 1))}
                     />
-                    <span className="ps-line__price jme-mono">
-                      {i.price == null ? "Quote" : usd(i.price * i.qty)}
-                    </span>
-                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label="Remove">
+                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
                       ×
                     </button>
                   </div>
                 </div>
               ))}
-              {items.length > 0 && (
-                <div className="ps-tot">
-                  <div className="ps-tot__row">
-                    <span>Parts subtotal (budgetary)</span>
-                    <b className="jme-mono">{usd(subtotal)}</b>
-                  </div>
-                  {consult.length > 0 && (
-                    <div className="ps-tot__row">
-                      <span>Machines</span>
-                      <b style={{ color: "var(--jme-gold)" }}>{consult.length} quoted</b>
-                    </div>
-                  )}
-                </div>
-              )}
               <div className="ps-actions">
                 <Button onClick={onSend} disabled={items.length === 0}>
                   Send request
@@ -424,8 +415,8 @@ function Request({
                 </Button>
               </div>
               <p className="ps-fine">
-                Catalog prices are budgetary, confirmed in writing before processing · No minimum order · FOB Sturgis, MI
-                · Tax per ship-to jurisdiction on final invoice.
+                Quotations confirmed in writing before processing · No minimum order · FOB Sturgis, MI · Tax per ship-to
+                jurisdiction on final invoice. Pricing and availability are provided by quotation, not shown online.
               </p>
             </div>
           </div>
@@ -517,10 +508,10 @@ interface Tw {
 function Tweaks({ open, onClose, tw, setTw }: { open: boolean; onClose: () => void; tw: Tw; setTw: (t: Tw) => void }) {
   if (!open) return null;
   return (
-    <div className="ps-tweaks">
+    <div className="ps-tweaks" role="dialog" aria-label="Display tweaks">
       <div className="ps-tweaks__hd">
         <b>Tweaks</b>
-        <button onClick={onClose}>×</button>
+        <button onClick={onClose} aria-label="Close tweaks">×</button>
       </div>
       <div className="ps-tweaks__row">
         <label>Accent</label>
@@ -529,6 +520,7 @@ function Tweaks({ open, onClose, tw, setTw }: { open: boolean; onClose: () => vo
             <button
               key={n}
               title={n}
+              aria-label={`Accent ${n}`}
               className={tw.accent === c ? "on" : ""}
               style={{ background: c }}
               onClick={() => setTw({ ...tw, accent: c })}
@@ -566,11 +558,17 @@ export default function StorefrontPage() {
   const { message, show } = useToast();
   const [twOpen, setTwOpen] = useState(false);
   const [tw, setTw] = useState<Tw>({ accent: "#A8353A", density: "Comfortable", stats: "Show" });
-  const [contact, setContact] = useState<ContactForm>({ company: "", name: "", email: "", phone: "", serial: "" });
+  const [contact, setContact] = useState<ContactForm>({
+    company: "",
+    name: "",
+    email: "",
+    phone: "",
+    serial: "",
+    website: "",
+  });
 
   useReveal();
 
-  // Apply tweaks (accent + density) to the document.
   if (typeof document !== "undefined") {
     const r = document.documentElement.style;
     if (tw.accent !== "#A8353A") r.setProperty("--jme-red", tw.accent);
@@ -585,7 +583,7 @@ export default function StorefrontPage() {
     if (el) window.scrollTo({ top: id === "top" ? 0 : el.offsetTop - 70, behavior: "smooth" });
   };
 
-  const addItem = (it: { sku: string; name: string; price: number | null }) => {
+  const addItem = (it: { sku: string; name: string }) => {
     add(it);
     show("Added to request");
   };
@@ -598,7 +596,8 @@ export default function StorefrontPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ contact, items }),
       });
-      const data = await res.json();
+      // Generic handling — the API returns generic messages by design.
+      const data = await res.json().catch(() => ({}));
       show(res.ok ? "Request sent — desk replies in writing" : data.error || "Check the form and try again");
     } catch {
       show("Could not send — try again");
@@ -607,6 +606,7 @@ export default function StorefrontPage() {
 
   return (
     <div>
+      <a href="#machines" className="ps-skip">Skip to content</a>
       <Nav count={count} onJump={jump} />
       <Hero onJump={jump} statsOn={tw.stats === "Show"} />
       <div className="jme-cutline" />
@@ -625,11 +625,13 @@ export default function StorefrontPage() {
       />
       <Trust />
       <Footer />
-      <button className="ps-tweaksbtn" onClick={() => setTwOpen(!twOpen)} aria-label="Tweaks">
+      <button className="ps-tweaksbtn" onClick={() => setTwOpen(!twOpen)} aria-label="Display tweaks">
         ⚙
       </button>
       <Tweaks open={twOpen} onClose={() => setTwOpen(false)} tw={tw} setTw={setTw} />
-      <div className={"ps-toastwrap" + (message ? " show" : "")}>{message && <Toast tone="green">{message}</Toast>}</div>
+      <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
+        {message && <Toast tone="green">{message}</Toast>}
+      </div>
     </div>
   );
 }

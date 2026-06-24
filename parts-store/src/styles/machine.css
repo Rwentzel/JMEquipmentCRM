@@ -299,6 +299,19 @@
   color: var(--paper);
 }
 
+.md-config__list {
+  margin: 0 0 var(--s-4);
+  padding-left: var(--s-5);
+  display: grid;
+  gap: 6px;
+  color: var(--paper);
+  font-size: var(--t-sm);
+}
+
+.md-config__list li::marker {
+  color: var(--jme-red-bright);
+}
+
 /* ---- How it works ---- */
 .md-step {
   display: grid;

@@ -1,24 +1,37 @@
 /**
- * JME Parts Store — data contracts.
+ * JME Parts Store — data contracts (RFQ-first).
  *
- * DATA PROTECTION: these interfaces are deliberately limited to PUBLIC,
- * customer-safe fields. There is intentionally no field for vendor name,
- * vendor part number, cost, margin, bin location, supplier notes, or
- * QuickBooks references. Internal-only data must never enter these types.
+ * DATA PROTECTION: these interfaces carry PUBLIC, customer-safe fields only.
+ * There is intentionally NO field for sell price, cost, margin, exact quantity,
+ * vendor name, vendor part number, OEM cross-reference, internal alias,
+ * bin location, supplier notes, or QuickBooks references. See DATA_BOUNDARIES.md.
  */
 
 export type BadgeStatus = "default" | "stock" | "lead" | "out" | "info";
 export type TagTone = "default" | "consult" | "blue" | "red" | "green";
 
-/** A purchase path determines how a customer can transact on an item. */
-export type PurchasePath =
-  | "buy-now"
-  | "request-quote"
-  | "call"
-  | "freight-quote"
-  | "quote-only"
-  | "backorder"
-  | "discontinued";
+/** The ONLY availability labels allowed on public pages. No exact counts, ever. */
+export type StatusBand =
+  | "In Stock"
+  | "Limited Stock"
+  | "Backorder"
+  | "Call for Availability"
+  | "Quote Required"
+  | "Freight Quote Required"
+  | "Discontinued / Contact JM";
+
+export const STATUS_BANDS: StatusBand[] = [
+  "In Stock",
+  "Limited Stock",
+  "Backorder",
+  "Call for Availability",
+  "Quote Required",
+  "Freight Quote Required",
+  "Discontinued / Contact JM",
+];
+
+/** RFQ-first action that drives the public CTA. No public "Buy Now". */
+export type RfqAction = "request-quote" | "call" | "freight-quote" | "backorder" | "contact";
 
 export interface SpecRow {
   k: string;
@@ -28,19 +41,16 @@ export interface SpecRow {
 export interface Machine {
   sku: string;
   name: string;
-  /** Machine family / category, customer-safe. */
-  family?: string;
+  family: string;
   tag: TagTone;
   tagLabel: string;
-  status: BadgeStatus;
-  statusLabel: string;
+  statusBand: StatusBand;
+  action: RfqAction;
   /** Filename under /public/images, or null → branded placeholder. */
   photo: string | null;
   fit?: "contain" | "cover";
   blurb: string;
   specs: SpecRow[];
-  /** How a customer can transact for this machine. */
-  purchasePath: PurchasePath;
 }
 
 export interface Part {
@@ -48,11 +58,8 @@ export interface Part {
   name: string;
   /** Machine-family category used for filtering. */
   cat: string;
-  /** Budgetary price; null means "Call for Price"/quote-only. */
-  price: number | null;
-  status: BadgeStatus;
-  statusLabel: string;
-  purchasePath: PurchasePath;
+  statusBand: StatusBand;
+  action: RfqAction;
 }
 
 export interface Contact {
@@ -72,20 +79,19 @@ export interface Catalog {
   cats: string[];
 }
 
-/** A line item on the customer's request list (localStorage-backed). */
+/** A line item on the customer's RFQ list (localStorage-backed). No price. */
 export interface RequestItem {
   sku: string;
   name: string;
-  price: number | null;
   qty: number;
 }
 
 /* ---- Machine detail (deep content for /machine/[sku]) ---- */
+/* Configurator options carry NO prices — selecting them builds an RFQ spec. */
 
 export interface DetailChoice {
   v: string;
   sku: string;
-  price: number;
   note?: string;
 }
 
@@ -129,10 +135,8 @@ export interface MachineDetail {
   tagline: string;
   lead: string;
   heroStats: DetailStat[];
-  badge: { status: BadgeStatus; label: string };
+  badge: { band: StatusBand };
   gallery: GalleryItem[];
-  /** Budgetary base price (sandbox, indicative only). */
-  basePrice: number;
   options: DetailOption[];
   how: HowStep[];
   apps: string[];
