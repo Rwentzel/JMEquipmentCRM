@@ -35,8 +35,9 @@ function MachinePhoto({ m }: { m: Machine }) {
   }
   return (
     <div className="ps-machine__ph">
-      <Diamond size={48} />
-      <span>Photo on request</span>
+      <Diamond size={44} />
+      <span className="ps-machine__ph-fam">{m.family ?? "JM Equipment"}</span>
+      <span className="ps-machine__ph-note">Photo on request</span>
     </div>
   );
 }
