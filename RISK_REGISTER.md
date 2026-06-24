@@ -10,8 +10,10 @@
 | Risk | Severity | Status | Why it matters | Mitigation | Block production? |
 |------|----------|--------|----------------|------------|-------------------|
 | Vendor / cost / margin / bin / supplier / QuickBooks fields leaking to the public tier | **Critical** | **Mitigated** | Exposes proprietary sourcing and margin; direct competitive/financial harm | Data model (`data/types.ts`) contains no such fields; nothing internal exists in the repo to leak. Keep an allowlist discipline on any future data import. | Yes (must stay true) |
-| Budgetary machine price mistaken for a firm quote | High | Partially mitigated | Pricing/fulfillment liability | Labeled "budgetary, confirmed in writing" at every price; needs legal sign-off on wording | Yes |
-| Future data import re-introducing internal columns | High | Open | Re-opens the critical risk above | Add a build-time allowlist sanitizer + test before any real catalog import | Yes |
+| **Public sell-price exposure** (RFQ-first violation) | **Critical** | **Mitigated by removal (planned)** | RFQ-first forbids public prices; pricing-policy and fulfillment liability | Remove all public prices; status bands + RFQ CTAs only; `sanitize.ts` allowlist + build grep for `$`/price tokens | Yes |
+| **Exact inventory quantity exposure** | High | Mitigated by status bands (planned) | Competitive signal; stock volatility creates disputes | Show only the 7 status bands; never a count | Yes |
+| **OEM cross-reference exposure (unapproved)** | High | Default-hidden (planned) | Reveals sourcing/IP | Hidden by default; shown only if explicitly approved per item | Yes |
+| Future data import re-introducing internal columns | High | Open | Re-opens the critical risks above | Build-time allowlist sanitizer + forbidden-key guard + bundle grep before any real catalog import | Yes |
 
 ## 2. Quote / order workflow risk
 | Risk | Severity | Status | Why it matters | Mitigation | Block production? |

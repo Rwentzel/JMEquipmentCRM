@@ -9,9 +9,18 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ---
 
+### 0. RFQ-first gates (new — must all hold)
+- ⬜ No public sell prices anywhere (parts grid, request list, compare, configurator)
+- ⬜ No exact inventory quantities — only the 7 status bands
+- ⬜ Status bands limited to: In Stock · Limited Stock · Backorder · Call for Availability · Quote Required · Freight Quote Required · Discontinued / Contact JM
+- ⬜ RFQ-first CTAs (Request Quote / Call / Freight / Backorder / Contact); no public Buy Now
+- ⬜ Quote API: honeypot + rate-limit + no PII logging + safe ref + generic responses
+- ⬜ `app/robots.ts` (Disallow: /) + security headers configured
+- ⬜ Build-output grep clean (no `$`/price/cost/margin/vendor/qty leaks)
+
 ### 1. Data sanitation
 - ✅ Data model excludes vendor/cost/margin/bin/supplier/QuickBooks fields
-- ⬜ Build-time allowlist sanitizer + test before any real catalog import
+- ⬜ `sanitize.ts` allowlist + forbidden-key guard before any real catalog import
 - ⬜ Review every field of the real Parts Master before it enters the web tier
 
 ### 2. Product data verification
@@ -34,9 +43,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Alt-text policy for every product image
 
 ### 7. Pricing policy
-- 🟡 All prices labeled "budgetary, confirmed in writing"
-- 🔒 Decide which items show price vs. "Call for Price" / quote-only
-- ⬜ Source pricing from system of record with "as-of" dating
+- ✅ **RFQ-first: no public prices** (supersedes the budgetary-price build)
+- 🔒 Decide if/when any price is ever shown publicly (requires explicit pricing policy)
+- ⬜ Source any future pricing from system of record with "as-of" dating (internal/quote tier only)
 
 ### 8. Inventory policy
 - 🟡 Static availability labels (indicative)

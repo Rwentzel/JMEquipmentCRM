@@ -10,6 +10,32 @@
 > in this session under `parts-store/`. Figures here describe what is actually in
 > the tree, not the earlier reported state.
 
+> **RFQ-first revision.** The first build exposed budgetary prices publicly. That
+> is being revised to **RFQ-first** (no public prices, no exact quantities, status
+> bands + Request-Quote/Call/Freight/Backorder CTAs). See `IMPLEMENTATION_PLAN_REVISED.md`,
+> `DATA_BOUNDARIES.md`, and `SECURITY_NOTES.md`. References to public prices in §8/§11
+> below describe the **as-built** state being superseded.
+
+## 0. Raw reconciliation outputs
+```
+$ pwd
+/home/user/JMEquipmentCRM
+$ git status            → On branch claude/keen-meitner-a7p4ee · clean
+$ git branch --show-current → claude/keen-meitner-a7p4ee
+$ git branch --all      → claude/keen-meitner-a7p4ee · main · origin/claude/keen-meitner-a7p4ee · origin/main
+$ git log -5 --oneline  → 8780d46 feat(parts-store)… · d342281 · 33d5749 · 2f144c2
+$ git remote -v         → origin  http://local_proxy@127.0.0.1/git/Rwentzel/JMEquipmentCRM (fetch & push)
+$ ls                    → .github .gitignore *.html *.txt PROJECT_STATE_AUDIT.md RISK_REGISTER.md
+                          PRODUCTION_READINESS_CHECKLIST.md index.html main.js main.jsx package.json parts-store/
+$ git cat-file -t eef806e → fatal: Not a valid object name (NOT FOUND)
+$ git branch --all | grep feat/jme-parts-store-nextjs → (0 matches)
+```
+**Answers:** (1) `feat/jme-parts-store-nextjs` present? **No.** (2) `eef806e` present? **No.**
+(3) Existing Next.js app? **Only `parts-store/` from this session** (`8780d46`). (4) Base? **Electron CRM.**
+(5) Design source? `/root/.claude/uploads/57daaf12-…/` (bundle) + scratchpad `ds_src/`.
+(6) Data files? `parts-store/src/data/catalog.ts` & `details.ts` (originals embedded in `_ds_bundle.js`).
+(7) Missing? Original CSS rule files; real photography; price exposure to remove. (8) Assumptions: see foot of doc.
+
 ---
 
 ## 1. Current branch and commit
