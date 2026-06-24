@@ -1,0 +1,180 @@
+/* ============================================================================
+   JME Design System — Tokens
+   Reconstructed 1:1 from the Claude Design bundle manifest (_ds_manifest.json).
+   Every value here is the documented design-system value. Do not hard-code raw
+   hex / px in components — reference these tokens.
+   ============================================================================ */
+
+:root {
+  /* ---- Brand colors ---- */
+  --jme-red: #a8353a;
+  --jme-red-deep: #7a1f23;
+  --jme-red-bright: #c0413f;
+  --jme-red-sheen: #be4a48;
+  --jme-gold: #b8920a;
+  --jme-charcoal: #1f1f1f;
+  --jme-silver: #c0c0c0;
+
+  /* ---- Chrome / brushed metal ramp ---- */
+  --metal-hi: #f4f6fa;
+  --metal-silver: #c5ced5;
+  --metal: #a3adb5;
+  --metal-steel: #72707b;
+  --metal-shadow: #45444e;
+
+  /* ---- Status / semantic ---- */
+  --jme-green: #2e7d52;
+  --jme-blue: #1f4788;
+  --jme-amber: #b8920a;
+
+  /* ---- Dark surface ramp (digital product surfaces) ---- */
+  --ink: #141414;
+  --ink-2: #0f0f12;
+  --charcoal: #1f1f1f;
+  --plate: #232220;
+  --plate-hi: #2b2a27;
+  --field: #191816;
+  --line: #33312e;
+  --line-lt: #444240;
+
+  /* ---- Light surface ramp (document & app canvas) ---- */
+  --paper: #edeae4;
+  --paper-dim: #b9b4aa;
+  --paper-faint: #8d887e;
+  --canvas: #ffffff;
+  --canvas-tint: #fafafb;
+  --panel: #f4f2ee;
+  --panel-2: #e5e5e5;
+  --hairline: #e5e5e8;
+  --hairline-2: #d9d6cf;
+
+  /* ---- Text on dark ---- */
+  --ink-text: #0f0f12;
+  --muted: #6b6b72;
+  --subtle: #9a9a9f;
+
+  /* ---- Accent aliases ---- */
+  --accent: var(--jme-red);
+  --accent-strong: var(--jme-red-deep);
+  --focus: var(--jme-red-bright);
+
+  /* ---- Typography: families ---- */
+  --font-display: var(--font-barlow-condensed), "Barlow Condensed", "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-barlow), "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", "SF Mono", Consolas, monospace;
+
+  /* ---- Typography: weights ---- */
+  --fw-light: 300;
+  --fw-reg: 400;
+  --fw-med: 500;
+  --fw-semi: 600;
+  --fw-bold: 700;
+  --fw-x: 800;
+  --fw-black: 900;
+
+  /* ---- Typography: sizes ---- */
+  --t-2xs: 0.625rem;
+  --t-xs: 0.6875rem;
+  --t-sm: 0.8125rem;
+  --t-base: 0.9375rem;
+  --t-md: 1.0625rem;
+  --t-lg: 1.375rem;
+  --t-xl: 2rem;
+  --t-2xl: 3rem;
+  --t-3xl: 4.5rem;
+  --t-display: 8rem;
+
+  /* ---- Typography: tracking ---- */
+  --track-display: 0.02em;
+  --track-heading: 0.04em;
+  --track-eyebrow: 0.28em;
+  --track-tag: 0.16em;
+  --track-body: 0;
+
+  /* ---- Typography: line heights ---- */
+  --lh-display: 1;
+  --lh-heading: 1.05;
+  --lh-body: 1.55;
+  --lh-tight: 1.3;
+
+  /* ---- Spacing (8pt grid) ---- */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+
+  /* ---- Layout ---- */
+  --wrap-max: 1280px;
+  --wrap-pad: 32px;
+  --nav-h: 62px;
+  --sidebar-w: 240px;
+
+  /* ---- Radius (machined corners — nearly square) ---- */
+  --r-0: 0;
+  --r-1: 2px;
+  --r-2: 3px;
+  --r-pill: 999px;
+
+  /* ---- Borders ---- */
+  --bd-hair: 1px solid var(--line);
+  --bd-edge: 1px solid var(--line-lt);
+  --bd-plate: 1.5px solid var(--ink-text);
+  --bd-heavy: 3px solid var(--jme-charcoal);
+
+  /* ---- Shadows (deep, neutral — no colored glow) ---- */
+  --sh-plate: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 34px rgba(0, 0, 0, 0.45);
+  --sh-card: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --sh-toast: 0 14px 40px rgba(0, 0, 0, 0.5);
+  --sh-doc: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --sh-raise: 0 1px 2px rgba(15, 15, 18, 0.06), 0 4px 14px rgba(15, 15, 18, 0.06);
+  --focus-ring: 2px solid var(--jme-red-bright);
+
+  /* ---- Signature gradients (sampled from the logo) ---- */
+  --grad-chrome: linear-gradient(
+    155deg,
+    var(--metal-hi) 0%,
+    var(--metal-silver) 26%,
+    var(--metal) 50%,
+    var(--metal-steel) 76%,
+    var(--metal-shadow) 100%
+  );
+  --grad-chrome-rule: linear-gradient(
+    90deg,
+    var(--metal-steel) 0%,
+    var(--metal-hi) 20%,
+    var(--metal) 50%,
+    var(--metal-hi) 80%,
+    var(--metal-steel) 100%
+  );
+  --grad-bevel: linear-gradient(135deg, var(--metal-hi) 0%, var(--metal) 45%, var(--metal-steel) 100%);
+  --grad-red-sheen: linear-gradient(180deg, var(--jme-red-sheen) 0%, var(--jme-red) 52%, var(--jme-red-deep) 100%);
+  --grad-red-btn: linear-gradient(180deg, var(--jme-red-sheen) 0%, var(--jme-red) 46%, #97282e 100%);
+  --grad-plate-dark: linear-gradient(160deg, var(--plate-hi), var(--plate));
+
+  /* ---- Motion ---- */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 0.15s;
+  --dur: 0.25s;
+  --dur-slow: 0.35s;
+
+  /* ---- Misc ---- */
+  --mark: 34px;
+}
+
+/* Compact density (driven by the storefront Tweaks panel: body[data-density]) */
+body[data-density="Compact"] {
+  --s-8: 24px;
+  --s-10: 32px;
+  --s-12: 40px;
+  --s-16: 48px;
+  --s-20: 64px;
+  --s-24: 72px;
+}

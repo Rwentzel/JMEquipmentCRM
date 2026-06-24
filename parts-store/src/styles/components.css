@@ -1,0 +1,531 @@
+/* ============================================================================
+   JME Design System — Core component styles
+   Class structure taken verbatim from the design bundle components; visual
+   rules reconstructed from the design tokens.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------- Button --- */
+.jme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-5);
+  height: 42px;
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: #fff;
+  background: var(--grad-red-btn);
+  border: 1px solid var(--jme-red-deep);
+  border-radius: var(--r-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: filter var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.jme-btn:hover {
+  filter: brightness(1.08);
+}
+
+.jme-btn:active {
+  transform: translateY(1px);
+}
+
+.jme-btn:disabled,
+.jme-btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+.jme-btn--ghost {
+  background: transparent;
+  color: var(--paper);
+  border: 1px solid var(--line-lt);
+  box-shadow: none;
+}
+
+.jme-btn--ghost:hover {
+  border-color: var(--paper-dim);
+  filter: none;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.jme-btn--gold {
+  background: linear-gradient(180deg, #d8ac1c 0%, var(--jme-gold) 50%, #8f7106 100%);
+  border-color: #8f7106;
+  color: #1c1606;
+}
+
+.jme-btn--sm {
+  height: 34px;
+  padding: 0 var(--s-4);
+  font-size: var(--t-xs);
+}
+
+.jme-btn--lg {
+  height: 52px;
+  padding: 0 var(--s-8);
+  font-size: var(--t-base);
+}
+
+.jme-btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* ------------------------------------------------------------------ Tag --- */
+.jme-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px var(--s-2);
+  font-family: var(--font-body);
+  font-size: var(--t-2xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-dim);
+  background: transparent;
+  border: 1px solid var(--line-lt);
+  border-radius: var(--r-1);
+  white-space: nowrap;
+}
+
+.jme-tag--consult {
+  color: var(--jme-gold);
+  border-color: color-mix(in srgb, var(--jme-gold) 55%, transparent);
+}
+
+.jme-tag--blue {
+  color: #6f9be0;
+  border-color: color-mix(in srgb, var(--jme-blue) 60%, transparent);
+}
+
+.jme-tag--red {
+  color: var(--jme-red-bright);
+  border-color: color-mix(in srgb, var(--jme-red) 60%, transparent);
+}
+
+.jme-tag--green {
+  color: #5cc08a;
+  border-color: color-mix(in srgb, var(--jme-green) 55%, transparent);
+}
+
+.jme-tag--solid {
+  color: #fff;
+  background: var(--line-lt);
+  border-color: transparent;
+}
+
+.jme-tag--solid.jme-tag--consult {
+  background: var(--jme-gold);
+  color: #1c1606;
+}
+
+.jme-tag--solid.jme-tag--blue {
+  background: var(--jme-blue);
+}
+
+.jme-tag--solid.jme-tag--red {
+  background: var(--jme-red);
+}
+
+.jme-tag--solid.jme-tag--green {
+  background: var(--jme-green);
+}
+
+/* ---------------------------------------------------------------- Badge --- */
+.jme-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-dim);
+}
+
+.jme-badge::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--subtle);
+}
+
+.jme-badge--stock {
+  color: #5cc08a;
+}
+.jme-badge--stock::before {
+  background: var(--jme-green);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--jme-green) 70%, transparent);
+}
+
+.jme-badge--lead {
+  color: var(--jme-gold);
+}
+.jme-badge--lead::before {
+  background: var(--jme-amber);
+}
+
+.jme-badge--out {
+  color: var(--jme-red-bright);
+}
+.jme-badge--out::before {
+  background: var(--jme-red);
+}
+
+.jme-badge--info {
+  color: #6f9be0;
+}
+.jme-badge--info::before {
+  background: var(--jme-blue);
+}
+
+/* ----------------------------------------------------------------- Card --- */
+.jme-card {
+  background: var(--plate);
+  border: var(--bd-hair);
+  border-radius: var(--r-2);
+  box-shadow: var(--sh-card);
+  overflow: hidden;
+}
+
+.jme-card__hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: var(--bd-hair);
+  background: var(--grad-plate-dark);
+}
+
+.jme-card__hd h3 {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+}
+
+.jme-card__body {
+  padding: var(--s-5);
+}
+
+/* `.on-light` swaps a card onto a light canvas */
+.jme-card.on-light {
+  background: var(--canvas);
+  border-color: var(--hairline-2);
+  box-shadow: var(--sh-doc);
+  color: var(--ink-text);
+}
+
+.jme-card.on-light .jme-card__hd {
+  background: var(--panel);
+  border-bottom-color: var(--hairline-2);
+}
+
+.jme-card.on-light .jme-card__hd h3 {
+  color: var(--ink-text);
+}
+
+/* ------------------------------------------------------------ DataPlate --- */
+.jme-plate {
+  position: relative;
+  background: var(--grad-plate-dark);
+  border: var(--bd-plate);
+  border-radius: var(--r-2);
+  box-shadow: var(--sh-plate);
+  padding: var(--s-4) var(--s-5);
+}
+
+.jme-plate__rivets::before,
+.jme-plate__rivets::after,
+.jme-plate::before,
+.jme-plate::after {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: radial-gradient(circle at 35% 30%, var(--metal-hi), var(--metal-steel));
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.jme-plate::before {
+  top: 7px;
+  left: 7px;
+}
+.jme-plate::after {
+  top: 7px;
+  right: 7px;
+}
+.jme-plate__rivets::before {
+  bottom: 7px;
+  left: 7px;
+}
+.jme-plate__rivets::after {
+  bottom: 7px;
+  right: 7px;
+}
+
+.jme-plate__hd {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding-bottom: var(--s-3);
+  margin-bottom: var(--s-2);
+  border-bottom: 1px dotted var(--line-lt);
+}
+
+.jme-plate__hd h4 {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+}
+
+.jme-plate__sku {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--jme-gold);
+  white-space: nowrap;
+}
+
+.jme-plate__rows {
+  display: grid;
+  gap: 6px;
+}
+
+.jme-plate__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: var(--t-sm);
+}
+
+.jme-plate__row > span:first-child {
+  color: var(--paper-faint);
+  text-transform: uppercase;
+  font-size: var(--t-2xs);
+  letter-spacing: var(--track-tag);
+  position: relative;
+  white-space: nowrap;
+}
+
+.jme-plate__row > span:last-child {
+  font-family: var(--font-mono);
+  color: var(--paper);
+  text-align: right;
+}
+
+/* dotted leader between key and value */
+.jme-plate__row::after {
+  display: none;
+}
+
+/* ------------------------------------------------------------ StatBlock --- */
+.jme-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-8);
+}
+
+.jme-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jme-stat > b,
+.jme-stat__value {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: var(--fw-x);
+  line-height: 1;
+  letter-spacing: var(--track-display);
+  color: var(--paper);
+}
+
+.jme-stat em {
+  font-style: normal;
+  color: var(--jme-red-bright);
+}
+
+.jme-stat > span,
+.jme-stat__label {
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-faint);
+}
+
+/* ------------------------------------------------------------ SpecTable --- */
+.jme-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+}
+
+.jme-table thead th {
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-body);
+  font-size: var(--t-2xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-dim);
+  background: var(--ink-2);
+  border-bottom: var(--bd-edge);
+}
+
+.jme-table tbody td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: var(--bd-hair);
+  color: var(--paper);
+}
+
+.jme-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.jme-table th.r,
+.jme-table td.r {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+/* -------------------------------------------------------------- Callout --- */
+.jme-callout {
+  padding: var(--s-4) var(--s-5);
+  background: var(--plate-hi);
+  border-left: 3px solid var(--jme-red);
+  border-radius: 0 var(--r-2) var(--r-2) 0;
+  color: var(--paper-dim);
+  font-size: var(--t-sm);
+}
+
+.jme-callout__title {
+  font-family: var(--font-display);
+  font-size: var(--t-base);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin-bottom: 6px;
+}
+
+/* ---------------------------------------------------------------- Field --- */
+.jme-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jme-field__label {
+  font-size: var(--t-2xs);
+  font-weight: var(--fw-semi);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-dim);
+}
+
+.jme-field__label .hint {
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+  text-transform: none;
+  font-weight: var(--fw-reg);
+}
+
+.jme-input,
+.jme-select,
+.jme-textarea {
+  width: 100%;
+  padding: 0 var(--s-3);
+  height: 42px;
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  color: var(--paper);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.jme-textarea {
+  height: auto;
+  padding: var(--s-3);
+  min-height: 96px;
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.jme-input::placeholder,
+.jme-textarea::placeholder {
+  color: var(--paper-faint);
+}
+
+.jme-input:focus,
+.jme-select:focus,
+.jme-textarea:focus {
+  outline: none;
+  border-color: var(--jme-red-bright);
+}
+
+/* `.on-light` form controls */
+.jme-field.on-light .jme-field__label {
+  color: var(--muted);
+}
+
+.jme-field.on-light .jme-input,
+.jme-field.on-light .jme-select,
+.jme-field.on-light .jme-textarea {
+  color: var(--ink-text);
+  background: var(--canvas);
+  border-color: var(--hairline-2);
+}
+
+/* ---------------------------------------------------------------- Toast --- */
+.jme-toast {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-5);
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: #fff;
+  background: var(--grad-red-btn);
+  border: 1px solid var(--jme-red-deep);
+  border-radius: var(--r-1);
+  box-shadow: var(--sh-toast);
+}
+
+.jme-toast--gold {
+  background: linear-gradient(180deg, #d8ac1c, var(--jme-gold));
+  border-color: #8f7106;
+  color: #1c1606;
+}
+
+.jme-toast--green {
+  background: linear-gradient(180deg, #38936188, var(--jme-green));
+  border-color: #1f5e3c;
+  color: #fff;
+}

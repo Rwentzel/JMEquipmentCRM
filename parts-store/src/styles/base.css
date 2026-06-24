@@ -1,0 +1,191 @@
+/* ============================================================================
+   JME Design System — Base
+   Resets, document defaults, shared primitives (eyebrow, cutline, logo, mono).
+   Dark-first: the storefront sits on an ink background.
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  font-weight: var(--fw-reg);
+  line-height: var(--lh-body);
+  letter-spacing: var(--track-body);
+  color: var(--paper);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-osmoothing: grayscale;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-heading);
+  letter-spacing: var(--track-heading);
+}
+
+p {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---- Section heading (h2) ---- */
+.jme-h2 {
+  font-size: var(--t-2xl);
+  font-weight: var(--fw-x);
+  text-transform: uppercase;
+  line-height: var(--lh-display);
+  letter-spacing: var(--track-display);
+  color: var(--paper);
+}
+
+/* ---- Monospace machine data (SKUs, serials, dimensions) ---- */
+.jme-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* ---- Eyebrow: tiny all-caps kicker with a short red rule ---- */
+.jme-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-eyebrow);
+  color: var(--paper-dim);
+}
+
+.jme-eyebrow::before {
+  content: "";
+  width: 28px;
+  height: 2px;
+  background: var(--jme-red);
+}
+
+.jme-eyebrow.gold {
+  color: var(--jme-gold);
+}
+
+.jme-eyebrow.gold::before {
+  background: var(--jme-gold);
+}
+
+/* ---- Chrome cutline: decorative brushed-steel rule ---- */
+.jme-cutline {
+  height: 3px;
+  width: 100%;
+  background: var(--grad-chrome-rule);
+  opacity: 0.7;
+}
+
+/* ---- Diamond bullet (signature motif) ---- */
+.jme-diamond-bullet {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  transform: rotate(45deg);
+  background: var(--jme-red);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+/* ---- Logo mark ---- */
+.jme-logo {
+  display: block;
+}
+
+/* ---- Logo lockup (mark + wordmark) used in nav/footer ---- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.brand span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand b {
+  font-family: var(--font-display);
+  font-weight: var(--fw-x);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  font-size: var(--t-md);
+  color: var(--paper);
+}
+
+.brand small {
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-faint);
+}
+
+/* ---- Fallback diamond mark when no logo image is present ---- */
+.jme-mark {
+  width: var(--mark);
+  height: var(--mark);
+  flex: 0 0 var(--mark);
+  display: grid;
+  place-items: center;
+  transform: rotate(45deg);
+  background: var(--grad-red-btn);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--r-1);
+}
+
+.jme-mark span {
+  transform: rotate(-45deg);
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size: var(--t-sm);
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
