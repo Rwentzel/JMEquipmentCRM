@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
 import { rateLimit } from "@/lib/rateLimit";
+import { evaluateQuote } from "@/lib/validateQuote";
 
 /**
  * Quote (RFQ) intake endpoint — SANDBOX, hardened.
@@ -27,7 +28,6 @@ const validSkus = new Set<string>([
   ...catalog.parts.map((p) => p.sku),
 ]);
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const GENERIC_FAIL = "Please check the form and try again.";
 
 function clientKey(req: Request): string {
@@ -55,25 +55,13 @@ export async function POST(req: Request) {
   const contact = body.contact ?? {};
   const items = Array.isArray(body.items) ? body.items : [];
 
-  // Honeypot: a hidden "website" field must be empty. Bots fill it.
-  // Respond with a generic success and do nothing.
-  const honeypot = String(contact.website ?? "").trim();
-  if (honeypot.length > 0) {
+  const outcome = evaluateQuote(contact, items, validSkus);
+
+  // Honeypot: respond with a generic success and do nothing (bots fill it).
+  if (outcome.kind === "honeypot") {
     return NextResponse.json({ ok: true, ref: "RFQ-IGNORED" }, { status: 200 });
   }
-
-  const company = String(contact.company ?? "").trim();
-  const name = String(contact.name ?? "").trim();
-  const email = String(contact.email ?? "").trim();
-
-  const valid =
-    company.length > 0 &&
-    name.length > 0 &&
-    EMAIL_RE.test(email) &&
-    items.length > 0 &&
-    items.every((it) => validSkus.has(String(it.sku ?? "")) && Number(it.qty) >= 1);
-
-  if (!valid) {
+  if (outcome.kind === "invalid") {
     // Generic message — do not leak which field failed or echo PII.
     return NextResponse.json({ ok: false, error: GENERIC_FAIL }, { status: 422 });
   }

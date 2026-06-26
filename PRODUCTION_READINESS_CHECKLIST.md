@@ -119,11 +119,15 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ---
 
-## Engineering gates (already green in sandbox)
+## Engineering gates (green in sandbox)
 - ✅ `npm run typecheck` — 0 errors
 - ✅ `npm run lint` — clean
-- ✅ `npm run build` — 12 routes, 6 SSG machine pages
-- ✅ SSR + quote API smoke-tested (422 invalid / 200 valid)
-- ⬜ Automated tests (data-protection + API validation)
-- ⬜ Security headers / CSP
+- ✅ `npm run build` — routes incl. 6 SSG machine pages, robots.txt, 404
+- ✅ SSR + quote API smoke-tested (422 invalid / 200 valid / 429 rate-limit / honeypot)
+- ✅ Automated tests (`npm test`) — 12 passing: data-protection allowlist + RFQ validation
+- ✅ Security headers / CSP in `next.config.mjs` (tighten CSP with nonces before prod)
+- ✅ Premium metadata + OpenGraph/Twitter + LocalBusiness JSON-LD
+- ✅ Accessibility baseline: skip link, focusable nav, mobile menu, ARIA, aria-live, reduced-motion
+- ✅ 404 (`not-found.tsx`) + loading (`loading.tsx`) states
 - ⬜ `npm audit` review to zero actionable advisories
+- ⬜ Full WCAG 2.1 AA contrast audit

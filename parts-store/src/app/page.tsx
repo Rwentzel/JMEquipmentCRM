@@ -44,31 +44,44 @@ function MachinePhoto({ m }: { m: Machine }) {
 
 /* ------------------------------------------------------------------ Nav --- */
 function Nav({ count, onJump }: { count: number; onJump: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
   const links = ["Machines", "Parts", "Request", "Why JME"];
+  const go = (id: string) => {
+    setOpen(false);
+    onJump(id);
+  };
   return (
     <nav className="ps-nav">
       <div className="ps-nav__in">
-        <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); onJump("top"); }}>
+        <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); go("top"); }}>
           <Diamond size={30} />
           <span>
             <b>JM Equipment</b>
             <small>Converting Machinery Solutions</small>
           </span>
         </a>
-        <div className="ps-nav__links">
+        <div className={"ps-nav__links" + (open ? " open" : "")}>
           {links.map((l) => {
             const id = l.toLowerCase().replace(/[^a-z]/g, "");
             return (
-              <a key={l} href={`#${id}`} onClick={(e) => { e.preventDefault(); onJump(id); }}>
+              <a key={l} href={`#${id}`} onClick={(e) => { e.preventDefault(); go(id); }}>
                 {l}
               </a>
             );
           })}
           <a href="/compare">Compare</a>
         </div>
-        <Button size="sm" onClick={() => onJump("request")}>
+        <Button size="sm" onClick={() => go("request")}>
           Request List{count > 0 ? ` · ${count}` : ""}
         </Button>
+        <button
+          className="ps-nav__burger"
+          aria-label="Toggle menu"
+          aria-expanded={open}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? "✕" : "≡"}
+        </button>
       </div>
     </nav>
   );
@@ -98,6 +111,12 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
               Order Parts
             </Button>
           </div>
+          <ul className="ps-hero__creds" aria-label="Credentials">
+            <li>Sturgis, MI</li>
+            <li>Since 1989</li>
+            <li>Build · Rebuild · Parts</li>
+            <li>OEM+ rebuild spec</li>
+          </ul>
           {statsOn && (
             <div style={{ marginTop: 34, maxWidth: 520 }}>
               <StatBlock
@@ -206,6 +225,77 @@ function Industries() {
   );
 }
 
+/* --------------------------------------------------------- Capabilities --- */
+function Capabilities() {
+  const caps: [string, string][] = [
+    ["Core splitters", "Hydraulic single-stroke splitting for OCC/kraft core reclaim."],
+    ["Sheeters", "Factory-direct Goodstrong dual-rotary lines and rebuilds."],
+    ["Rollstands", "Martin / Geo Martin rebuilds to OEM+ tolerance."],
+    ["Guillotine cutters", "Programmable, two-hand + light-curtain safety."],
+    ["Splicers & decurlers", "Zero-speed flying splice; inline curl removal."],
+    ["Wear & service parts", "Blades, bearings, chucks, seals, valves, sensors."],
+  ];
+  return (
+    <section id="capabilities" className="ps-sec">
+      <div className="ps-wrap">
+        <div className="ps-sechd">
+          <div>
+            <Eyebrow tone="gold">What we build & support</Eyebrow>
+            <h2 className="jme-h2">Capabilities</h2>
+          </div>
+          <p>
+            One floor in Sturgis covers the whole lifecycle — new builds, factory-direct imports, rebuilds, and the
+            wear parts that keep a converting line running.
+          </p>
+        </div>
+        <div className="ps-caps">
+          {caps.map(([t, d], i) => (
+            <div className="ps-cap" key={t}>
+              <span className="ps-cap__n jme-mono">{String(i + 1).padStart(2, "0")}</span>
+              <div>
+                <h4>{t}</h4>
+                <p>{d}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------- Status legend --- */
+const BANDS: [string, string][] = [
+  ["In Stock", "stock"],
+  ["Limited Stock", "lead"],
+  ["Backorder", "lead"],
+  ["Call for Availability", "info"],
+  ["Quote Required", "default"],
+  ["Freight Quote Required", "info"],
+  ["Discontinued / Contact JM", "out"],
+];
+function StatusLegend() {
+  return (
+    <div className="ps-legend" aria-label="Availability key">
+      <span className="ps-legend__lbl">Availability</span>
+      {BANDS.map(([band, color]) => (
+        <span
+          key={band}
+          className={
+            "jme-badge" +
+            (color === "stock" ? " jme-badge--stock" : "") +
+            (color === "lead" ? " jme-badge--lead" : "") +
+            (color === "info" ? " jme-badge--info" : "") +
+            (color === "out" ? " jme-badge--out" : "")
+          }
+        >
+          {band}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 /* ----------------------------------------------------------------- Parts --- */
 function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   const [q, setQ] = useState("");
@@ -254,8 +344,11 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
             </button>
           ))}
         </div>
-        <div className="ps-meta">
-          {results.length} part{results.length !== 1 ? "s" : ""}
+        <div className="ps-parts-bar">
+          <div className="ps-meta">
+            {results.length} part{results.length !== 1 ? "s" : ""}
+          </div>
+          <StatusLegend />
         </div>
         <div className="ps-parts">
           {results.map((p) => (
@@ -325,6 +418,9 @@ function Request({
   items,
   contact,
   setContact,
+  errors,
+  sent,
+  reference,
   onQty,
   onRemove,
   onSend,
@@ -333,6 +429,9 @@ function Request({
   items: ReturnType<typeof useRequestList>["items"];
   contact: ContactForm;
   setContact: (c: ContactForm) => void;
+  errors: Partial<Record<keyof ContactForm, string>>;
+  sent: boolean;
+  reference: string | null;
   onQty: (sku: string, qty: number) => void;
   onRemove: (sku: string) => void;
   onSend: () => void;
@@ -340,6 +439,8 @@ function Request({
 }) {
   const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact({ ...contact, [k]: e.target.value });
+  const err = (k: keyof ContactForm) =>
+    errors[k] ? <span className="ps-field-err">{errors[k]}</span> : null;
 
   return (
     <section id="request" className="ps-sec">
@@ -364,9 +465,18 @@ function Request({
             </div>
             <div className="jme-card__body">
               <div className="ps-fgrid">
-                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required />
-                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required />
-                <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required />
+                <div>
+                  <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required aria-invalid={!!errors.company} />
+                  {err("company")}
+                </div>
+                <div>
+                  <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required aria-invalid={!!errors.name} />
+                  {err("name")}
+                </div>
+                <div>
+                  <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required aria-invalid={!!errors.email} />
+                  {err("email")}
+                </div>
                 <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
               </div>
               <div style={{ marginTop: 14 }}>
@@ -407,14 +517,24 @@ function Request({
                   </div>
                 </div>
               ))}
-              <div className="ps-actions">
-                <Button onClick={onSend} disabled={items.length === 0}>
-                  Send request
-                </Button>
-                <Button variant="ghost" onClick={onPrint}>
-                  Print summary
-                </Button>
-              </div>
+              {sent ? (
+                <div className="ps-sent" role="status">
+                  <b>Request sent.</b>
+                  <span>
+                    The parts desk replies in writing — typically the same business day.
+                    {reference ? <> Reference <span className="jme-mono">{reference}</span>.</> : null}
+                  </span>
+                </div>
+              ) : (
+                <div className="ps-actions">
+                  <Button onClick={onSend} disabled={items.length === 0}>
+                    Send request
+                  </Button>
+                  <Button variant="ghost" onClick={onPrint}>
+                    Print summary
+                  </Button>
+                </div>
+              )}
               <p className="ps-fine">
                 Quotations confirmed in writing before processing · No minimum order · FOB Sturgis, MI · Tax per ship-to
                 jurisdiction on final invoice. Pricing and availability are provided by quotation, not shown online.
@@ -451,6 +571,53 @@ function Trust() {
               <span>{t.s}</span>
               <p>{t.p}</p>
             </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------------ FAQ --- */
+function Faq() {
+  const qa: [string, string][] = [
+    [
+      "Why don't I see prices online?",
+      "Industrial parts and machines are quoted individually — pricing depends on configuration, freight, and lead time. Add what you need to a request and the desk confirms everything in writing.",
+    ],
+    [
+      "How fast do parts ship?",
+      "98% of stocked parts ordered by early afternoon leave the Sturgis dock the same day. Availability is shown as a status band; exact timing is confirmed on your quote.",
+    ],
+    [
+      "Can you match a part from another OEM's machine?",
+      "Often, yes. Send the machine serial number and a description or photo; we verify fit before quoting rather than guessing.",
+    ],
+    [
+      "Do you handle freight on heavy items?",
+      "Yes. Freight-heavy parts and machines are quoted with freight so there are no surprises — they're flagged \"Freight Quote Required.\"",
+    ],
+    [
+      "Is a request a binding order?",
+      "No. Submitting a request asks for a firm written quotation. Nothing is ordered or charged until you approve the quote.",
+    ],
+  ];
+  return (
+    <section id="faq" className="ps-sec">
+      <div className="ps-wrap">
+        <div className="ps-sechd">
+          <div>
+            <Eyebrow>Answers</Eyebrow>
+            <h2 className="jme-h2">Common questions</h2>
+          </div>
+          <p>How the parts desk works — pricing, lead time, fit, and freight.</p>
+        </div>
+        <div className="ps-faq">
+          {qa.map(([q, a]) => (
+            <details className="ps-faq__item" key={q}>
+              <summary>{q}</summary>
+              <p>{a}</p>
+            </details>
           ))}
         </div>
       </div>
@@ -559,7 +726,7 @@ export default function StorefrontPage() {
   const { message, show } = useToast();
   const [twOpen, setTwOpen] = useState(false);
   const [tw, setTw] = useState<Tw>({ accent: "#A8353A", density: "Comfortable", stats: "Show" });
-  const [contact, setContact] = useState<ContactForm>({
+  const [contact, setContactRaw] = useState<ContactForm>({
     company: "",
     name: "",
     email: "",
@@ -567,6 +734,16 @@ export default function StorefrontPage() {
     serial: "",
     website: "",
   });
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
+  const [sent, setSent] = useState(false);
+  const [reference, setReference] = useState<string | null>(null);
+
+  // Editing the form clears the sent state and any prior errors.
+  const setContact = (c: ContactForm) => {
+    setContactRaw(c);
+    if (sent) setSent(false);
+    if (Object.keys(formErrors).length) setFormErrors({});
+  };
 
   useReveal();
 
@@ -589,8 +766,22 @@ export default function StorefrontPage() {
     show("Added to request");
   };
 
+  function validate(): boolean {
+    const e: Partial<Record<keyof ContactForm, string>> = {};
+    if (!contact.company.trim()) e.company = "Company is required.";
+    if (!contact.name.trim()) e.name = "Contact name is required.";
+    if (!contact.email.trim()) e.email = "Email is required.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) e.email = "Enter a valid email.";
+    setFormErrors(e);
+    return Object.keys(e).length === 0;
+  }
+
   async function sendRequest() {
     if (items.length === 0) return;
+    if (!validate()) {
+      show("Check the highlighted fields");
+      return;
+    }
     try {
       const res = await fetch("/api/quote", {
         method: "POST",
@@ -599,7 +790,13 @@ export default function StorefrontPage() {
       });
       // Generic handling — the API returns generic messages by design.
       const data = await res.json().catch(() => ({}));
-      show(res.ok ? "Request sent — desk replies in writing" : data.error || "Check the form and try again");
+      if (res.ok) {
+        setReference(typeof data.ref === "string" ? data.ref : null);
+        setSent(true);
+        show("Request sent — desk replies in writing");
+      } else {
+        show(data.error || "Check the form and try again");
+      }
     } catch {
       show("Could not send — try again");
     }
@@ -613,18 +810,23 @@ export default function StorefrontPage() {
       <div className="jme-cutline" />
       <Machines onAdd={addItem} />
       <Industries />
+      <Capabilities />
       <Parts onAdd={addItem} />
       <Services />
       <Request
         items={items}
         contact={contact}
         setContact={setContact}
+        errors={formErrors}
+        sent={sent}
+        reference={reference}
         onQty={setQty}
         onRemove={remove}
         onSend={sendRequest}
         onPrint={() => show("Summary ready to print")}
       />
       <Trust />
+      <Faq />
       <Footer />
       <button className="ps-tweaksbtn" onClick={() => setTwOpen(!twOpen)} aria-label="Display tweaks">
         ⚙
