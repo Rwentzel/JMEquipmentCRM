@@ -1,7 +1,5 @@
-export { Badge } from "./Badge";
 export { Button } from "./Button";
 export { Callout } from "./Callout";
-export { Card } from "./Card";
 export { DataPlate } from "./DataPlate";
 export { Diamond } from "./Diamond";
 export { Eyebrow } from "./Eyebrow";
