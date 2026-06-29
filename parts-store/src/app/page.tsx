@@ -629,6 +629,7 @@ function Faq() {
 function Footer() {
   return (
     <footer className="ps-foot">
+      <div className="jme-cutline" />
       <div className="ps-wrap ps-foot__grid">
         <div>
           <div className="brand" style={{ marginBottom: 14 }}>
@@ -648,6 +649,7 @@ function Footer() {
           <h4>Parts Desk</h4>
           <a href={`tel:${D.contact.phone}`}>{D.contact.phone}</a>
           <a href={`mailto:${D.contact.email}`}>{D.contact.email}</a>
+          <span className="ps-foot__hours">Mon–Fri 7:30 AM – 5:00 PM ET</span>
         </div>
         <div>
           <h4>Equipment</h4>
@@ -657,10 +659,25 @@ function Footer() {
             </a>
           ))}
         </div>
+        <div>
+          <h4>Information</h4>
+          <a href="/compare">Compare machines</a>
+          <a href="/freight">Freight &amp; shipping</a>
+          <a href="/terms">Terms of sale</a>
+          <a href="/privacy">Privacy policy</a>
+        </div>
       </div>
       <div className="ps-wrap ps-foot__bot">
         <span>© {new Date().getFullYear()} JM Equipment Inc. — FOB Sturgis, Michigan</span>
-        <span>Quotations confirmed in writing · No minimum order</span>
+        <span>
+          <a href="/terms">Terms</a>
+          {" · "}
+          <a href="/privacy">Privacy</a>
+          {" · "}
+          <a href="/freight">Shipping</a>
+          {" · "}
+          Quotations confirmed in writing
+        </span>
       </div>
     </footer>
   );

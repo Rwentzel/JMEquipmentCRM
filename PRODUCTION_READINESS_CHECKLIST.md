@@ -77,11 +77,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - 🔒 Define what guests may/may not see
 
 ### 15. Terms / disclaimers
-- ⬜ Terms of Sale, budgetary-price disclaimer, compatibility disclaimer pages
-- 🔒 Legal review
+- 🟡 Terms of Sale, Freight & Shipping policy pages (sandbox drafts; `/terms`, `/freight`)
+- ⬜ Compatibility disclaimer page
+- 🔒 Legal review of all policy pages before launch
 
 ### 16. Privacy policy
-- ⬜ Privacy policy page; ⬜ data-handling statement for quote-form submissions
+- 🟡 Privacy policy page (sandbox draft; `/privacy`); data-handling statement included
+- 🔒 Legal review before launch
 
 ### 17. Accessibility
 - 🟡 focus-visible, reduced-motion, alt text, semantic landmarks
@@ -122,7 +124,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 ## Engineering gates (green in sandbox)
 - ✅ `npm run typecheck` — 0 errors
 - ✅ `npm run lint` — clean
-- ✅ `npm run build` — routes incl. 6 SSG machine pages, robots.txt, 404
+- ✅ `npm run build` — 16 routes incl. 6 SSG machine pages, 3 policy pages, robots.txt, 404
 - ✅ SSR + quote API smoke-tested (422 invalid / 200 valid / 429 rate-limit / honeypot)
 - ✅ Automated tests (`npm test`) — 12 passing: data-protection allowlist + RFQ validation
 - ✅ Security headers / CSP in `next.config.mjs` (tighten CSP with nonces before prod)
