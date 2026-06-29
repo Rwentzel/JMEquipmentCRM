@@ -95,7 +95,13 @@ export function MachineDetailClient({
           </a>
           <div className="md-subnav__links">
             {SECTIONS.map(([id, label]) => (
-              <a key={id} className={active === id ? "on" : ""} onClick={() => jump(id)}>
+              <a
+                key={id}
+                href={`#${id}`}
+                className={active === id ? "on" : ""}
+                aria-current={active === id ? "true" : undefined}
+                onClick={(e) => { e.preventDefault(); jump(id); }}
+              >
                 {label}
               </a>
             ))}
@@ -163,23 +169,28 @@ export function MachineDetailClient({
                     {o.choices.map((c) => {
                       const on =
                         o.type === "radio" ? radio[o.id] === c.sku : checks.has(o.id + ":" + c.sku);
+                      const toggle = () => {
+                        if (o.type === "radio") {
+                          setRadio((r) => ({ ...r, [o.id]: c.sku }));
+                        } else {
+                          setChecks((prev) => {
+                            const next = new Set(prev);
+                            const key = o.id + ":" + c.sku;
+                            if (next.has(key)) next.delete(key);
+                            else next.add(key);
+                            return next;
+                          });
+                        }
+                      };
                       return (
                         <div
                           key={c.sku}
                           className={"md-choice" + (on ? " on" : "")}
-                          onClick={() => {
-                            if (o.type === "radio") {
-                              setRadio((r) => ({ ...r, [o.id]: c.sku }));
-                            } else {
-                              setChecks((prev) => {
-                                const next = new Set(prev);
-                                const key = o.id + ":" + c.sku;
-                                if (next.has(key)) next.delete(key);
-                                else next.add(key);
-                                return next;
-                              });
-                            }
-                          }}
+                          role={o.type === "radio" ? "radio" : "checkbox"}
+                          aria-checked={on}
+                          tabIndex={0}
+                          onClick={toggle}
+                          onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } }}
                         >
                           <div className="md-choice__v">
                             <span>{c.v}</span>
@@ -347,7 +358,7 @@ export function MachineDetailClient({
         </div>
       </section>
 
-      <div className={"ps-toastwrap" + (message ? " show" : "")}>
+      <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
         {message && <Toast tone="green">{message}</Toast>}
       </div>
     </div>

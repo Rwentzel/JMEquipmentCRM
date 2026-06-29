@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   DataPlate,
@@ -439,8 +439,6 @@ function Request({
 }) {
   const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setContact({ ...contact, [k]: e.target.value });
-  const err = (k: keyof ContactForm) =>
-    errors[k] ? <span className="ps-field-err">{errors[k]}</span> : null;
 
   return (
     <section id="request" className="ps-sec">
@@ -465,18 +463,9 @@ function Request({
             </div>
             <div className="jme-card__body">
               <div className="ps-fgrid">
-                <div>
-                  <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required aria-invalid={!!errors.company} />
-                  {err("company")}
-                </div>
-                <div>
-                  <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required aria-invalid={!!errors.name} />
-                  {err("name")}
-                </div>
-                <div>
-                  <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required aria-invalid={!!errors.email} />
-                  {err("email")}
-                </div>
+                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required error={errors.company} />
+                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required error={errors.name} />
+                <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required error={errors.email} />
                 <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
               </div>
               <div style={{ marginTop: 14 }}>
@@ -683,6 +672,28 @@ function Footer() {
   );
 }
 
+/* -------------------------------------------------------- Scroll to top --- */
+function ScrollToTop() {
+  const [show, setShow] = useState(false);
+  const scrollUp = useCallback(() => window.scrollTo({ top: 0, behavior: "smooth" }), []);
+
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > 600);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <button
+      className={"ps-totop" + (show ? " show" : "")}
+      onClick={scrollUp}
+      aria-label="Scroll to top"
+    >
+      ↑
+    </button>
+  );
+}
+
 /* --------------------------------------------------------------- Tweaks --- */
 const ACCENTS: Record<string, string> = { Maroon: "#A8353A", Steel: "#3B5566", Graphite: "#3A3A3E" };
 interface Tw {
@@ -840,11 +851,12 @@ export default function StorefrontPage() {
         onQty={setQty}
         onRemove={remove}
         onSend={sendRequest}
-        onPrint={() => show("Summary ready to print")}
+        onPrint={() => window.print()}
       />
       <Trust />
       <Faq />
       <Footer />
+      <ScrollToTop />
       <button className="ps-tweaksbtn" onClick={() => setTwOpen(!twOpen)} aria-label="Display tweaks">
         ⚙
       </button>

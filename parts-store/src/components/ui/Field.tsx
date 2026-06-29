@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 type BaseProps = {
   label?: string;
   hint?: string;
+  error?: string;
   id?: string;
   className?: string;
 };
@@ -24,14 +25,19 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
 
 /** JME Field — labelled form control (input / select / textarea), dark by default. */
 export function Field(props: FieldProps) {
-  const { label, hint, id, className = "" } = props;
+  const { label, hint, error, id, className = "" } = props;
   const fieldId = id || (label ? `f-${slug(label)}` : undefined);
+  const errId = error && fieldId ? `${fieldId}-err` : undefined;
+
+  const extraAttrs: Record<string, string | boolean | undefined> = {};
+  if (errId) extraAttrs["aria-describedby"] = errId;
+  if (error) extraAttrs["aria-invalid"] = true;
 
   let control: ReactNode;
   if (props.as === "select") {
-    const { as: _as, label: _l, hint: _h, id: _i, className: _c, options = [], ...rest } = props;
+    const { as: _as, label: _l, hint: _h, error: _e, id: _i, className: _c, options = [], ...rest } = props;
     control = (
-      <select id={fieldId} className="jme-select" {...rest}>
+      <select id={fieldId} className="jme-select" {...rest} {...extraAttrs}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
@@ -40,11 +46,11 @@ export function Field(props: FieldProps) {
       </select>
     );
   } else if (props.as === "textarea") {
-    const { as: _as, label: _l, hint: _h, id: _i, className: _c, ...rest } = props;
-    control = <textarea id={fieldId} className="jme-textarea" {...rest} />;
+    const { as: _as, label: _l, hint: _h, error: _e, id: _i, className: _c, ...rest } = props;
+    control = <textarea id={fieldId} className="jme-textarea" {...rest} {...extraAttrs} />;
   } else {
-    const { as: _as, label: _l, hint: _h, id: _i, className: _c, ...rest } = props;
-    control = <input id={fieldId} className="jme-input" {...rest} />;
+    const { as: _as, label: _l, hint: _h, error: _e, id: _i, className: _c, ...rest } = props;
+    control = <input id={fieldId} className="jme-input" {...rest} {...extraAttrs} />;
   }
 
   return (
@@ -56,6 +62,7 @@ export function Field(props: FieldProps) {
         </label>
       )}
       {control}
+      {error && <span id={errId} className="ps-field-err" role="alert">{error}</span>}
     </div>
   );
 }

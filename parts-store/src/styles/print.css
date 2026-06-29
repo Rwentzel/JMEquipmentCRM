@@ -1,0 +1,217 @@
+/* ============================================================================
+   JME Parts Store — Print stylesheet
+   Produces a clean, branded quote-request summary when the user prints.
+   ============================================================================ */
+
+@media print {
+  /* ---- Reset for print ---- */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  a {
+    color: #1a1a1a !important;
+    text-decoration: none !important;
+  }
+
+  /* ---- Hide everything except the request section ---- */
+  .ps-nav,
+  .ps-hero,
+  .ps-skip,
+  .ps-tweaksbtn,
+  .ps-tweaks,
+  .ps-toastwrap,
+  .jme-cutline,
+  #machines,
+  #industries,
+  #capabilities,
+  #parts,
+  .ps-sec:not(#request),
+  #whyjme,
+  #faq,
+  .ps-foot {
+    display: none !important;
+  }
+
+  /* ---- Request section: full width, no background ---- */
+  #request {
+    opacity: 1 !important;
+    transform: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  #request .ps-wrap {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* ---- Print header (generated) ---- */
+  #request::before {
+    content: "JM Equipment Inc. — Quote Request Summary";
+    display: block;
+    font-family: "Barlow Condensed", "Helvetica Neue", Arial, sans-serif;
+    font-size: 18pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 8pt;
+    margin-bottom: 16pt;
+  }
+
+  /* ---- Cards: remove dark backgrounds ---- */
+  .jme-card {
+    background: transparent !important;
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+  }
+
+  .jme-card__hd {
+    background: #f5f5f5 !important;
+    border-bottom: 1px solid #ccc !important;
+  }
+
+  .jme-card__hd h3 {
+    color: #1a1a1a !important;
+    font-size: 12pt;
+  }
+
+  .jme-card__body {
+    color: #1a1a1a !important;
+  }
+
+  /* ---- Form fields: show values as text ---- */
+  .jme-field__label {
+    color: #666 !important;
+    font-size: 8pt;
+  }
+
+  .jme-input {
+    border: none !important;
+    background: transparent !important;
+    color: #1a1a1a !important;
+    padding: 0 !important;
+    height: auto !important;
+    font-size: 11pt;
+  }
+
+  /* ---- Line items ---- */
+  .ps-line {
+    border-bottom: 1px solid #ddd !important;
+    padding: 6pt 0 !important;
+  }
+
+  .ps-line__sku {
+    color: #666 !important;
+  }
+
+  .ps-line__name {
+    color: #1a1a1a !important;
+  }
+
+  .ps-qty {
+    border: none !important;
+    background: transparent !important;
+    color: #1a1a1a !important;
+    text-align: center;
+    width: 40px !important;
+    height: auto !important;
+  }
+
+  /* ---- Hide interactive controls in print ---- */
+  .ps-rm,
+  .ps-actions,
+  .ps-sent .jme-mono {
+    display: none !important;
+  }
+
+  /* ---- Show sent confirmation nicely ---- */
+  .ps-sent {
+    background: transparent !important;
+    border: 1px solid #2e7d52 !important;
+    color: #1a1a1a !important;
+    break-inside: avoid;
+  }
+
+  .ps-sent b {
+    color: #2e7d52 !important;
+  }
+
+  .ps-sent span {
+    color: #333 !important;
+  }
+
+  /* ---- Fine print ---- */
+  .ps-fine {
+    color: #999 !important;
+    font-size: 8pt;
+    margin-top: 12pt !important;
+  }
+
+  /* ---- Layout: single column for print ---- */
+  .ps-reqgrid {
+    grid-template-columns: 1fr !important;
+    gap: 12pt !important;
+  }
+
+  .ps-fgrid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* ---- Section header ---- */
+  .ps-sechd {
+    grid-template-columns: 1fr !important;
+    margin-bottom: 12pt !important;
+  }
+
+  .ps-sechd .jme-eyebrow {
+    color: #999 !important;
+  }
+
+  .ps-sechd .jme-eyebrow::before {
+    background: #999 !important;
+  }
+
+  .jme-h2 {
+    color: #1a1a1a !important;
+    font-size: 14pt;
+  }
+
+  .ps-sechd p {
+    color: #666 !important;
+    font-size: 10pt;
+  }
+
+  /* ---- Footer for print ---- */
+  #request::after {
+    content: "JM Equipment Inc. · 405 1/2 West Congress St · Sturgis, MI 49091 · (269) 659-0093 · sales@jmequipment.net";
+    display: block;
+    margin-top: 24pt;
+    padding-top: 8pt;
+    border-top: 1px solid #ccc;
+    font-size: 8pt;
+    color: #999;
+  }
+
+  /* ---- Page settings ---- */
+  @page {
+    margin: 0.75in;
+    size: letter;
+  }
+
+  /* ---- Honeypot stays hidden ---- */
+  [aria-hidden] {
+    display: none !important;
+  }
+}
