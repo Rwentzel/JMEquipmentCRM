@@ -1295,3 +1295,37 @@
     font-size: var(--t-2xl);
   }
 }
+
+@media (max-width: 480px) {
+  :root {
+    --wrap-pad: 16px;
+  }
+  .ps-hero__h1 {
+    font-size: var(--t-xl);
+  }
+  .ps-hero__sub {
+    font-size: var(--t-sm);
+  }
+  .ps-hero__cta {
+    flex-direction: column;
+  }
+  .jme-h2 {
+    font-size: var(--t-xl);
+  }
+  .ps-chips {
+    gap: var(--s-1);
+  }
+  .ps-chip {
+    font-size: var(--t-2xs);
+    padding: 4px 10px;
+  }
+  .ps-part {
+    padding: var(--s-3);
+  }
+  .ps-totop {
+    right: var(--s-3);
+    bottom: var(--s-3);
+    width: 38px;
+    height: 38px;
+  }
+}

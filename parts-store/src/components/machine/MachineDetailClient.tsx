@@ -70,8 +70,13 @@ export function MachineDetailClient({
   const [gi, setGi] = useState(0);
   const hero = detail.gallery[gi] ?? detail.gallery[0];
   const hasGallery = detail.gallery.length > 1;
-  const prev = useCallback(() => setGi((i) => (i - 1 + detail.gallery.length) % detail.gallery.length), [detail.gallery.length]);
-  const next = useCallback(() => setGi((i) => (i + 1) % detail.gallery.length), [detail.gallery.length]);
+  const gLen = detail.gallery.length;
+  const prev = useCallback(() => setGi((i) => (i - 1 + gLen) % gLen), [gLen]);
+  const next = useCallback(() => setGi((i) => (i + 1) % gLen), [gLen]);
+  const onGalleryKey = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); next(); }
+  }, [prev, next]);
 
   return (
     <div>
@@ -143,7 +148,7 @@ export function MachineDetailClient({
               <StatusBand band={detail.badge.band} />
             </div>
           </div>
-          <div className="md-gallery">
+          <div className="md-gallery" onKeyDown={hasGallery ? onGalleryKey : undefined} tabIndex={hasGallery ? 0 : undefined} role={hasGallery ? "region" : undefined} aria-label={hasGallery ? "Product gallery" : undefined}>
             <div className="md-hero__photo">
               {hero ? (
                 <SmartImg src={asset(hero.src)} alt={hero.cap} style={{ objectFit: hero.fit === "cover" ? "cover" : "contain" }} />
@@ -157,6 +162,11 @@ export function MachineDetailClient({
                 <>
                   <button className="md-gallery__arr md-gallery__arr--prev" onClick={prev} aria-label="Previous image">‹</button>
                   <button className="md-gallery__arr md-gallery__arr--next" onClick={next} aria-label="Next image">›</button>
+                  <div className="md-gallery__dots" aria-hidden>
+                    {detail.gallery.map((_, i) => (
+                      <span key={i} className={"md-gallery__dot" + (i === gi ? " on" : "")} />
+                    ))}
+                  </div>
                 </>
               )}
             </div>

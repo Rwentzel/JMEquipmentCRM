@@ -67,17 +67,32 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
             Every machine is quoted individually. Pricing, freight, and lead time are confirmed in writing on your
             request — not shown online.
           </p>
+          <div style={{ marginTop: 16 }}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                rows.forEach((r) => add({ sku: r.sku, name: r.name }));
+                show(`Added ${rows.length} machines to request`);
+              }}
+            >
+              Add all {rows.length} machines to request
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="cmp-wrap">
+        <div className="cmp-scroll-hint">← Scroll to compare →</div>
         <table className="cmp-table">
           <thead>
             <tr>
               <th />
               {rows.map((r) => (
                 <th key={r.sku} scope="col">
-                  <h3>{r.name}</h3>
+                  <h3>
+                    <a href={`/machine/${r.sku}`} style={{ color: "inherit" }}>{r.name}</a>
+                  </h3>
                   <div className="cmp-sku">{r.sku}</div>
                   <div style={{ marginTop: 6 }}>
                     <Tag tone={r.tag}>{r.tagLabel}</Tag>
