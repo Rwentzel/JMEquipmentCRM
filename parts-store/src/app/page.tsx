@@ -16,6 +16,7 @@ import {
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useReveal } from "@/hooks/useReveal";
+import { useDebounce } from "@/hooks/useDebounce";
 import { catalog } from "@/data/catalog";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
@@ -297,17 +298,31 @@ function StatusLegend() {
 }
 
 /* ----------------------------------------------------------------- Parts --- */
+function Highlight({ text, q }: { text: string; q: string }) {
+  if (!q) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="ps-match">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   const [q, setQ] = useState("");
+  const dq = useDebounce(q, 200);
   const [cat, setCat] = useState("All");
   const results = useMemo<Part[]>(
     () =>
       D.parts.filter((p) => {
         const inCat = cat === "All" || p.cat === cat;
-        const inQ = !q || (p.sku + " " + p.name).toLowerCase().includes(q.toLowerCase());
+        const inQ = !dq || (p.sku + " " + p.name).toLowerCase().includes(dq.toLowerCase());
         return inCat && inQ;
       }),
-    [q, cat],
+    [dq, cat],
   );
   return (
     <section id="parts" className="ps-sec ps-sec--alt">
@@ -347,6 +362,7 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
         <div className="ps-parts-bar">
           <div className="ps-meta">
             {results.length} part{results.length !== 1 ? "s" : ""}
+            {dq && <span className="ps-meta__q"> for &ldquo;{dq}&rdquo;</span>}
           </div>
           <StatusLegend />
         </div>
@@ -354,10 +370,10 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
           {results.map((p) => (
             <div className="ps-part" key={p.sku}>
               <div className="ps-part__top">
-                <span className="jme-mono ps-part__sku">{p.sku}</span>
+                <span className="jme-mono ps-part__sku"><Highlight text={p.sku} q={dq} /></span>
                 <StatusBand band={p.statusBand} />
               </div>
-              <div className="ps-part__name">{p.name}</div>
+              <div className="ps-part__name"><Highlight text={p.name} q={dq} /></div>
               <Tag>{p.cat}</Tag>
               <div className="ps-part__foot">
                 <Button size="sm" variant="ghost" block onClick={() => onAdd({ sku: p.sku, name: p.name })}>
@@ -366,7 +382,12 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
               </div>
             </div>
           ))}
-          {results.length === 0 && <div className="ps-empty">No match — send a custom part request.</div>}
+          {results.length === 0 && (
+            <div className="ps-empty">
+              No parts match &ldquo;{dq}&rdquo; — try a different term or{" "}
+              <a href="#request" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>send a custom request</a>.
+            </div>
+          )}
         </div>
       </div>
     </section>

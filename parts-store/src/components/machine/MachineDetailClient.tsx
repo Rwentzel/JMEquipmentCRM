@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button, Callout, DataPlate, Diamond, Eyebrow, SmartImg, SpecTable, StatBlock, StatusBand, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
@@ -67,7 +67,11 @@ export function MachineDetailClient({
     show("Added to request");
   };
 
-  const hero = detail.gallery[0];
+  const [gi, setGi] = useState(0);
+  const hero = detail.gallery[gi] ?? detail.gallery[0];
+  const hasGallery = detail.gallery.length > 1;
+  const prev = useCallback(() => setGi((i) => (i - 1 + detail.gallery.length) % detail.gallery.length), [detail.gallery.length]);
+  const next = useCallback(() => setGi((i) => (i + 1) % detail.gallery.length), [detail.gallery.length]);
 
   return (
     <div>
@@ -139,15 +143,38 @@ export function MachineDetailClient({
               <StatusBand band={detail.badge.band} />
             </div>
           </div>
-          <div className="md-hero__photo">
-            {hero ? (
-              <SmartImg src={asset(hero.src)} alt={hero.cap} style={{ objectFit: hero.fit === "cover" ? "cover" : "contain" }} />
-            ) : (
-              <div className="md-hero__ph">
-                <Diamond size={64} />
+          <div className="md-gallery">
+            <div className="md-hero__photo">
+              {hero ? (
+                <SmartImg src={asset(hero.src)} alt={hero.cap} style={{ objectFit: hero.fit === "cover" ? "cover" : "contain" }} />
+              ) : (
+                <div className="md-hero__ph">
+                  <Diamond size={64} />
+                </div>
+              )}
+              {hero && <span className="md-hero__cap">{hero.cap}</span>}
+              {hasGallery && (
+                <>
+                  <button className="md-gallery__arr md-gallery__arr--prev" onClick={prev} aria-label="Previous image">‹</button>
+                  <button className="md-gallery__arr md-gallery__arr--next" onClick={next} aria-label="Next image">›</button>
+                </>
+              )}
+            </div>
+            {hasGallery && (
+              <div className="md-gallery__thumbs" role="group" aria-label="Gallery thumbnails">
+                {detail.gallery.map((img, i) => (
+                  <button
+                    key={img.src}
+                    className={"md-gallery__thumb" + (i === gi ? " on" : "")}
+                    onClick={() => setGi(i)}
+                    aria-label={img.cap}
+                    aria-current={i === gi ? "true" : undefined}
+                  >
+                    <SmartImg src={asset(img.src)} alt="" style={{ objectFit: "contain" }} />
+                  </button>
+                ))}
               </div>
             )}
-            {hero && <span className="md-hero__cap">{hero.cap}</span>}
           </div>
         </div>
       </header>
