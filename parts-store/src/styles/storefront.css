@@ -27,12 +27,17 @@
 
 .ps-sec {
   padding: var(--s-20) 0;
+  opacity: 1;
+  transform: none;
+}
+
+.ps-sec.will-reveal {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity var(--dur-slow) var(--ease), transform var(--dur-slow) var(--ease);
 }
 
-.ps-sec.in {
+.ps-sec.will-reveal.in {
   opacity: 1;
   transform: none;
 }
@@ -413,6 +418,13 @@
   background: var(--plate);
   border: var(--bd-hair);
   border-radius: var(--r-2);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+
+.ps-part:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-lt);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .ps-part__top {

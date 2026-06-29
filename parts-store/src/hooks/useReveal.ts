@@ -9,10 +9,10 @@ import { useEffect } from "react";
 export function useReveal() {
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>(".ps-sec"));
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      sections.forEach((el) => el.classList.add("in"));
-      return;
-    }
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+
+    sections.forEach((el) => el.classList.add("will-reveal"));
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {

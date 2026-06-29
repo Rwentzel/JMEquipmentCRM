@@ -53,6 +53,9 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   twitter: { card: "summary_large_image", title: "JM Equipment — Industrial Parts Store", description: DESC },
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+  },
   // Sandbox: keep this build out of search indexes until launch is approved.
   robots: { index: false, follow: false },
 };

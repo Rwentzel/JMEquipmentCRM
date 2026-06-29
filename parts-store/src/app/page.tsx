@@ -440,6 +440,7 @@ function Request({
   contact,
   setContact,
   errors,
+  onBlur,
   sent,
   reference,
   onQty,
@@ -451,6 +452,7 @@ function Request({
   contact: ContactForm;
   setContact: (c: ContactForm) => void;
   errors: Partial<Record<keyof ContactForm, string>>;
+  onBlur: (k: keyof ContactForm) => () => void;
   sent: boolean;
   reference: string | null;
   onQty: (sku: string, qty: number) => void;
@@ -484,9 +486,9 @@ function Request({
             </div>
             <div className="jme-card__body">
               <div className="ps-fgrid">
-                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} required error={errors.company} />
-                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} required error={errors.name} />
-                <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} required error={errors.email} />
+                <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} onBlur={onBlur("company")} required error={errors.company} />
+                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} onBlur={onBlur("name")} required error={errors.name} />
+                <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} onBlur={onBlur("email")} required error={errors.email} />
                 <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
               </div>
               <div style={{ marginTop: 14 }}>
@@ -505,7 +507,12 @@ function Request({
               <span style={{ fontSize: 12, color: "var(--paper-dim)" }}>{items.length} item(s)</span>
             </div>
             <div className="jme-card__body">
-              {items.length === 0 && <div className="ps-empty">Your request list is empty.</div>}
+              {items.length === 0 && (
+                <div className="ps-empty">
+                  Your request list is empty. <a href="#machines" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>Browse machines</a> or{" "}
+                  <a href="#parts" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>search parts</a> to add items.
+                </div>
+              )}
               {items.map((i) => (
                 <div className="ps-line" key={i.sku}>
                   <div className="ps-line__main">
@@ -787,11 +794,22 @@ export default function StorefrontPage() {
   const [sent, setSent] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
 
-  // Editing the form clears the sent state and any prior errors.
   const setContact = (c: ContactForm) => {
     setContactRaw(c);
     if (sent) setSent(false);
-    if (Object.keys(formErrors).length) setFormErrors({});
+  };
+
+  const blurField = (k: keyof ContactForm) => () => {
+    const v = contact[k].trim();
+    const next = { ...formErrors };
+    if (k === "company" && !v) next.company = "Company is required.";
+    else if (k === "company") delete next.company;
+    else if (k === "name" && !v) next.name = "Contact name is required.";
+    else if (k === "name") delete next.name;
+    else if (k === "email" && !v) next.email = "Email is required.";
+    else if (k === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) next.email = "Enter a valid email.";
+    else if (k === "email") delete next.email;
+    setFormErrors(next);
   };
 
   useReveal();
@@ -867,6 +885,7 @@ export default function StorefrontPage() {
         contact={contact}
         setContact={setContact}
         errors={formErrors}
+        onBlur={blurField}
         sent={sent}
         reference={reference}
         onQty={setQty}
