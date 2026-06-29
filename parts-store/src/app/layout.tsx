@@ -56,6 +56,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
+  manifest: "/manifest.json",
   // Sandbox: keep this build out of search indexes until launch is approved.
   robots: { index: false, follow: false },
 };

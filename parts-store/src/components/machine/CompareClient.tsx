@@ -63,11 +63,11 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
         <div className="cmp-head__in">
           <Eyebrow>Compare the line</Eyebrow>
           <h1 className="cmp-h1">Machine comparison</h1>
-          <p style={{ color: "var(--paper-dim)", maxWidth: "70ch" }}>
+          <p className="cmp-desc">
             Every machine is quoted individually. Pricing, freight, and lead time are confirmed in writing on your
             request — not shown online.
           </p>
-          <div style={{ marginTop: 16 }}>
+          <div className="cmp-bulk-action">
             <Button
               size="sm"
               variant="ghost"
@@ -91,10 +91,10 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
               {rows.map((r) => (
                 <th key={r.sku} scope="col">
                   <h3>
-                    <a href={`/machine/${r.sku}`} style={{ color: "inherit" }}>{r.name}</a>
+                    <a href={`/machine/${r.sku}`} className="cmp-name-link">{r.name}</a>
                   </h3>
                   <div className="cmp-sku">{r.sku}</div>
-                  <div style={{ marginTop: 6 }}>
+                  <div className="cmp-tag-wrap">
                     <Tag tone={r.tag}>{r.tagLabel}</Tag>
                   </div>
                 </th>

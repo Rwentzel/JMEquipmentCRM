@@ -1,0 +1,17 @@
+{
+  "name": "JM Equipment — Industrial Parts Store",
+  "short_name": "JM Equipment",
+  "description": "Converting Machinery Solutions. Sheeters, rollstands, and the JME core splitter — built, rebuilt, and parts-supported in Sturgis, Michigan since 1989.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#141414",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

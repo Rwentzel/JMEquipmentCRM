@@ -151,7 +151,7 @@ export function MachineDetailClient({
           <div className="md-gallery" onKeyDown={hasGallery ? onGalleryKey : undefined} tabIndex={hasGallery ? 0 : undefined} role={hasGallery ? "region" : undefined} aria-label={hasGallery ? "Product gallery" : undefined}>
             <div className="md-hero__photo">
               {hero ? (
-                <SmartImg src={asset(hero.src)} alt={hero.cap} style={{ objectFit: hero.fit === "cover" ? "cover" : "contain" }} />
+                <SmartImg src={asset(hero.src)} alt={hero.cap} className={hero.fit === "cover" ? "is-cover" : undefined} />
               ) : (
                 <div className="md-hero__ph">
                   <Diamond size={64} />
@@ -180,7 +180,7 @@ export function MachineDetailClient({
                     aria-label={img.cap}
                     aria-current={i === gi ? "true" : undefined}
                   >
-                    <SmartImg src={asset(img.src)} alt="" style={{ objectFit: "contain" }} />
+                    <SmartImg src={asset(img.src)} alt="" />
                   </button>
                 ))}
               </div>
@@ -251,7 +251,7 @@ export function MachineDetailClient({
                 </div>
                 <div className="jme-card__body">
                   {selection.length === 0 ? (
-                    <p style={{ color: "var(--paper-dim)", fontSize: "var(--t-sm)" }}>
+                    <p className="md-config__default">
                       Standard configuration. Select options to refine your request.
                     </p>
                   ) : (
@@ -265,7 +265,7 @@ export function MachineDetailClient({
                     Pricing, freight, and lead time are confirmed in writing by the parts desk. Add your configuration
                     to the request list to get a firm written quotation.
                   </Callout>
-                  <div style={{ marginTop: 16 }}>
+                  <div className="md-config__action">
                     <Button block onClick={addMachine}>
                       {actionLabel(machine.action)}
                     </Button>
@@ -282,10 +282,10 @@ export function MachineDetailClient({
         <div className="md-sec__in">
           <Eyebrow>How it works</Eyebrow>
           <h2>From load to recover</h2>
-          <p className="md-tagline" style={{ maxWidth: "62ch" }}>
+          <p className="md-tagline">
             {detail.lead}
           </p>
-          <div className="md-grid-2" style={{ marginTop: 24 }}>
+          <div className="md-grid-2 md-how__grid">
             {detail.how.map((s) => (
               <div className="md-step" key={s.n}>
                 <span className="md-step__n">{s.n}</span>
@@ -307,7 +307,7 @@ export function MachineDetailClient({
           <div className="md-grid-2">
             <DataPlate title={machine.name} sku={machine.sku} rows={machine.specs} />
             <Callout title="Proof">
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="md-proof">
                 <StatBlock stats={[{ value: detail.proof.stat, label: detail.proof.label }]} />
                 <span>{detail.proof.quote}</span>
               </div>
@@ -347,7 +347,7 @@ export function MachineDetailClient({
             >
               {relatedParts.map((p) => (
                 <tr key={p.sku}>
-                  <td className="jme-mono" style={{ color: "var(--jme-gold)" }}>
+                  <td className="jme-mono md-parts__sku">
                     {p.sku}
                   </td>
                   <td>{p.name}</td>
@@ -384,9 +384,9 @@ export function MachineDetailClient({
             {detail.downloads.map((d) => (
               <div className="md-rescard" key={d.t}>
                 <Tag tone="consult">PDF</Tag>
-                <h4 style={{ marginTop: 8 }}>{d.t}</h4>
+                <h4>{d.t}</h4>
                 <p>{d.m}</p>
-                <p style={{ marginTop: 8, fontSize: "var(--t-2xs)", color: "var(--paper-faint)" }}>
+                <p className="md-rescard__note">
                   Available on request — sandbox build.
                 </p>
               </div>

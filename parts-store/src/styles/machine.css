@@ -130,6 +130,21 @@
   margin: var(--s-4) 0;
   color: var(--paper-dim);
   font-size: var(--t-md);
+  max-width: 62ch;
+}
+
+.md-how__grid {
+  margin-top: 24px;
+}
+
+.md-proof {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.md-parts__sku {
+  color: var(--jme-gold);
 }
 
 .md-hero__stats {
@@ -423,6 +438,22 @@
   color: var(--jme-red-bright);
 }
 
+/* ---- Config state ---- */
+.md-config__default {
+  color: var(--paper-dim);
+  font-size: var(--t-sm);
+}
+
+.md-config__action {
+  margin-top: 16px;
+}
+
+/* ---- Hero photo fit ---- */
+.md-hero__photo img.is-cover {
+  object-fit: cover;
+  padding: 0;
+}
+
 /* ---- How it works ---- */
 .md-step {
   display: grid;
@@ -460,12 +491,25 @@
   border-radius: var(--r-2);
 }
 
-.md-appcard h4,
-.md-rescard h4 {
+.md-appcard h4 {
   text-transform: uppercase;
   letter-spacing: var(--track-heading);
   color: var(--paper);
   margin-bottom: var(--s-2);
+}
+
+.md-rescard h4 {
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin-top: 8px;
+  margin-bottom: var(--s-2);
+}
+
+.md-rescard__note {
+  margin-top: 8px;
+  font-size: var(--t-2xs);
+  color: var(--paper-faint);
 }
 
 .md-appcard p,
@@ -475,6 +519,24 @@
 }
 
 /* ============================================================== Compare === */
+/* ---- Compare page ---- */
+.cmp-desc {
+  color: var(--paper-dim);
+  max-width: 70ch;
+}
+
+.cmp-bulk-action {
+  margin-top: 16px;
+}
+
+.cmp-name-link {
+  color: inherit;
+}
+
+.cmp-tag-wrap {
+  margin-top: 6px;
+}
+
 .cmp-head {
   padding: var(--s-10) 0 var(--s-6);
 }

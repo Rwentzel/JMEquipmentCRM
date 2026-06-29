@@ -32,7 +32,7 @@ const D = {
 /* ---------------------------------------------------------------- Photo --- */
 function MachinePhoto({ m }: { m: Machine }) {
   if (m.photo) {
-    return <SmartImg src={asset(m.photo)} alt={m.name} style={{ objectFit: m.fit === "contain" ? "contain" : "cover" }} />;
+    return <SmartImg src={asset(m.photo)} alt={m.name} />;
   }
   return (
     <div className="ps-machine__ph">
@@ -119,7 +119,7 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
             <li>OEM+ rebuild spec</li>
           </ul>
           {statsOn && (
-            <div style={{ marginTop: 34, maxWidth: 520 }}>
+            <div className="ps-hero__stats">
               <StatBlock
                 stats={[
                   { value: "37 yrs", label: "In converting" },
@@ -385,7 +385,7 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
           {results.length === 0 && (
             <div className="ps-empty">
               No parts match &ldquo;{dq}&rdquo; — try a different term or{" "}
-              <a href="#request" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>send a custom request</a>.
+              <a href="#request" className="ps-link--gold">send a custom request</a>.
             </div>
           )}
         </div>
@@ -477,10 +477,10 @@ function Request({
           </p>
         </div>
         <div className="ps-reqgrid">
-          <div className="jme-card" style={{ background: "var(--charcoal)" }}>
+          <div className="jme-card ps-reqcard">
             <div className="jme-card__hd">
               <h3>Who should we answer?</h3>
-              <span className="jme-mono" style={{ fontSize: 12, color: "var(--jme-gold)" }}>
+              <span className="jme-mono ps-reqcard__badge">
                 RFQ
               </span>
             </div>
@@ -491,26 +491,26 @@ function Request({
                 <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} onBlur={onBlur("email")} required error={errors.email} />
                 <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
               </div>
-              <div style={{ marginTop: 14 }}>
+              <div className="ps-serial-wrap">
                 <Field label="Machine serial number" hint="optional" placeholder="From the machine dataplate" value={contact.serial} onChange={set("serial")} />
               </div>
               {/* Honeypot: visually hidden, must remain empty */}
-              <div aria-hidden style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+              <div aria-hidden className="ps-honeypot">
                 <label htmlFor="ps-website">Website</label>
                 <input id="ps-website" name="website" tabIndex={-1} autoComplete="off" value={contact.website} onChange={set("website")} />
               </div>
             </div>
           </div>
-          <div className="jme-card" style={{ background: "var(--charcoal)" }}>
+          <div className="jme-card ps-reqcard">
             <div className="jme-card__hd">
               <h3>Line items</h3>
-              <span style={{ fontSize: 12, color: "var(--paper-dim)" }}>{items.length} item(s)</span>
+              <span className="ps-linecount">{items.length} item(s)</span>
             </div>
             <div className="jme-card__body">
               {items.length === 0 && (
                 <div className="ps-empty">
-                  Your request list is empty. <a href="#machines" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>Browse machines</a> or{" "}
-                  <a href="#parts" style={{ color: "var(--jme-gold)", textDecoration: "underline" }}>search parts</a> to add items.
+                  Your request list is empty. <a href="#machines" className="ps-link--gold">Browse machines</a> or{" "}
+                  <a href="#parts" className="ps-link--gold">search parts</a> to add items.
                 </div>
               )}
               {items.map((i) => (
@@ -649,10 +649,10 @@ function Footer() {
       <div className="jme-cutline" />
       <div className="ps-wrap ps-foot__grid">
         <div>
-          <div className="brand" style={{ marginBottom: 14 }}>
+          <div className="brand ps-foot__brand">
             <Diamond size={30} />
             <span>
-              <b style={{ fontSize: 22 }}>JM Equipment</b>
+              <b className="ps-foot__name">JM Equipment</b>
               <small>Converting Machinery Solutions</small>
             </span>
           </div>
