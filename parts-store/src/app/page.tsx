@@ -18,6 +18,8 @@ import { useToast } from "@/hooks/useToast";
 import { useReveal } from "@/hooks/useReveal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { catalog } from "@/data/catalog";
+import { FAQ } from "@/data/faq";
+import { AssistantWidget } from "@/components/AssistantWidget";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
 import { asset, actionLabel } from "@/lib/utils";
@@ -597,28 +599,7 @@ function Trust() {
 
 /* ------------------------------------------------------------------ FAQ --- */
 function Faq() {
-  const qa: [string, string][] = [
-    [
-      "Why don't I see prices online?",
-      "Industrial parts and machines are quoted individually — pricing depends on configuration, freight, and lead time. Add what you need to a request and the desk confirms everything in writing.",
-    ],
-    [
-      "How fast do parts ship?",
-      "98% of stocked parts ordered by early afternoon leave the Sturgis dock the same day. Availability is shown as a status band; exact timing is confirmed on your quote.",
-    ],
-    [
-      "Can you match a part from another OEM's machine?",
-      "Often, yes. Send the machine serial number and a description or photo; we verify fit before quoting rather than guessing.",
-    ],
-    [
-      "Do you handle freight on heavy items?",
-      "Yes. Freight-heavy parts and machines are quoted with freight so there are no surprises — they're flagged \"Freight Quote Required.\"",
-    ],
-    [
-      "Is a request a binding order?",
-      "No. Submitting a request asks for a firm written quotation. Nothing is ordered or charged until you approve the quote.",
-    ],
-  ];
+  const qa: [string, string][] = FAQ.map((f) => [f.q, f.a]);
   return (
     <section id="faq" className="ps-sec">
       <div className="ps-wrap">
@@ -896,6 +877,7 @@ export default function StorefrontPage() {
       <Trust />
       <Faq />
       <Footer />
+      <AssistantWidget />
       <ScrollToTop />
       <button className="ps-tweaksbtn" onClick={() => setTwOpen(!twOpen)} aria-label="Display tweaks">
         ⚙

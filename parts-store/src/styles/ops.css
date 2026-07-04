@@ -1,0 +1,381 @@
+/* ============================================================ Ops desk ===
+   Internal console — same industrial token system as the storefront,
+   denser layout. Never linked publicly, noindexed. */
+
+.ops,
+.ops-gate {
+  min-height: 100vh;
+  padding: var(--s-6) var(--s-5);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ops-gate {
+  display: grid;
+  place-content: center;
+  text-align: center;
+  gap: var(--s-3);
+}
+
+.ops-gate h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.ops-gate p {
+  color: var(--paper-dim);
+  max-width: 46ch;
+}
+
+.ops-gate code {
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+/* ---- login ---- */
+.ops-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  width: min(340px, 90vw);
+  padding: var(--s-5);
+  text-align: left;
+  background: var(--plate);
+  border: var(--bd-edge);
+  border-radius: var(--r-2);
+  box-shadow: var(--sh-card);
+}
+
+.ops-login__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-bottom: var(--s-3);
+  border-bottom: var(--bd-hair);
+}
+
+.ops-login__hd b {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.ops-login label {
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+.ops-login input {
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  color: var(--paper);
+  background: var(--field);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+}
+
+.ops-login input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.ops-login button {
+  padding: var(--s-2) var(--s-4);
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--ink);
+  background: var(--accent);
+  border-radius: var(--r-1);
+}
+
+.ops-login button:disabled {
+  opacity: 0.45;
+}
+
+.ops-login__err {
+  font-size: var(--t-sm);
+  color: var(--jme-red-bright);
+}
+
+/* ---- console ---- */
+.ops__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding-bottom: var(--s-4);
+  margin-bottom: var(--s-4);
+  border-bottom: var(--bd-edge);
+}
+
+.ops__hd b {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.ops__hd-note {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--paper-faint);
+}
+
+.ops__devbadge {
+  margin-left: auto;
+  padding: 2px var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink);
+  background: var(--accent);
+  border-radius: var(--r-1);
+}
+
+.ops__logout {
+  margin-left: auto;
+  padding: var(--s-1) var(--s-3);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  border: var(--bd-hair);
+  border-radius: var(--r-pill);
+}
+
+.ops__logout:hover {
+  color: var(--paper);
+  border-color: var(--paper-faint);
+}
+
+.ops__counts {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--s-2);
+  margin-bottom: var(--s-5);
+}
+
+.ops__count {
+  padding: var(--s-3);
+  text-align: center;
+  background: var(--plate);
+  border: var(--bd-hair);
+  border-radius: var(--r-2);
+  opacity: 0.55;
+}
+
+.ops__count.on {
+  opacity: 1;
+  border: var(--bd-edge);
+}
+
+.ops__count b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: var(--fw-black);
+  color: var(--paper);
+}
+
+.ops__count span {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+.ops__sechd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.ops__sechd h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-heading);
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.ops__sechd button,
+.ops__agentbtns button {
+  padding: var(--s-1) var(--s-3);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--plate-hi);
+  border: var(--bd-hair);
+  border-radius: var(--r-pill);
+}
+
+.ops__sechd button:hover,
+.ops__agentbtns button:hover {
+  border-color: var(--accent);
+}
+
+.ops__agentbtns {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+.ops__agentbtns button:disabled {
+  opacity: 0.45;
+}
+
+.ops__inbox,
+.ops__agents {
+  margin-bottom: var(--s-6);
+}
+
+.ops__empty,
+.ops__err {
+  padding: var(--s-4);
+  color: var(--paper-dim);
+  background: var(--plate);
+  border: var(--bd-hair);
+  border-radius: var(--r-2);
+}
+
+.ops__err {
+  color: var(--jme-red-bright);
+}
+
+.ops__tablewrap {
+  overflow-x: auto;
+  border: var(--bd-edge);
+  border-radius: var(--r-2);
+}
+
+.ops__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+  color: var(--paper);
+  background: var(--plate);
+}
+
+.ops__table th {
+  padding: var(--s-2) var(--s-3);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--paper-dim);
+  background: var(--grad-plate-dark);
+  border-bottom: var(--bd-edge);
+}
+
+.ops__table td {
+  padding: var(--s-2) var(--s-3);
+  vertical-align: top;
+  border-bottom: var(--bd-hair);
+}
+
+.ops__table td small {
+  display: block;
+  color: var(--paper-dim);
+}
+
+.ops__table .mono,
+.ops__report .mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+}
+
+.ops__line {
+  display: inline-block;
+  margin: 0 var(--s-1) var(--s-1) 0;
+  padding: 1px var(--s-2);
+  background: var(--field);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+}
+
+.ops__flag {
+  padding: 1px var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  color: var(--ink);
+  background: var(--accent);
+  border-radius: var(--r-1);
+}
+
+.ops__table select {
+  padding: var(--s-1) var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  color: var(--paper);
+  background: var(--field);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+}
+
+.ops__report {
+  padding: var(--s-4);
+  background: var(--plate);
+  border: var(--bd-edge);
+  border-radius: var(--r-2);
+}
+
+.ops__briefing {
+  margin-bottom: var(--s-3);
+  color: var(--paper);
+}
+
+.ops__briefing em {
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  color: var(--paper-faint);
+}
+
+.ops__report ol,
+.ops__report ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding-left: var(--s-4);
+  color: var(--paper-dim);
+  font-size: var(--t-sm);
+}
+
+.ops__report li.ok b {
+  color: var(--jme-green);
+}
+
+.ops__report li.bad b {
+  color: var(--jme-red-bright);
+}
+
+@media (max-width: 760px) {
+  .ops__counts {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

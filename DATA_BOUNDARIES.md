@@ -35,7 +35,9 @@ build-time grep of the compiled output for forbidden tokens (see `IMPLEMENTATION
 | **Customer-specific pricing** | contract price | **Private** | **No** | Confidential | Never import |
 | **Full raw catalog export** | master file | **Private** | **No** | Bulk exposure | Never ship; server-side only if ever |
 | **Staff-only tools** | admin surface | **Private** | **No** | Internal | Separate gated app/route |
-| RFQ form input (company / name / email / phone / serial) | user-entered | PII (transient) | **N/A — not bundled** | Customer contact | Validate server-side; **no PII logging**; not persisted in sandbox |
+| RFQ form input (company / name / email / phone / serial) | user-entered | PII (server-side) | **N/A — not bundled** | Customer contact | Validate server-side; **no PII logging**; persisted only in gitignored `.data/`, readable only via ops-authenticated API |
+| Assistant question text | user-entered | PII-adjacent (transient) | **N/A** | Support routing | Never logged or persisted; answered from public catalog/FAQ only |
+| Audit log events | system | Internal (non-PII) | **No** | Abuse detection | Event kind + counts + hashed client key only; no user strings, no IPs |
 
 ## Public status bands (the only allowed public availability labels)
 `In Stock` · `Limited Stock` · `Backorder` · `Call for Availability` · `Quote Required` · `Freight Quote Required` · `Discontinued / Contact JM`

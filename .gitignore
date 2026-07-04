@@ -9,3 +9,10 @@ dist/
 Thumbs.db
 # Git metadata (if you ever nested repos)
 .git/
+
+# runtime data (RFQ store, audit log) — contains customer PII, never commit
+parts-store/.data/
+.data/
+# next build output
+parts-store/.next/
+*.tsbuildinfo
