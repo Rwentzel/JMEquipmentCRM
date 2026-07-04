@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Photo available on request">
+  <defs>
+    <linearGradient id="plate" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b2a27"/>
+      <stop offset="1" stop-color="#232220"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="400" fill="url(#plate)"/>
+  <g transform="translate(320 176)">
+    <rect x="-26" y="-26" width="52" height="52" transform="rotate(45)" fill="#a8353a" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+    <text x="0" y="6" font-family="'Barlow Condensed',Arial,sans-serif" font-size="22" font-weight="800" fill="#fff" text-anchor="middle">JME</text>
+  </g>
+  <text x="320" y="250" font-family="'Barlow',Arial,sans-serif" font-size="14" letter-spacing="3" fill="#8d887e" text-anchor="middle">PHOTO ON REQUEST</text>
+</svg>
