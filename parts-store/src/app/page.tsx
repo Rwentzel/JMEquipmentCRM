@@ -233,7 +233,7 @@ function Capabilities() {
   const caps: [string, string][] = [
     ["Core splitters", "Hydraulic single-stroke splitting for OCC/kraft core reclaim."],
     ["Sheeters", "Factory-direct Goodstrong dual-rotary lines and rebuilds."],
-    ["Rollstands", "Martin / Geo Martin rebuilds to OEM+ tolerance."],
+    ["Rollstands", "JME RollRite new builds and Geo M. Martin rebuilds to OEM+ tolerance."],
     ["Guillotine cutters", "Programmable, two-hand + light-curtain safety."],
     ["Splicers & decurlers", "Zero-speed flying splice; inline curl removal."],
     ["Wear & service parts", "Blades, bearings, chucks, seals, valves, sensors."],
@@ -572,7 +572,7 @@ function Trust() {
     { b: "37 years", s: "In converting", p: "Founded 1989. One floor in Sturgis — build, rebuild, and parts under the same roof." },
     { b: "98%", s: "Same-day parts", p: "Stocked parts ordered by early afternoon leave the dock the same day." },
     { b: "Factory-direct", s: "Goodstrong import", p: "New sheeters without the dealer stack — and a Michigan phone number behind them." },
-    { b: "OEM+", s: "Rebuild tolerance", p: "Martin rebuilds held tighter than original, pressure-tested to 150% of operating." },
+    { b: "OEM+", s: "Rebuild tolerance", p: "Geo M. Martin rebuilds held tighter than original, pressure-tested to 150% of operating." },
   ];
   return (
     <section id="whyjme" className="ps-sec ps-sec--alt">
