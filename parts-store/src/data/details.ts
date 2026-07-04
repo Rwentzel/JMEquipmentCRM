@@ -147,15 +147,64 @@ export const details: Record<string, MachineDetail> = {
     ],
   },
 
-  "MRS-72": {
-    tagline: "Rebuilt Martin mill rollstands — feed any line with OEM+ confidence.",
-    lead: "A mill rollstand sits behind your slitter, sheeter, die cutter, or corrugator to feed parent rolls smoothly under tension. JME rebuilds Martin stands to tighter-than-original spec, media-blasts and repaints to your color, and pressure-tests before it ships.",
+  "JME-RR-16": {
+    tagline: "The JME RollRite rollstand — smooth parent-roll feed for any converting line.",
+    lead: "The RollRite is JME's own shaftless rollstand, built to feed slitters, sheeters, bag machines, forming presses, laminators, and more. Core size capabilities of 4, 3–6, 10–12, and 16 inches, with custom chucks available. Sold and supported from Sturgis, Michigan.",
+    heroStats: [
+      { value: "4–16 in", label: "Core sizes" },
+      { value: "Shaftless", label: "Design" },
+      { value: "Custom", label: "Chucks available" },
+    ],
+    badge: { band: "Quote Required" },
+    gallery: [],
+    options: [
+      {
+        id: "core",
+        label: "Core size",
+        type: "radio",
+        choices: [
+          { v: "4 in", sku: "C4", note: "Standard" },
+          { v: "3–6 in", sku: "C36" },
+          { v: "10–12 in", sku: "C1012" },
+          { v: "16 in", sku: "C16" },
+        ],
+      },
+      {
+        id: "chuck",
+        label: "Chucks",
+        type: "radio",
+        choices: [
+          { v: "Standard", sku: "CS", note: "Standard" },
+          { v: "Custom", sku: "CC" },
+        ],
+      },
+    ],
+    how: [
+      { n: "01", t: "Mount", d: "Parent roll loads onto chucks sized to your core ID." },
+      { n: "02", t: "Tension", d: "The stand holds steady web tension as the downstream machine pulls." },
+      { n: "03", t: "Guide", d: "The web tracks smoothly into the line." },
+      { n: "04", t: "Feed", d: "Controlled delivery into the slitter, sheeter, bag machine, press, or laminator." },
+    ],
+    apps: ["Slitters", "Sheeters", "Bag machines", "Forming presses", "Laminators"],
+    proof: {
+      stat: "JME",
+      label: "Built for converters",
+      quote:
+        "Sold, supported, and parts-backed from one floor in Sturgis, Michigan.",
+    },
+    partsCat: "Rollstand",
+    downloads: [],
+  },
+
+  "GMM-RS-RB": {
+    tagline: "Rebuilt Geo M. Martin rollstands — feed any line with OEM+ confidence.",
+    lead: "A rollstand sits behind your slitter, sheeter, die cutter, or corrugator to feed parent rolls smoothly under tension. JME rebuilds Geo M. Martin stands to tighter-than-original spec, media-blasts and repaints to your color, and pressure-tests before it ships — and stocks Martin repair parts like brake components, hydraulic filters, and alignment blocks.",
     heroStats: [
       { value: "4–16 in", label: "Core range" },
       { value: "OEM+", label: "Rebuild spec" },
       { html: "150<em>%</em>", label: "Test pressure" },
     ],
-    badge: { band: "In Stock" },
+    badge: { band: "Quote Required" },
     gallery: [],
     options: [
       {
