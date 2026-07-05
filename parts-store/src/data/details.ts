@@ -350,11 +350,11 @@ export const details: Record<string, MachineDetail> = {
 
   "JME-DC-04": {
     tagline: "Take the curl out of the roll before it hits the knife.",
-    lead: "The JME Decurler removes residual roll-set curl ahead of the sheeter so stacks lie flat and square. Adjustable decurl bars mount inline and add no separate drive.",
+    lead: "The JME Decurler uses multi-bar decurl to flatten rolls at any width, at the speed your line needs. It can be crafted to mount onto any sheeter, and installation is easy with interchangeable decurler bearings and cradle rollers.",
     heroStats: [
-      { value: "to 1650 mm", label: "Web width" },
-      { value: "Inline", label: "Mounting" },
-      { value: "Adj.", label: "Decurl bars" },
+      { value: "Any width", label: "Multi-bar decurl" },
+      { value: "Any sheeter", label: "Custom mounting" },
+      { value: "Easy", label: "Install & service" },
     ],
     badge: { band: "Quote Required" },
     gallery: [],
@@ -390,7 +390,7 @@ export const details: Record<string, MachineDetail> = {
       label: "Squarer stacks, less rework",
       quote: "Removing curl upstream cuts jam rates and improves stack quality at the piler.",
     },
-    partsCat: "Sheeter",
+    partsCat: "Decurler",
     downloads: [{ t: "Spec sheet (PDF)", m: "Mounting & width" }],
   },
 };

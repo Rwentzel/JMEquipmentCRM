@@ -25,7 +25,7 @@ export default function MachinePage({ params }: { params: { sku: string } }) {
   if (!rawMachine || !detail) notFound();
 
   const machine = toPublicMachine(rawMachine);
-  const relatedParts = catalog.parts.filter((p) => p.cat === detail.partsCat).map(toPublicPart);
+  const relatedParts = catalog.parts.filter((p) => p.cat === detail.partsCat).slice(0, 8).map(toPublicPart);
 
   return <MachineDetailClient machine={machine} detail={detail} relatedParts={relatedParts} />;
 }

@@ -18,8 +18,8 @@ export const FAQ: FaqEntry[] = [
   },
   {
     q: "How fast do parts ship?",
-    a: "98% of stocked parts ordered by early afternoon leave the Sturgis dock the same day. Availability is shown as a status band; exact timing is confirmed on your quote.",
-    keys: ["ship", "shipping", "fast", "lead time", "delivery", "when", "same day"],
+    a: "In-stock parts with a PO in by 2:30 PM Eastern ship the same day from Sturgis. Next-day and rush delivery are available on request — just tell us on your quote request. Availability is shown as a status band; exact timing is confirmed on your quote.",
+    keys: ["ship", "shipping", "fast", "lead time", "delivery", "when", "same day", "rush", "next day", "overnight"],
   },
   {
     q: "Can you match a part from another OEM's machine?",

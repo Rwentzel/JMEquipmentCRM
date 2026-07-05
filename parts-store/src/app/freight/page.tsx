@@ -35,9 +35,10 @@ export default function FreightPage() {
           <section>
             <h2>2. Standard Parts Shipping</h2>
             <p>
-              98% of stocked parts ordered by early afternoon ship the same business day
-              via ground carrier. Expedited shipping is available on request&mdash;contact
-              the parts desk for rates and transit times to your location.
+              In-stock parts with a purchase order received by 2:30 PM Eastern ship the
+              same business day via ground carrier. Next-day and rush shipping are
+              available on request&mdash;let us know if rush delivery is needed and the
+              parts desk will confirm rates and transit times to your location.
             </p>
           </section>
 
@@ -99,7 +100,7 @@ export default function FreightPage() {
             <address>
               JM Equipment Inc. &mdash; Parts Desk<br />
               <a href="tel:(269) 659-0093">(269) 659-0093</a><br />
-              <a href="mailto:sales@jmequipment.net">sales@jmequipment.net</a>
+              <a href="mailto:parts@jmequipment.net">parts@jmequipment.net</a>
             </address>
           </section>
 

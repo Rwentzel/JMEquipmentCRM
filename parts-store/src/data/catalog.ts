@@ -1,4 +1,5 @@
 import type { Catalog } from "./types";
+import { PARTS_PUBLIC, PART_FAMILIES } from "./partsCatalog";
 
 /**
  * JME Parts Store — public catalog (sandbox demo data, RFQ-first).
@@ -15,7 +16,7 @@ export const catalog: Catalog = {
     city: "Sturgis, Michigan",
     est: 1989,
     phone: "(269) 659-0093",
-    email: "sales@jmequipment.net",
+    email: "parts@jmequipment.net",
   },
   machines: [
     {
@@ -147,16 +148,6 @@ export const catalog: Catalog = {
       ],
     },
   ],
-  parts: [
-    { sku: "JM108", name: "Knife Bearing — Lower", cat: "Sheeter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-SK-12", name: "Hydraulic Seal Kit", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-BL-04", name: "Splitter Blade Assembly", cat: "Core Splitter", statusBand: "Backorder", action: "backorder" },
-    { sku: "D03-PSAB", name: "Directional Control Valve D03", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-LS-22", name: "Safety Limit Switch", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "GS-FLT-10", name: "Return Filter — 10 Micron", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
-    { sku: "MR-CHK-16", name: "Expanding Chuck — 16 in", cat: "Rollstand", statusBand: "Limited Stock", action: "request-quote" },
-    { sku: "GS-KNF-650", name: "Rotary Knife — 1650mm", cat: "Sheeter", statusBand: "Freight Quote Required", action: "freight-quote" },
-    { sku: "VCS-PMP-3", name: "Hydraulic Pump 3HP", cat: "Core Splitter", statusBand: "Freight Quote Required", action: "freight-quote" },
-  ],
-  cats: ["All", "Core Splitter", "Sheeter", "Rollstand", "Hydraulic"],
+  parts: PARTS_PUBLIC,
+  cats: ["All", ...PART_FAMILIES],
 };

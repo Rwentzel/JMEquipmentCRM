@@ -100,7 +100,7 @@ export default function PrivacyPage() {
               JM Equipment Inc.<br />
               405 1/2 West Congress St<br />
               Sturgis, MI 49091<br />
-              <a href="mailto:sales@jmequipment.net">sales@jmequipment.net</a><br />
+              <a href="mailto:riley@jmequipment.net">riley@jmequipment.net</a><br />
               <a href="tel:(269) 659-0093">(269) 659-0093</a>
             </address>
           </section>
