@@ -19,6 +19,23 @@ export function generateMetadata({ params }: { params: { sku: string } }): Metad
   };
 }
 
+/**
+ * Product structured data. No `offers` block — this is RFQ-first with no
+ * public price, and an Offer without a price/priceCurrency is invalid
+ * structured data (see DATA_BOUNDARIES.md).
+ */
+function ProductJsonLd({ machine }: { machine: ReturnType<typeof toPublicMachine> }) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: machine.name,
+    description: machine.blurb,
+    category: machine.family,
+    brand: { "@type": "Brand", name: "JM Equipment" },
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
+}
+
 export default function MachinePage({ params }: { params: { sku: string } }) {
   const rawMachine = catalog.machines.find((m) => m.sku === params.sku);
   const detail = details[params.sku];
@@ -27,5 +44,10 @@ export default function MachinePage({ params }: { params: { sku: string } }) {
   const machine = toPublicMachine(rawMachine);
   const relatedParts = catalog.parts.filter((p) => p.cat === detail.partsCat).map(toPublicPart);
 
-  return <MachineDetailClient machine={machine} detail={detail} relatedParts={relatedParts} />;
+  return (
+    <>
+      <MachineDetailClient machine={machine} detail={detail} relatedParts={relatedParts} />
+      <ProductJsonLd machine={machine} />
+    </>
+  );
 }

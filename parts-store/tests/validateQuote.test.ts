@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { evaluateQuote } from "../src/lib/validateQuote";
 
 const skus = new Set(["JM108", "VCS-SK-12"]);
-const good = { company: "Acme", name: "Pat", email: "pat@acme.com" };
+const good = { company: "Acme", name: "Pat", email: "pat@acme.com", consent: true };
 const items = [{ sku: "JM108", qty: 2 }];
 
 test("accepts a well-formed request", () => {
@@ -33,4 +33,20 @@ test("rejects unknown SKU", () => {
 
 test("rejects qty < 1", () => {
   assert.equal(evaluateQuote(good, [{ sku: "JM108", qty: 0 }], skus).kind, "invalid");
+});
+
+test("rejects missing consent", () => {
+  assert.equal(evaluateQuote({ ...good, consent: false }, items, skus).kind, "invalid");
+  assert.equal(evaluateQuote({ company: "Acme", name: "Pat", email: "pat@acme.com" }, items, skus).kind, "invalid");
+});
+
+test("message-only mode accepts an empty item list when a message is present", () => {
+  assert.equal(
+    evaluateQuote({ ...good, message: "Do you service Geo M. Martin stands?" }, [], skus, { messageOnly: true }).kind,
+    "ok",
+  );
+});
+
+test("message-only mode still rejects an empty message", () => {
+  assert.equal(evaluateQuote({ ...good, message: "" }, [], skus, { messageOnly: true }).kind, "invalid");
 });

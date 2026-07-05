@@ -70,6 +70,10 @@ export function toPublicPart(p: Part): Part {
     cat: p.cat,
     statusBand: normalizeBand(p.statusBand),
     action: p.action,
+    description: p.description,
+    category: p.category,
+    fitment: p.fitment,
+    keywords: p.keywords,
   };
 }
 

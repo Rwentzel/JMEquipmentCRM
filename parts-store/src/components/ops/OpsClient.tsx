@@ -149,11 +149,25 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                     <td className="mono">{r.ref}</td>
                     <td>{ageLabel(r.createdAt)}</td>
                     <td>
-                      <b>{r.contact.company}</b>
+                      <b>
+                        {r.contact.company}
+                        {r.contact.wantsAccount === false && <span className="ops__flag" title="Opted out of an account">NO ACCT</span>}
+                      </b>
                       <small>
-                        {r.contact.name} · {r.contact.email}
-                        {r.contact.phone ? ` · ${r.contact.phone}` : ""}
+                        {r.contact.name}
+                        {r.contact.lastName ? ` ${r.contact.lastName}` : ""} · {r.contact.email}
+                        {r.contact.phone ? ` · ${r.contact.phone}${r.contact.phoneExt ? ` ext. ${r.contact.phoneExt}` : ""}` : ""}
+                        {r.contact.serial ? ` · S/N ${r.contact.serial}` : ""}
                       </small>
+                      {r.contact.shipAddress && (
+                        <small className="ops__addr">
+                          Ship: {r.contact.shipAddress}
+                          {r.contact.billingSameAsShipping === false && r.contact.billingAddress
+                            ? ` · Bill: ${r.contact.billingAddress}`
+                            : ""}
+                        </small>
+                      )}
+                      {r.message && <small className="ops__msg">&ldquo;{r.message}&rdquo;</small>}
                     </td>
                     <td>
                       {r.items.map((it) => (

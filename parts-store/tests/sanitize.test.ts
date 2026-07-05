@@ -20,7 +20,10 @@ test("normalizeBand recognizes the allowed bands and aliases", () => {
 test("toPublicPart returns only allowlisted fields", () => {
   const p: Part = { sku: "X1", name: "Seal", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" };
   const pub = toPublicPart(p);
-  assert.deepEqual(Object.keys(pub).sort(), ["action", "cat", "name", "sku", "statusBand"]);
+  assert.deepEqual(
+    Object.keys(pub).sort(),
+    ["action", "cat", "category", "description", "fitment", "keywords", "name", "sku", "statusBand"],
+  );
 });
 
 test("toPublicPart throws if a forbidden internal field is present", () => {

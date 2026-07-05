@@ -60,6 +60,14 @@ export interface Part {
   cat: string;
   statusBand: StatusBand;
   action: RfqAction;
+  /** Customer-facing description (sanitized — no internal notes). */
+  description?: string;
+  /** Fine-grained category, e.g. "Blades" — from the internal category legend. */
+  category?: string;
+  /** Machine fitment, e.g. "TC1600E / TC II". */
+  fitment?: string;
+  /** Search/SEO keywords — symptom and alternate-name terms customers actually type. */
+  keywords?: string[];
 }
 
 export interface Contact {
@@ -84,6 +92,59 @@ export interface RequestItem {
   sku: string;
   name: string;
   qty: number;
+  /** Optional provenance, e.g. "Goodstrong 1650 · Hydraulics · p.42 · #7" — display only. */
+  source?: string;
+}
+
+/* ---- Goodstrong manual / exploded-view diagram data ---- */
+/* Only ever populated from real manual content — never invented. See data/goodstrong.ts. */
+
+/** A numbered callout on an exploded-view page image, positioned in percent (0-100). */
+export interface Hotspot {
+  bubble: number;
+  x: number;
+  y: number;
+}
+
+/** One row of a page's parts list, keyed to its callout bubble number(s). */
+export interface DiagramPart {
+  bubble: number;
+  sku: string;
+  name: string;
+  /** Quantity used in this assembly per the manual's BOM — not a warehouse stock count. */
+  qty: number;
+  /** Prior/alternate part numbers for the same location across model years or revisions. */
+  alsoKnownAs?: string[];
+}
+
+/** One exploded-view page within a manual section. */
+export interface DiagramPage {
+  pageNumber: number;
+  /** Filename under /public/images/manuals/<model>/. */
+  image: string;
+  caption: string;
+  hotspots: Hotspot[];
+  parts: DiagramPart[];
+}
+
+/** A manual's table-of-contents entry, mapped to the area taxonomy. */
+export interface ManualSection {
+  id: string;
+  label: string;
+  startPage: number;
+  endPage: number;
+}
+
+/** A Goodstrong sheeter model + its manual content. */
+export interface GoodstrongModel {
+  id: string;
+  label: string;
+  /** Catalog machine SKU this model maps to, if listed in data/catalog.ts. */
+  machineSku?: string;
+  photo: string | null;
+  serialPattern: string;
+  sections: ManualSection[];
+  diagrams: Record<string, DiagramPage[]>;
 }
 
 /* ---- Machine detail (deep content for /machine/[sku]) ---- */

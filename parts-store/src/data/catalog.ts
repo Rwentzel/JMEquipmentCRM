@@ -147,16 +147,41 @@ export const catalog: Catalog = {
       ],
     },
   ],
+  /**
+   * Sourced from JME_Parts_Master_2026.xlsx ("Parts Master" sheet), public-safe
+   * fields only — no vendor, cost, sell price, margin, or on-hand/bin data was
+   * imported (see DATA_BOUNDARIES.md and that workbook's "Reference" sheet,
+   * which states "No prices on website. RFQ-only for launch."). Every item's
+   * statusBand is "Quote Required" until real, confirmed availability data
+   * exists — none of these are yet stock-confirmed regardless of the
+   * workbook's internal "Website Status" (draft/live) tracking column.
+   */
   parts: [
-    { sku: "JM108", name: "Knife Bearing — Lower", cat: "Sheeter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-SK-12", name: "Hydraulic Seal Kit", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-BL-04", name: "Splitter Blade Assembly", cat: "Core Splitter", statusBand: "Backorder", action: "backorder" },
-    { sku: "D03-PSAB", name: "Directional Control Valve D03", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
-    { sku: "VCS-LS-22", name: "Safety Limit Switch", cat: "Core Splitter", statusBand: "In Stock", action: "request-quote" },
-    { sku: "GS-FLT-10", name: "Return Filter — 10 Micron", cat: "Hydraulic", statusBand: "In Stock", action: "request-quote" },
-    { sku: "MR-CHK-16", name: "Expanding Chuck — 16 in", cat: "Rollstand", statusBand: "Limited Stock", action: "request-quote" },
-    { sku: "GS-KNF-650", name: "Rotary Knife — 1650mm", cat: "Sheeter", statusBand: "Freight Quote Required", action: "freight-quote" },
-    { sku: "VCS-PMP-3", name: "Hydraulic Pump 3HP", cat: "Core Splitter", statusBand: "Freight Quote Required", action: "freight-quote" },
+    { sku: "JME-VCS-BLD-001", name: "Splitter Blade", cat: "Core Splitter", category: "Blades", fitment: "VCS 45/55/65/75", keywords: ["splitter blade", "core blade"], description: "Replacement cutting blade for hydraulic core splitter", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-VCS-KBH-001", name: "Knife Block Holder", cat: "Core Splitter", category: "Blade Holders", fitment: "VCS 45/55/65/75", keywords: ["knife block holder", "spare holder"], description: "Preloaded replacement knife holder", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-VCS-HYD-001", name: "Hydraulic Hose", cat: "Core Splitter", category: "Hydraulic", fitment: "All VCS", keywords: ["hydraulic hose", "pressure hose"], description: "Hydraulic pressure hose assembly", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-VCS-HYD-002", name: "Hydraulic Seal Kit", cat: "Core Splitter", category: "Hydraulic", fitment: "All VCS", keywords: ["seal kit", "cylinder seal"], description: "Cylinder seal replacement kit", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-VCS-ADA-001", name: "Core Adapter", cat: "Core Splitter", category: "Adapters", fitment: "8-16 inch", keywords: ["core adapter", "diameter adapter"], description: "Core diameter adapter", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BLD-001", name: "Top Slitter Blade", cat: "Sheeter", category: "Blades", fitment: "TC1600E / TC II", keywords: ["top slitter blade", "slitter blade", "goodstrong blade"], description: "Rotary top slitter blade", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BLD-002", name: "Bottom Slitter Anvil", cat: "Sheeter", category: "Blades", fitment: "TC1600E / TC II", keywords: ["bottom slitter anvil", "anvil roll"], description: "Slitter anvil roll", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BRK-001", name: "Brake Pads", cat: "Sheeter", category: "Brake Systems", fitment: "TC Series", keywords: ["brake pads", "disc brake"], description: "Replacement brake pad set", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BEL-001", name: "Conveyor Top Belt", cat: "Sheeter", category: "Belts", fitment: "TC Series", keywords: ["conveyor belt", "top belt", "transport belt"], description: "Conveyor transport belt", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BEL-002", name: "Primary Conveyor Belt", cat: "Sheeter", category: "Belts", fitment: "TC Series", keywords: ["primary conveyor belt", "main belt"], description: "Primary belt assembly", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BEL-003", name: "Secondary Conveyor Belt", cat: "Sheeter", category: "Belts", fitment: "TC Series", keywords: ["secondary conveyor belt"], description: "Secondary transport belt", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-SEN-001", name: "Counter Sensor", cat: "Sheeter", category: "Sensors", fitment: "TC Series", keywords: ["counter sensor", "photo sensor", "prox switch"], description: "Counter/photo sensor", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-SEN-002", name: "Dancer Sensor", cat: "Sheeter", category: "Sensors", fitment: "TC Series", keywords: ["dancer sensor", "tension sensor"], description: "Web tension sensor", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-SEN-003", name: "Decurl Encoder", cat: "Sheeter", category: "Sensors", fitment: "TC Series", keywords: ["decurl encoder", "encoder"], description: "Encoder for decurler", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-MTR-001", name: "Decurl Motor", cat: "Sheeter", category: "Motors", fitment: "TC Series", keywords: ["decurl motor", "decurler motor"], description: "Decurler motor assembly", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-BEL-004", name: "Timing Belt Set", cat: "Sheeter", category: "Belts", fitment: "TC Series", keywords: ["timing belt set", "timing belt", "drive belt"], description: "Timing drive belt kit", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-GMC-ELC-001", name: "Power Inverter", cat: "Sheeter", category: "Electrical / Controls", fitment: "TC Series", keywords: ["inverter", "drive inverter", "power inverter"], description: "Drive inverter", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-BRG-001", name: "Arbor Bearing", cat: "Rollstand", category: "Bearings", fitment: "Martin Rollstand", keywords: ["arbor bearing", "rollstand bearing"], description: "Arbor bearing replacement", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-CHK-001", name: "Chuck Arbor Shaft", cat: "Rollstand", category: "Shafts", fitment: "Martin Rollstand", keywords: ["chuck arbor shaft", "arbor shaft"], description: "Arbor shaft assembly", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-BRK-001", name: "Disc Brake Pads", cat: "Rollstand", category: "Brake Systems", fitment: "Martin Rollstand", keywords: ["disc brake pads", "rollstand brake"], description: "Brake pad set", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-HYD-001", name: "Hydraulic Filter", cat: "Rollstand", category: "Hydraulic", fitment: "Martin Rollstand", keywords: ["hydraulic filter", "filter cartridge"], description: "Filter cartridge", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-BLK-001", name: "Brass Alignment Block", cat: "Rollstand", category: "Alignment", fitment: "Martin Rollstand", keywords: ["brass alignment block", "alignment guide"], description: "Alignment guide block", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-MRT-HYD-002", name: "Directional Valve", cat: "Rollstand", category: "Hydraulic", fitment: "Martin Rollstand", keywords: ["directional valve", "hydraulic valve"], description: "Hydraulic directional valve", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-ACC-TAP-001", name: "Splicing Tape", cat: "Accessories", category: "Tape", fitment: "Universal", keywords: ["splicing tape", "industrial tape"], description: "Industrial splicing tape", statusBand: "Quote Required", action: "request-quote" },
+    { sku: "JME-ACC-TOL-001", name: "Grinding Stone", cat: "Accessories", category: "Tools", fitment: "Universal", keywords: ["grinding stone", "sharpening stone"], description: "Blade sharpening stone", statusBand: "Quote Required", action: "request-quote" },
   ],
-  cats: ["All", "Core Splitter", "Sheeter", "Rollstand", "Hydraulic"],
+  cats: ["All", "Core Splitter", "Sheeter", "Rollstand", "Accessories", "Hydraulic"],
 };
