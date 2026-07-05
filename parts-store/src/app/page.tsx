@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/useToast";
 import { useReveal } from "@/hooks/useReveal";
 import { useDebounce } from "@/hooks/useDebounce";
 import { catalog } from "@/data/catalog";
+import { TAXONOMY, subsystemOf } from "@/data/taxonomy";
 import { FAQ } from "@/data/faq";
 import { AssistantWidget } from "@/components/AssistantWidget";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
@@ -143,6 +144,7 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
 
 /* ------------------------------------------------------------- Machines --- */
 function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
+  const [spot, ...rest] = D.machines;
   return (
     <section id="machines" className="ps-sec">
       <div className="ps-wrap">
@@ -152,15 +154,54 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => voi
             <h2 className="jme-h2">Machines</h2>
           </div>
           <p>
-            Factory-direct sheeters, rebuilt rollstands, and the hydraulic core splitter. Every machine is quoted
-            individually — add to your request to start.
+            Factory-direct Goodstrong sheeters, Datien guillotines, rollstands built and rebuilt in Sturgis, and the
+            JME core splitter. Every machine states who it&rsquo;s for and what it does — quoted individually, in
+            writing.
             <a className="ps-comparelink" href="/compare">
               Compare the full line →
             </a>
           </p>
         </div>
+
+        {spot && (
+          <div className="ps-spot">
+            <div className={"ps-spot__photo" + (spot.fit === "contain" ? " is-contain" : "")}>
+              <MachinePhoto m={spot} />
+              <Tag tone={spot.tag} className="ps-machine__tag">{spot.tagLabel}</Tag>
+            </div>
+            <div className="ps-spot__body">
+              <span className="ps-spot__fam">{spot.family} · {spot.sku}</span>
+              <h3 className="ps-spot__name">{spot.name}</h3>
+              <p className="ps-spot__blurb">{spot.blurb}</p>
+              {spot.bestFor && <p className="ps-machine__best"><b>Built for:</b> {spot.bestFor}</p>}
+              {spot.outcomes && (
+                <ul className="ps-machine__outs">
+                  {spot.outcomes.map((o) => <li key={o}>{o}</li>)}
+                </ul>
+              )}
+              <div className="ps-spot__specs">
+                {spot.specs.map((s) => (
+                  <div key={s.k} className="ps-spot__spec">
+                    <span>{s.k}</span>
+                    <b>{s.v}</b>
+                  </div>
+                ))}
+              </div>
+              <div className="ps-machine__foot">
+                <StatusBand band={spot.statusBand} />
+                <div className="ps-machine__acts">
+                  <a className="ps-machine__link" href={`/machine/${spot.sku}`}>Full specs &amp; configure →</a>
+                  <Button size="sm" onClick={() => onAdd({ sku: spot.sku, name: spot.name })}>
+                    {actionLabel(spot.action)}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="ps-machines">
-          {D.machines.map((m) => (
+          {rest.map((m) => (
             <div className="ps-machine" key={m.sku}>
               <div className={"ps-machine__photo" + (m.fit === "contain" ? " is-contain" : "")}>
                 <MachinePhoto m={m} />
@@ -170,7 +211,12 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => voi
               </div>
               <div className="ps-machine__body">
                 <DataPlate title={m.name} sku={m.sku} rows={m.specs} />
-                <p className="ps-machine__blurb">{m.blurb}</p>
+                {m.bestFor && <p className="ps-machine__best"><b>Built for:</b> {m.bestFor}</p>}
+                {m.outcomes && (
+                  <ul className="ps-machine__outs">
+                    {m.outcomes.slice(0, 3).map((o) => <li key={o}>{o}</li>)}
+                  </ul>
+                )}
                 <div className="ps-machine__foot">
                   <StatusBand band={m.statusBand} />
                   <div className="ps-machine__acts">
@@ -313,97 +359,220 @@ function Highlight({ text, q }: { text: string; q: string }) {
   );
 }
 
-const PARTS_PAGE_SIZE = 24;
+const PARTS_PAGE_SIZE = 30;
+const TOTAL_PARTS = catalog.parts.length;
 
+type SortKey = "relevance" | "name" | "sku" | "stock";
+
+/**
+ * Parts browser — McMaster-Carr-style catalog navigation on a light surface:
+ * persistent category rail (family → subsystem with counts), instant search
+ * with relevance ranking, sort, in-stock filter, and dense scannable rows.
+ * RFQ-first: rows show status bands and quote CTAs, never prices.
+ */
 function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   const [q, setQ] = useState("");
   const dq = useDebounce(q, 200);
-  const [cat, setCat] = useState("All");
+  const [family, setFamily] = useState<string | null>(null);
+  const [sub, setSub] = useState<string | null>(null);
+  const [inStock, setInStock] = useState(false);
+  const [sort, setSort] = useState<SortKey>("relevance");
   const [shown, setShown] = useState(PARTS_PAGE_SIZE);
-  const results = useMemo<Part[]>(
-    () =>
-      D.parts.filter((p) => {
-        const inCat = cat === "All" || p.cat === cat;
-        const inQ = !dq || (p.sku + " " + p.name).toLowerCase().includes(dq.toLowerCase());
-        return inCat && inQ;
-      }),
-    [dq, cat],
-  );
-  useEffect(() => setShown(PARTS_PAGE_SIZE), [dq, cat]);
+  const [railOpen, setRailOpen] = useState(false);
+
+  const pickFamily = (f: string | null) => {
+    setFamily(f);
+    setSub(null);
+  };
+
+  const results = useMemo<Part[]>(() => {
+    const nq = dq.trim().toLowerCase();
+    const list = D.parts.filter(
+      (p) =>
+        (!family || p.cat === family) &&
+        (!sub || subsystemOf(p) === sub) &&
+        (!inStock || p.statusBand === "In Stock" || p.statusBand === "Limited Stock") &&
+        (!nq || (p.sku + " " + p.name).toLowerCase().includes(nq)),
+    );
+    const rank = (p: Part) => {
+      if (!nq) return 0;
+      const s = p.sku.toLowerCase();
+      const n = p.name.toLowerCase();
+      if (s === nq) return 0;
+      if (s.startsWith(nq)) return 1;
+      if (n.startsWith(nq)) return 2;
+      const safe = nq.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (new RegExp("\\b" + safe).test(n)) return 3;
+      return 4;
+    };
+    const bandRank: Record<string, number> = { "In Stock": 0, "Limited Stock": 1 };
+    return [...list].sort((a, b) => {
+      if (sort === "name") return a.name.localeCompare(b.name);
+      if (sort === "sku") return a.sku.localeCompare(b.sku);
+      if (sort === "stock")
+        return (bandRank[a.statusBand] ?? 2) - (bandRank[b.statusBand] ?? 2) || a.name.localeCompare(b.name);
+      return rank(a) - rank(b) || a.name.localeCompare(b.name);
+    });
+  }, [dq, family, sub, inStock, sort]);
+
+  useEffect(() => setShown(PARTS_PAGE_SIZE), [dq, family, sub, inStock, sort]);
   const visible = results.slice(0, shown);
+  const activeFamily = TAXONOMY.find((f) => f.family === family);
+  const hasFilters = Boolean(family || sub || inStock || dq);
+
   return (
-    <section id="parts" className="ps-sec ps-sec--alt">
+    <section id="parts" className="ps-sec ps-catalog">
       <div className="ps-wrap">
-        <div className="ps-sechd">
+        <div className="ps-sechd ps-catalog__hd">
           <div>
-            <Eyebrow>Parts desk</Eyebrow>
-            <h2 className="jme-h2">Order parts</h2>
+            <Eyebrow>Parts catalog</Eyebrow>
+            <h2 className="jme-h2">Find your part</h2>
           </div>
           <p>
-            In-stock parts with a PO in by 2:30 PM ET ship the same day from Sturgis — next-day and rush shipping
-            available on request. Search by description — pricing and lead time are confirmed in writing on your
-            request.
+            {TOTAL_PARTS.toLocaleString()} JME-stocked and sourced parts, organized the way the machines are built.
+            In-stock parts with a PO in by 2:30 PM ET ship the same day from Sturgis. Pricing and lead time are
+            confirmed in writing on your request.
           </p>
         </div>
-        <div className="ps-search">
+
+        <div className="ps-cat__toolbar">
           <input
-            className="jme-input"
+            className="ps-cat__search"
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search — e.g. blade, bearing, filter, valve"
+            placeholder="Search 2,198 parts — SKU, name, machine, or keyword"
             aria-label="Search parts"
           />
+          <label className="ps-cat__stock">
+            <input type="checkbox" checked={inStock} onChange={(e) => setInStock(e.target.checked)} />
+            In stock / limited only
+          </label>
+          <label className="ps-cat__sortwrap">
+            Sort
+            <select className="ps-cat__sort" value={sort} onChange={(e) => setSort(e.target.value as SortKey)} aria-label="Sort parts">
+              <option value="relevance">Relevance</option>
+              <option value="stock">Availability</option>
+              <option value="name">Name A–Z</option>
+              <option value="sku">SKU</option>
+            </select>
+          </label>
         </div>
-        <div className="ps-chips" role="group" aria-label="Filter by category">
-          {D.cats.map((c) => (
-            <button
-              key={c}
-              className={"ps-chip" + (c === cat ? " on" : "")}
-              aria-pressed={c === cat}
-              onClick={() => setCat(c)}
-            >
-              {c}
+
+        <div className="ps-cat">
+          <button className="ps-cat__railtoggle" aria-expanded={railOpen} onClick={() => setRailOpen((o) => !o)}>
+            Browse: {family ?? "All parts"}
+            {sub ? ` › ${sub}` : ""} ▾
+          </button>
+
+          <aside className={"ps-cat__rail" + (railOpen ? " open" : "")} aria-label="Part categories">
+            <button className={"ps-cat__fam" + (!family ? " on" : "")} onClick={() => { pickFamily(null); setRailOpen(false); }}>
+              All parts <span>{TOTAL_PARTS.toLocaleString()}</span>
             </button>
-          ))}
-        </div>
-        <div className="ps-parts-bar">
-          <div className="ps-meta">
-            {results.length} part{results.length !== 1 ? "s" : ""}
-            {dq && <span className="ps-meta__q"> for &ldquo;{dq}&rdquo;</span>}
-          </div>
-          <StatusLegend />
-        </div>
-        <div className="ps-parts">
-          {visible.map((p) => (
-            <div className="ps-part" key={p.sku}>
-              <div className="ps-part__top">
-                <span className="jme-mono ps-part__sku"><Highlight text={p.sku} q={dq} /></span>
-                <StatusBand band={p.statusBand} />
+            {TAXONOMY.map((f) => (
+              <div key={f.family}>
+                <button
+                  className={"ps-cat__fam" + (family === f.family && !sub ? " on" : "")}
+                  aria-expanded={family === f.family}
+                  onClick={() => { pickFamily(family === f.family ? null : f.family); }}
+                >
+                  {f.family} <span>{f.count.toLocaleString()}</span>
+                </button>
+                {family === f.family && (
+                  <div className="ps-cat__subs">
+                    {f.subs.map((s) => (
+                      <button
+                        key={s.name}
+                        className={"ps-cat__sub" + (sub === s.name ? " on" : "")}
+                        onClick={() => { setSub(sub === s.name ? null : s.name); setRailOpen(false); }}
+                      >
+                        {s.name} <span>{s.count}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="ps-part__name"><Highlight text={p.name} q={dq} /></div>
-              <Tag>{p.cat}</Tag>
-              <div className="ps-part__foot">
-                <Button size="sm" variant="ghost" block onClick={() => onAdd({ sku: p.sku, name: p.name })}>
-                  {actionLabel(p.action)}
+            ))}
+          </aside>
+
+          <div className="ps-cat__main">
+            <div className="ps-cat__crumbbar">
+              <nav className="ps-cat__crumb" aria-label="Category path">
+                <button onClick={() => pickFamily(null)}>Parts</button>
+                {family && (
+                  <>
+                    <span aria-hidden="true">›</span>
+                    <button onClick={() => setSub(null)}>{family}</button>
+                  </>
+                )}
+                {sub && (
+                  <>
+                    <span aria-hidden="true">›</span>
+                    <b>{sub}</b>
+                  </>
+                )}
+              </nav>
+              <div className="ps-meta">
+                {results.length.toLocaleString()} part{results.length !== 1 ? "s" : ""}
+                {dq && <span className="ps-meta__q"> for &ldquo;{dq}&rdquo;</span>}
+              </div>
+            </div>
+
+            {hasFilters && (
+              <div className="ps-cat__chips" aria-label="Active filters">
+                {family && <button className="ps-cat__chip" onClick={() => pickFamily(null)}>{family} ✕</button>}
+                {sub && <button className="ps-cat__chip" onClick={() => setSub(null)}>{sub} ✕</button>}
+                {inStock && <button className="ps-cat__chip" onClick={() => setInStock(false)}>In stock ✕</button>}
+                {dq && <button className="ps-cat__chip" onClick={() => setQ("")}>&ldquo;{dq}&rdquo; ✕</button>}
+                <button className="ps-cat__clear" onClick={() => { pickFamily(null); setInStock(false); setQ(""); }}>
+                  Clear all
+                </button>
+              </div>
+            )}
+
+            <div className="ps-rows" role="list">
+              {visible.map((p) => (
+                <div className="ps-row" role="listitem" key={p.sku}>
+                  <div className="ps-row__id">
+                    <span className="jme-mono ps-row__sku"><Highlight text={p.sku} q={dq} /></span>
+                    <span className="ps-row__sub">{p.cat} › {subsystemOf(p)}</span>
+                  </div>
+                  <div className="ps-row__name"><Highlight text={p.name} q={dq} /></div>
+                  <div className="ps-row__band"><StatusBand band={p.statusBand} /></div>
+                  <div className="ps-row__act">
+                    <Button size="sm" onClick={() => onAdd({ sku: p.sku, name: p.name })}>
+                      {actionLabel(p.action)}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {results.length === 0 && (
+                <div className="ps-cat__empty">
+                  No parts match{dq ? ` "${dq}"` : " these filters"} in this category.
+                  {dq && (family || sub) && (
+                    <>
+                      {" "}
+                      <button className="ps-cat__searchall" onClick={() => pickFamily(null)}>
+                        Search all {TOTAL_PARTS.toLocaleString()} parts for &ldquo;{dq}&rdquo; →
+                      </button>
+                    </>
+                  )}{" "}
+                  The desk can source almost anything for these machines —{" "}
+                  <a href="#request">send a custom request</a> or call {D.contact.phone}.
+                </div>
+              )}
+            </div>
+
+            {results.length > shown && (
+              <div className="ps-cat__more">
+                <Button variant="ghost" onClick={() => setShown((s) => s + PARTS_PAGE_SIZE * 4)}>
+                  Show more ({(results.length - shown).toLocaleString()} remaining)
                 </Button>
               </div>
-            </div>
-          ))}
-          {results.length === 0 && (
-            <div className="ps-empty">
-              No parts match &ldquo;{dq}&rdquo; — try a different term or{" "}
-              <a href="#request" className="ps-link--gold">send a custom request</a>.
-            </div>
-          )}
-        </div>
-        {results.length > shown && (
-          <div className="ps-parts-bar" style={{ justifyContent: "center", marginTop: "1rem" }}>
-            <Button variant="ghost" onClick={() => setShown((s) => s + PARTS_PAGE_SIZE * 3)}>
-              Show more ({results.length - shown} remaining)
-            </Button>
+            )}
+            <div className="ps-cat__legend"><StatusLegend /></div>
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

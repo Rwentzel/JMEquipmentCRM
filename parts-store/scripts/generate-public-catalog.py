@@ -50,10 +50,28 @@ FAM_CODE = {'Sheeter': 'SHT', 'Rollstand': 'RST', 'Brakes': 'BRK', 'Hydraulic': 
             'Core Splitter': 'VCS', 'Edge Guide & Tension': 'EGT', 'Decurler': 'DCL', 'Other': 'GEN'}
 def famof(cc): return CATEGORIES.get(cc, {}).get('family', 'Other')
 
+PRICE_NOISE = [
+    # Money, costs, and internal pricing/discount notes must never survive
+    # into the public catalog (DATA_BOUNDARIES.md). Applied before code scrub.
+    re.compile(r'\$\s?\d[\d.,]*'),
+    re.compile(r'\b\d+\.\d{2}\s*/\s*(?:ft|foot|ea|each|pc|set)\b', re.I),
+    re.compile(r'\b(?:tgw|gs|oem|vendor|mfg)?\s*cost\b[^,;)]*', re.I),
+    re.compile(r'\bwas\s+part\s*#?\S*', re.I),
+    re.compile(r'\b\w*#\s*\d{5,}\S*'),
+    re.compile(r'\b\d{1,2}%\s*discount\b[^,;)]*', re.I),
+    re.compile(r'\bwholesale\b[^,;)]*', re.I),
+    # any leftover clause that still talks about price
+    re.compile(r'[^,;.\-]*\bprices?\b[^,;.\-]*', re.I),
+]
+
 def clean(desc):
     s = unesc(desc).replace('\\n', ' ').strip()
     s = re.sub(r'\((?:[A-Za-z]{0,12}#\s*[^)]+)\)', '', s)
     s = re.sub(r'\b(?:Standard|Std|Gsa)#\s*[A-Za-z0-9./-]+', '', s)
+    s = re.sub(r'\bprice\s+per\s+(foot|ft)\b', 'sold per foot', s, flags=re.I)
+    s = re.sub(r'\b(?:unit\s+)?price\s+per\s+set\b', 'sold per set', s, flags=re.I)
+    for pat in PRICE_NOISE:
+        s = pat.sub('', s)
     # internal notes and stray part/item references never belong publicly
     s = re.sub(r'\(\s*(?:old|buy from|jm ?stock|reorder)[^)]*\)?', '', s, flags=re.I)
     s = re.sub(r'\b(?:part|item)\s*(?:#|no\.?)\s*[A-Za-z0-9./-]*', '', s, flags=re.I)
