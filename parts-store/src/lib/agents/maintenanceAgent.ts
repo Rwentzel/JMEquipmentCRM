@@ -67,7 +67,25 @@ export function catalogChecks(): HealthCheck[] {
   }
   checks.push({ name: "data-boundary sweep", ok: boundaryOk, detail: boundaryDetail });
 
-  // 5. No duplicate SKUs across machines and parts.
+  // 5. Description-content sweep: generated part names must never carry
+  // price/cost values, vendor refs, or internal aliases (a generator scrub
+  // once missed one — see tests/catalogBoundary.test.ts).
+  const leakRes = [
+    /\$\s?\d/,
+    /\b(cost|price|margin|markup|discount|wholesale)\b/i,
+    /\bwas\s+part\s*#?/i,
+    /\b\w*#\s*\d{5,}/,
+  ];
+  const leaky = catalog.parts.filter((p) => leakRes.some((re) => re.test(p.name)));
+  checks.push({
+    name: "part descriptions are price/vendor-free",
+    ok: leaky.length === 0,
+    detail: leaky.length
+      ? `suspect descriptions on: ${leaky.slice(0, 5).map((p) => p.sku).join(", ")}${leaky.length > 5 ? ` (+${leaky.length - 5} more)` : ""}`
+      : `${catalog.parts.length} descriptions clean`,
+  });
+
+  // 6. No duplicate SKUs across machines and parts.
   const allSkus = [...catalog.machines.map((m) => m.sku), ...catalog.parts.map((p) => p.sku)];
   const dupes = allSkus.filter((sku, i) => allSkus.indexOf(sku) !== i);
   checks.push({
