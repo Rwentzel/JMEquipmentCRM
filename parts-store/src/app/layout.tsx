@@ -51,8 +51,14 @@ export const metadata: Metadata = {
     title: "JM Equipment — Industrial Parts Store",
     description: DESC,
     locale: "en_US",
+    images: [{ url: "/images/og-card.png", width: 1200, height: 630, alt: "JM Equipment — Parts Store" }],
   },
-  twitter: { card: "summary_large_image", title: "JM Equipment — Industrial Parts Store", description: DESC },
+  twitter: {
+    card: "summary_large_image",
+    title: "JM Equipment — Industrial Parts Store",
+    description: DESC,
+    images: ["/images/og-card.png"],
+  },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },

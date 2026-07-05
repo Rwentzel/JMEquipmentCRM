@@ -1,35 +1,44 @@
-﻿# CI Workflow: Build & Package JM Equipment CRM with Pipeline
-# Triggers on push to main or tags
+# CI: quality gates for the JME Parts Store
+# Runs on every push and pull request so problems surface before merge.
 
-name: CI Build & Release
+name: CI
 on:
   push:
-    branches: [ main ]
-    tags: ['v*']
+    branches: ["**"]
+  pull_request:
+
+defaults:
+  run:
+    working-directory: parts-store
 
 jobs:
-  build:
-    runs-on: windows-latest
+  quality:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 18
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: parts-store/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build React App
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Maintenance agent (catalog integrity)
+        run: npm run agent:maintenance
+
+      - name: Production build
         run: npm run build
-
-      - name: Package Electron App (Win x64)
-        run: npx electron-builder --win --x64 --publish never
-
-      - name: Upload Installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: JMEquipmentCRM-Installer
-          path: dist/*.exe
