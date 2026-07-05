@@ -87,9 +87,9 @@ export const details: Record<string, MachineDetail> = {
     tagline: "New Goodstrong dual-rotary sheeting — factory-direct, with a Michigan phone number behind it.",
     lead: "The GMC-TCII 1650 is a high-speed dual rotary knife sheeter for paper and board converters. Direct-drive knives, servo cutoff, and a stacking section that keeps a single operator productive — sold factory-direct without the dealer stack.",
     heroStats: [
-      { value: "1650 mm", label: "Trim width" },
-      { value: "180 m/min", label: "Web speed" },
-      { html: "±0.4<em>mm</em>", label: "Cutoff accuracy" },
+      { value: "400–1650 mm", label: "Web width" },
+      { value: "350 m/min", label: "Cutting curve" },
+      { value: "1000 gsm", label: "Knife loading" },
     ],
     badge: { band: "Quote Required" },
     gallery: [
@@ -135,6 +135,59 @@ export const details: Record<string, MachineDetail> = {
       { n: "04", t: "Stack", d: "Overlap and shingle sections pile clean, square stacks for offload." },
     ],
     apps: ["Cut-size paper", "Folding carton", "Digital print stock", "Specialty & coated", "Board & liner"],
+    proof: {
+      stat: "40+ yrs",
+      label: "Service life on a maintained line",
+      quote: "Goodstrong sheeting platforms run for decades with JME parts and rebuild support behind them.",
+    },
+    partsCat: "Sheeter",
+    downloads: [
+      { t: "Spec sheet (PDF)", m: "Widths, speeds, options" },
+      { t: "Line layout drawing", m: "Footprint & clearances" },
+    ],
+  },
+
+  "GMC-1600E": {
+    tagline: "The proven Goodstrong platform, right-sized — dual rotary sheeting without the flagship options.",
+    lead: "The 1600-E carries the same dual rotary knife section and factory-direct support as the 1650, in a simpler package for shops stepping up from a single-knife or aging used sheeter. Quoted, installed, and parts-supported from Sturgis.",
+    heroStats: [
+      { value: "1600 mm", label: "Web width" },
+      { value: "Dual", label: "Rotary knives" },
+      { value: "Sturgis", label: "Support base" },
+    ],
+    badge: { band: "Quote Required" },
+    gallery: [
+      { src: "sheeter-1600e.jpg", cap: "GMC 1600-E dual rotary sheeter", fit: "cover" },
+      { src: "sheeter-1650.jpg", cap: "1650 flagship variant", fit: "cover" },
+    ],
+    options: [
+      {
+        id: "webs",
+        label: "Web stations",
+        type: "radio",
+        choices: [
+          { v: "1 web", sku: "B1", note: "Standard" },
+          { v: "2 web", sku: "B2" },
+        ],
+      },
+      {
+        id: "addons",
+        label: "Add-ons",
+        type: "check",
+        choices: [
+          { v: "Slitter section", sku: "SL" },
+          { v: "Overlap / shingle table", sku: "OL" },
+          { v: "Stacker upgrade", sku: "ST" },
+        ],
+      },
+    ],
+    how: [
+      { n: "01", t: "Unwind", d: "A rollstand feeds the web under tension into the sheeter bridge." },
+      { n: "02", t: "Slit", d: "Optional slitters trim the web to finished width." },
+      { n: "03", t: "Cut", d: "Dual rotary knives cut clean sheet lengths at speed." },
+      { n: "04", t: "Stack", d: "Overlap and stacker sections deliver square piles for offload." },
+    ],
+    apps: ["Cut-size paper", "Folding carton", "School & office converting", "Board & liner"],
     proof: {
       stat: "40+ yrs",
       label: "Service life on a maintained line",

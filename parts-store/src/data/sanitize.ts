@@ -88,5 +88,7 @@ export function toPublicMachine(m: Machine): Machine {
     fit: m.fit,
     blurb: m.blurb,
     specs: m.specs.map((s) => ({ k: s.k, v: s.v })),
+    bestFor: m.bestFor,
+    outcomes: m.outcomes ? [...m.outcomes] : undefined,
   };
 }
