@@ -24,7 +24,7 @@ if len(sys.argv) != 3:
 SRC, OUT_XW = sys.argv[1], sys.argv[2]
 OUT_TS = __file__.rsplit('/scripts/', 1)[0] + '/src/data/partsCatalog.ts'
 
-c = open(SRC).read()
+c = open(SRC).read().replace('\\\\"', '\\"')  # tolerate double-escaped quotes in Drive exports
 
 CATEGORIES = json.loads(re.search(r'CATEGORIES[^=]*=\s*(\{.*?\});', c, re.S).group(1).replace('\\"', '"'))
 row_re = re.compile(r'\["((?:[^"\\]|\\.)*)","((?:[^"\\]|\\.)*)","([\d.]+)",\s*([\d.]+|null)\s*,\s*(-?\d+)\s*\]')
@@ -52,7 +52,7 @@ def famof(cc): return CATEGORIES.get(cc, {}).get('family', 'Other')
 
 PRICE_NOISE = [
     # Money, costs, and internal pricing/discount notes must never survive
-    # into the public catalog (DATA_BOUNDARIES.md). Applied after code scrub.
+    # into the public catalog (DATA_BOUNDARIES.md). Applied before code scrub.
     re.compile(r'\$\s?\d[\d.,]*'),
     re.compile(r'\b\d+\.\d{2}\s*/\s*(?:ft|foot|ea|each|pc|set)\b', re.I),
     re.compile(r'\b(?:tgw|gs|oem|vendor|mfg)?\s*cost\b[^,;)]*', re.I),
@@ -60,6 +60,8 @@ PRICE_NOISE = [
     re.compile(r'\b\w*#\s*\d{5,}\S*'),
     re.compile(r'\b\d{1,2}%\s*discount\b[^,;)]*', re.I),
     re.compile(r'\bwholesale\b[^,;)]*', re.I),
+    # any leftover clause that still talks about price
+    re.compile(r'[^,;.\-]*\bprices?\b[^,;.\-]*', re.I),
 ]
 
 def clean(desc):
@@ -70,13 +72,28 @@ def clean(desc):
     s = re.sub(r'\b(?:unit\s+)?price\s+per\s+set\b', 'sold per set', s, flags=re.I)
     for pat in PRICE_NOISE:
         s = pat.sub('', s)
+    # internal notes and stray part/item references never belong publicly
+    s = re.sub(r'\(\s*(?:old|buy from|jm ?stock|reorder)[^)]*\)?', '', s, flags=re.I)
+    s = re.sub(r'\b(?:part|item)\s*(?:#|no\.?)\s*[A-Za-z0-9./-]*', '', s, flags=re.I)
     for tok in scrub:
-        if tok in s:
-            s = s.replace(tok, '').strip()
-    s = re.sub(r'\s{2,}', ' ', s).strip(' ,;-@()')
+        s = re.sub(re.escape(tok), '', s, flags=re.I).strip()
+    # vendor-style code tokens (AB-1234…) that aren't machine-model fitment
+    s = re.sub(r'\b[A-Za-z]{2,4}-\d{2,}[A-Za-z0-9]*\b', '', s)
+    s = re.sub(r'\b\d+\)\s*', '', s)             # "4) " qty markers
+    s = s.replace('#', ' ')
+    s = re.sub(r'^[\\_/&()., -]+', '', s)          # leading junk
+    s = re.sub(r'\(\s*\)', '', s)                  # empty parens
+    s = re.sub(r'\s+([,;.)])', r'\1', s)
+    s = re.sub(r'\s{2,}', ' ', s).strip(' ,;-@')
     if len(s) > 90:
         s = s[:87].rstrip(' ,;-') + '…'
-    return s or 'Machine component — details on request'
+    # drop any unmatched trailing '(' fragment left by scrubbing or truncation
+    while s.count('(') > s.count(')'):
+        i = s.rfind('(')
+        head, tail = s[:i].rstrip(' ,;-'), s[i + 1:].strip()
+        s = (head + (' — ' + tail.rstrip(' ,;-…') if len(tail) > 2 else '')) if head else tail
+    s = re.sub(r'\s{2,}', ' ', s).strip(' ,;-@')
+    return s if len(s) >= 4 else 'Machine component — details on request'
 
 def band(q):
     q = int(q)

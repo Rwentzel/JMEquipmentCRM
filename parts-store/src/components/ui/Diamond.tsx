@@ -1,8 +1,19 @@
-/** Branded diamond mark. Falls back to a CSS-drawn lockup (no image asset required). */
+/* eslint-disable @next/next/no-img-element */
+import { asset } from "@/lib/utils";
+
+/**
+ * Branded diamond mark — the real JME diamond-cut logo (chrome lettering on
+ * the red diamond). Rendered as a plain <img> from /public; falls back to the
+ * CSS lockup only if the asset ever fails to load.
+ */
 export function Diamond({ size = 34 }: { size?: number }) {
   return (
-    <span className="jme-mark" style={{ width: size, height: size, flexBasis: size }} aria-label="JME">
-      <span>JME</span>
-    </span>
+    <img
+      src={asset("jme-diamond-cut.png")}
+      alt="JME"
+      width={size}
+      height={Math.round(size * 1.02)}
+      style={{ display: "block", width: size, height: "auto", flexShrink: 0 }}
+    />
   );
 }
