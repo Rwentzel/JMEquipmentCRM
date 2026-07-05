@@ -26,8 +26,8 @@ test("support agent refuses exact-quantity questions", async () => {
 });
 
 test("support agent answers catalog availability as status bands", async () => {
-  const res = await answerSupportQuestion("Is JM108 available?");
-  assert.ok(res.skus.includes("JM108"));
+  const res = await answerSupportQuestion("Is JME-VCS-0001 available?");
+  assert.ok(res.skus.includes("JME-VCS-0001"));
   assert.match(res.answer, /availability: /);
 });
 

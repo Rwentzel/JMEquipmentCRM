@@ -125,7 +125,7 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
               <StatBlock
                 stats={[
                   { value: "37 yrs", label: "In converting" },
-                  { html: "98<em>%</em>", label: "Same-day parts" },
+                  { value: "Same-day", label: "In-stock parts ship" },
                   { value: "OEM+", label: "Rebuild spec" },
                 ]}
               />
@@ -313,10 +313,13 @@ function Highlight({ text, q }: { text: string; q: string }) {
   );
 }
 
+const PARTS_PAGE_SIZE = 24;
+
 function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
   const [q, setQ] = useState("");
   const dq = useDebounce(q, 200);
   const [cat, setCat] = useState("All");
+  const [shown, setShown] = useState(PARTS_PAGE_SIZE);
   const results = useMemo<Part[]>(
     () =>
       D.parts.filter((p) => {
@@ -326,6 +329,8 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
       }),
     [dq, cat],
   );
+  useEffect(() => setShown(PARTS_PAGE_SIZE), [dq, cat]);
+  const visible = results.slice(0, shown);
   return (
     <section id="parts" className="ps-sec ps-sec--alt">
       <div className="ps-wrap">
@@ -335,8 +340,9 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
             <h2 className="jme-h2">Order parts</h2>
           </div>
           <p>
-            98% of stocked parts ship same day from Sturgis. Search by number or description — pricing and lead time
-            are confirmed in writing on your request.
+            In-stock parts with a PO in by 2:30 PM ET ship the same day from Sturgis — next-day and rush shipping
+            available on request. Search by description — pricing and lead time are confirmed in writing on your
+            request.
           </p>
         </div>
         <div className="ps-search">
@@ -345,7 +351,7 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search — e.g. JM108, blade, filter, valve"
+            placeholder="Search — e.g. blade, bearing, filter, valve"
             aria-label="Search parts"
           />
         </div>
@@ -369,7 +375,7 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
           <StatusLegend />
         </div>
         <div className="ps-parts">
-          {results.map((p) => (
+          {visible.map((p) => (
             <div className="ps-part" key={p.sku}>
               <div className="ps-part__top">
                 <span className="jme-mono ps-part__sku"><Highlight text={p.sku} q={dq} /></span>
@@ -391,6 +397,13 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
             </div>
           )}
         </div>
+        {results.length > shown && (
+          <div className="ps-parts-bar" style={{ justifyContent: "center", marginTop: "1rem" }}>
+            <Button variant="ghost" onClick={() => setShown((s) => s + PARTS_PAGE_SIZE * 3)}>
+              Show more ({results.length - shown} remaining)
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -401,7 +414,7 @@ function Services() {
   const svc: [string, string][] = [
     ["Rebuild", "Disassemble, re-component, media-blast, repaint to your color, pressure-test to 150%."],
     ["Install & relocation", "Rigging, setup, alignment, and startup — on your floor, on your schedule."],
-    ["Parts & support", "98% of stocked parts ship same day. Serial-based lookup and 24/7 phone support."],
+    ["Parts & support", "In-stock parts ship same day on POs in by 2:30 PM ET. Cross-reference by machine and serial on request."],
     ["Consulting", "Line layout, throughput, and upgrade paths from engineers who build the machines."],
   ];
   return (
@@ -570,7 +583,7 @@ function Request({
 function Trust() {
   const items = [
     { b: "37 years", s: "In converting", p: "Founded 1989. One floor in Sturgis — build, rebuild, and parts under the same roof." },
-    { b: "98%", s: "Same-day parts", p: "Stocked parts ordered by early afternoon leave the dock the same day." },
+    { b: "2:30 PM", s: "Same-day cutoff", p: "In-stock parts with a PO in by 2:30 PM ET leave the dock the same day. Rush and next-day shipping on request." },
     { b: "Factory-direct", s: "Goodstrong import", p: "New sheeters without the dealer stack — and a Michigan phone number behind them." },
     { b: "OEM+", s: "Rebuild tolerance", p: "Geo M. Martin rebuilds held tighter than original, pressure-tested to 150% of operating." },
   ];

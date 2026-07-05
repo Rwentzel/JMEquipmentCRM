@@ -195,7 +195,7 @@
 
   /* ---- Footer for print ---- */
   #request::after {
-    content: "JM Equipment Inc. · 405 1/2 West Congress St · Sturgis, MI 49091 · (269) 659-0093 · sales@jmequipment.net";
+    content: "JM Equipment Inc. · 405 1/2 West Congress St · Sturgis, MI 49091 · (269) 659-0093 · parts@jmequipment.net";
     display: block;
     margin-top: 24pt;
     padding-top: 8pt;
