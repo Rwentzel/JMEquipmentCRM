@@ -51,6 +51,10 @@ export interface Machine {
   fit?: "contain" | "cover";
   blurb: string;
   specs: SpecRow[];
+  /** One-line "who this is for" positioning (2026 outcome-led merchandising). */
+  bestFor?: string;
+  /** Customer outcomes — short proof bullets, never prices or quantities. */
+  outcomes?: string[];
 }
 
 export interface Part {
