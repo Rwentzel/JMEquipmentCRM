@@ -121,10 +121,28 @@ function FaqJsonLd() {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
 }
 
+const IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW === "1";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable} ${jetbrainsMono.variable}`}>
       <body>
+        {IS_PREVIEW && (
+          <div
+            style={{
+              background: "#b8920a",
+              color: "#141414",
+              textAlign: "center",
+              fontWeight: 700,
+              padding: "0.5rem 1rem",
+              fontSize: "0.85rem",
+              letterSpacing: "0.04em",
+            }}
+          >
+            PRIVATE PREVIEW — for JM Equipment review only. Quote forms and the assistant are disabled in this
+            preview; nothing here is live or indexed.
+          </div>
+        )}
         {children}
         <OrgJsonLd />
         <FaqJsonLd />

@@ -108,7 +108,8 @@ export const catalog: Catalog = {
       tagLabel: "JME Build · New",
       statusBand: "Quote Required",
       action: "request-quote",
-      photo: null,
+      photo: "rollrite-gmc.jpg",
+      fit: "cover",
       blurb:
         "JME's own shaftless rollstand — dependable unwinding ahead of slitters, sheeters, bag machines, forming presses, and laminators.",
       bestFor: "Lines that need dependable shaftless unwinding without wrestling core shafts.",
@@ -132,7 +133,8 @@ export const catalog: Catalog = {
       tagLabel: "Rebuilt OEM+",
       statusBand: "Quote Required",
       action: "request-quote",
-      photo: null,
+      photo: "martin-rollstand.jpg",
+      fit: "cover",
       blurb:
         "Geo M. Martin rollstands rebuilt to tighter-than-original spec — like-new performance that extends the life of your original investment, with repair parts stocked in Sturgis.",
       bestFor: "Plants running Martin rollstands that want like-new performance without new-machine lead time.",

@@ -24,6 +24,11 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+// Static preview mode (JME_STATIC_PREVIEW=1): exports the storefront as plain
+// HTML for GitHub Pages. API routes and /ops are stripped by the preview
+// workflow before this build runs; forms are disabled behind a visible banner.
+const staticPreview = process.env.JME_STATIC_PREVIEW === "1";
+
 const nextConfig = {
   reactStrictMode: true,
   // Sandbox build: keep images unoptimized so the app runs with no remote
@@ -31,9 +36,16 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
-  },
+  ...(staticPreview
+    ? {
+        output: "export",
+        basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
+      }
+    : {
+        async headers() {
+          return [{ source: "/:path*", headers: securityHeaders }];
+        },
+      }),
 };
 
 export default nextConfig;

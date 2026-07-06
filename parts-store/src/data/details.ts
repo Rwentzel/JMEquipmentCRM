@@ -209,7 +209,7 @@ export const details: Record<string, MachineDetail> = {
       { value: "Custom", label: "Chucks available" },
     ],
     badge: { band: "Quote Required" },
-    gallery: [],
+    gallery: [{ src: "rollrite-gmc.jpg", cap: "GMC-built shaftless pivot-arm unwind — the RollRite platform", fit: "cover" }],
     options: [
       {
         id: "core",
@@ -258,7 +258,7 @@ export const details: Record<string, MachineDetail> = {
       { html: "150<em>%</em>", label: "Test pressure" },
     ],
     badge: { band: "Quote Required" },
-    gallery: [],
+    gallery: [{ src: "martin-rollstand.jpg", cap: "Geo M. Martin rollstand — rebuilt in the JME shop, Sturgis MI", fit: "cover" }],
     options: [
       {
         id: "chuck",
