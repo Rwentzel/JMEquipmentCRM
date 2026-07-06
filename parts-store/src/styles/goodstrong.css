@@ -1,0 +1,325 @@
+/* ============================================================================
+   Goodstrong sheeter — model picker, manual index, exploded-view diagrams.
+   ============================================================================ */
+
+.gs-page {
+  padding-top: var(--nav-h);
+  min-height: 100vh;
+}
+
+.gs-actions {
+  display: flex;
+  justify-content: center;
+  margin: var(--s-6) 0;
+}
+
+/* ---- Model picker ---- */
+.gs-modelgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--s-6);
+}
+
+.gs-modelcard {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.gs-modelcard:hover {
+  transform: translateY(-2px);
+  border-color: var(--line-lt);
+}
+
+.gs-modelcard__photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: var(--s-10) var(--s-4);
+  background: var(--field);
+  border-bottom: var(--bd-hair);
+  color: var(--paper-faint);
+  font-size: var(--t-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+}
+
+/* ---- Manual index ---- */
+.gs-sectiongrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+.gs-sectioncard {
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.gs-sectioncard:not(.gs-sectioncard--soon):hover {
+  transform: translateY(-2px);
+  border-color: var(--line-lt);
+}
+
+.gs-sectioncard--soon {
+  opacity: 0.55;
+}
+
+.gs-sectioncard__foot {
+  margin-top: var(--s-3);
+}
+
+/* ---- Exploded viewer layout ---- */
+.gs-explodedgrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+  gap: var(--s-8);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .gs-explodedgrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gs-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.gs-diagram__pagestamp {
+  align-self: flex-start;
+  padding: var(--s-1) var(--s-3);
+  background: var(--jme-charcoal);
+  color: var(--paper);
+  border: var(--bd-heavy);
+  border-radius: var(--r-1);
+  font-size: var(--t-sm);
+  letter-spacing: var(--track-tag);
+}
+
+.gs-diagram__frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--field);
+  border: var(--bd-hair);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+
+.gs-diagram__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.gs-pager {
+  display: flex;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
+
+/* ---- Bubble callouts ---- */
+.gs-bubble {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  font-family: var(--font-mono);
+  font-weight: var(--fw-bold);
+  font-size: var(--t-xs);
+  color: var(--ink-text);
+  background: var(--jme-gold);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--r-pill);
+}
+
+.gs-bubble--sm {
+  width: 22px;
+  height: 22px;
+  font-size: var(--t-2xs);
+}
+
+.gs-bubble--pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  box-shadow: var(--sh-raise);
+  transition: transform var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.gs-bubble--pin:hover,
+.gs-bubble--pin.active {
+  background: var(--jme-red-bright);
+  color: #fff;
+  transform: translate(-50%, -50%) scale(1.25);
+  z-index: 1;
+}
+
+/* ---- Parts table ---- */
+.gs-partscol {
+  min-width: 0;
+}
+
+.gs-partstable {
+  display: flex;
+  flex-direction: column;
+  border: var(--bd-hair);
+  border-radius: var(--r-2);
+  overflow: hidden;
+}
+
+.gs-partstable__row {
+  display: grid;
+  grid-template-columns: 32px auto 1fr 48px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-2) var(--s-3);
+  background: none;
+  border: none;
+  border-bottom: var(--bd-hair);
+  text-align: left;
+  color: var(--paper);
+  font: inherit;
+  cursor: pointer;
+}
+
+.gs-partstable__row:last-child {
+  border-bottom: none;
+}
+
+.gs-partstable__row--head {
+  background: var(--plate);
+  font-size: var(--t-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-faint);
+  cursor: default;
+}
+
+.gs-partstable__row:not(.gs-partstable__row--head):hover,
+.gs-partstable__row.active {
+  background: var(--field);
+}
+
+.gs-partstable__locs,
+.gs-partstable__aka {
+  color: var(--paper-faint);
+  font-style: italic;
+}
+
+/* ---- Modals (serial lookup + quantity picker) ---- */
+.gs-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  z-index: 100;
+}
+
+.gs-modal {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--sh-toast);
+}
+
+.gs-modal__close {
+  background: none;
+  border: none;
+  color: var(--paper-faint);
+  font-size: var(--t-xl);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gs-modal__note {
+  font-size: var(--t-sm);
+  color: var(--paper-dim);
+}
+
+.gs-modal__note--warn {
+  color: var(--jme-gold);
+}
+
+.gs-qtymodal__part {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-bottom: var(--s-3);
+  border-bottom: var(--bd-hair);
+}
+
+.gs-qtymodal__page {
+  margin-left: auto;
+}
+
+.gs-qtymodal__choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+}
+
+.gs-qtymodal__choice--on {
+  border-color: var(--jme-red-bright) !important;
+  color: var(--jme-red-bright) !important;
+}
+
+.gs-qtymodal__stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+}
+
+.gs-qtymodal__stepper button {
+  width: 40px;
+  height: 40px;
+  font-size: var(--t-lg);
+  background: var(--field);
+  color: var(--paper);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+  cursor: pointer;
+}
+
+.gs-qtymodal__qty {
+  min-width: 3ch;
+  text-align: center;
+  font-size: var(--t-lg);
+}
+
+.gs-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2);
+}
+
+.gs-keypad__key {
+  padding: var(--s-3) 0;
+  font-family: var(--font-mono);
+  font-size: var(--t-md);
+  background: var(--field);
+  color: var(--paper);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+  cursor: pointer;
+}
+
+.gs-keypad__key:hover {
+  border-color: var(--line-lt);
+}

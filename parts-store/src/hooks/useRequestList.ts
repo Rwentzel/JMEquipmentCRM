@@ -48,6 +48,17 @@ export function useRequestList() {
     }
   }, []);
 
+  /** Add (or overwrite the quantity of) an item with an explicit qty — used by the exploded-view quantity picker. */
+  const addWithQty = useCallback((it: Omit<RequestItem, "qty">, qty: number) => {
+    const cur = read();
+    const existing = cur.find((c) => c.sku === it.sku);
+    if (existing) {
+      write(cur.map((c) => (c.sku === it.sku ? { ...c, ...it, qty } : c)));
+    } else {
+      write([...cur, { ...it, qty }]);
+    }
+  }, []);
+
   const setQty = useCallback((sku: string, qty: number) => {
     write(read().map((i) => (i.sku === sku ? { ...i, qty } : i)));
   }, []);
@@ -60,5 +71,5 @@ export function useRequestList() {
 
   const count = items.reduce((s, i) => s + (i.qty || 1), 0);
 
-  return { items, add, setQty, remove, clear, count };
+  return { items, add, addWithQty, setQty, remove, clear, count };
 }

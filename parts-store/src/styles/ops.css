@@ -320,11 +320,17 @@
 
 .ops__flag {
   padding: 1px var(--s-2);
+  margin-left: var(--s-2);
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
   color: var(--ink);
   background: var(--accent);
   border-radius: var(--r-1);
+}
+
+.ops__msg {
+  font-style: italic;
+  max-width: 32ch;
 }
 
 .ops__table select {
