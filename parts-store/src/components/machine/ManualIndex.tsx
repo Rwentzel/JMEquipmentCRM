@@ -11,12 +11,16 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
               <Eyebrow>Goodstrong sheeters</Eyebrow>
               <h1 className="jme-h2">{model.label} — parts &amp; manual</h1>
             </div>
-            <p>Pick a section below to view its exploded-view diagram and order parts directly from it.</p>
+            <p>
+              Sections below follow the factory Part Catalogue&rsquo;s own index, with the catalogue&rsquo;s page
+              numbers. Pick a section to view its parts and order from it.
+            </p>
           </div>
 
           <Callout title="About this manual index">
-            Serial format: {model.serialPattern}. Section page numbers below come from the manual&rsquo;s table of
-            contents; sections marked &ldquo;Coming soon&rdquo; are waiting on the real manual content for that area.
+            Serial matching: {model.serialPattern}. Sections marked &ldquo;Parts list pending&rdquo; are in the
+            catalogue&rsquo;s index but their drawing pages haven&rsquo;t been digitized yet — call the parts desk and
+            reference the page number shown.
           </Callout>
 
           <div className="gs-sectiongrid">
@@ -25,11 +29,14 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
               const body = (
                 <div className="jme-card__body">
                   <h3>{s.label}</h3>
-                  <span className="jme-mono ps-fine">
-                    pp. {s.startPage}–{s.endPage}
-                  </span>
+                  <span className="jme-mono ps-fine">p. {s.pageLabel}</span>
+                  {s.drawings && s.drawings.length > 0 && (
+                    <span className="ps-fine gs-sectioncard__count">
+                      {s.drawings.length} drawing{s.drawings.length !== 1 ? "s" : ""} in this section
+                    </span>
+                  )}
                   <div className="gs-sectioncard__foot">
-                    {hasDiagram ? <Tag tone="green">View diagram</Tag> : <Tag>Coming soon</Tag>}
+                    {hasDiagram ? <Tag tone="green">View parts</Tag> : <Tag>Parts list pending</Tag>}
                   </div>
                 </div>
               );
