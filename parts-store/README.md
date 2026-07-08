@@ -29,14 +29,31 @@ Other scripts: `npm run build`, `npm start`, `npm run lint`, `npm run typecheck`
 ## Routes
 | Route | What |
 |-------|------|
-| `/` | Storefront (hero, machines, parts, request desk, FAQ, assistant widget) |
-| `/machine/[sku]` | Machine detail (configure, specs, related parts) — 6 SSG pages |
+| `/` | Storefront (hero, machines, McMaster-style parts browser, request desk, FAQ, assistant widget) |
+| `/machine/[sku]` | Machine detail (configure, specs, related parts) — SSG pages |
 | `/compare` | Side-by-side machine comparison |
+| `/parts/goodstrong` | Goodstrong sheeter hub — model picker (1600 / 1600-E / 1650) + serial-number lookup |
+| `/parts/goodstrong/[model]` | Manual index — the factory Part Catalogue's own sections & page numbers |
+| `/parts/goodstrong/[model]/[section]` | Exploded-view parts page: callout bubbles ↔ parts table, quantity picker → request list |
 | `/ops` | **Internal** ops desk — RFQ inbox, lifecycle, agent panels (gated, noindexed) |
-| `/api/quote` | RFQ intake — validated, honeypot, rate-limited, persisted |
+| `/api/quote` | RFQ intake — validated (incl. consent + message-only mode), honeypot, rate-limited, persisted |
 | `/api/assistant` | Support assistant — public-catalog-grounded, rate-limited |
 | `/api/ops/*` | Ops session, RFQ inbox, agent runner (ops session required) |
 | `/api/health` | Minimal liveness probe |
+
+## Goodstrong manual data (how to extend)
+All Goodstrong content lives in `src/data/goodstrong.ts` and is transcribed from real
+factory documents only — currently the **GMC-TC 1600 E (S/N 37422) Part Catalogue**:
+real section index + page labels, and the complete timing-belt (p.5-3) and flat-belt
+(p.5-4) specification tables. Serial `37422` resolves to the 1600-E via `KNOWN_SERIALS`.
+
+To digitize more of a manual:
+1. Scan/render the catalogue page to an image under `public/images/manuals/<model>/`.
+2. Add a `DiagramPage` to that model's `diagrams[sectionId]`: the manual's `pageLabel`,
+   the image filename, `hotspots` (bubble number + x/y as % of the image), and `parts`
+   (bubble ↔ part number/description/qty straight from the page's table).
+3. Add new serials to `KNOWN_SERIALS` as their manuals are confirmed.
+Nothing else is needed — the picker, index, viewer, and cart all run off this data.
 
 ## Built-in agents
 All agents run deterministic rules engines with **zero configuration** and

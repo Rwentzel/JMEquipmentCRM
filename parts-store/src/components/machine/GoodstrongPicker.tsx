@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Diamond, Eyebrow } from "@/components/ui";
+import { Button, Diamond, Eyebrow, SmartImg } from "@/components/ui";
 import { goodstrongModels } from "@/data/goodstrong";
+import { asset } from "@/lib/utils";
 import { SerialLookupModal } from "./SerialLookupModal";
 
 export function GoodstrongPicker() {
@@ -31,10 +32,16 @@ export function GoodstrongPicker() {
           <div className="gs-modelgrid">
             {goodstrongModels.map((m) => (
               <a key={m.id} className="jme-card gs-modelcard" href={`/parts/goodstrong/${m.id}`}>
-                <div className="gs-modelcard__photo">
-                  <Diamond size={48} />
-                  <span>Photo on request</span>
-                </div>
+                {m.photo ? (
+                  <div className="gs-modelcard__photo gs-modelcard__photo--real">
+                    <SmartImg src={asset(m.photo)} alt={m.label} />
+                  </div>
+                ) : (
+                  <div className="gs-modelcard__photo">
+                    <Diamond size={48} />
+                    <span>Photo on request</span>
+                  </div>
+                )}
                 <div className="jme-card__body">
                   <h3>{m.label}</h3>
                   <p className="ps-fine">View manual sections, exploded-view diagrams, and order parts.</p>
