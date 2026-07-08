@@ -9,8 +9,9 @@ export function generateStaticParams() {
   return catalog.machines.map((m) => ({ sku: m.sku }));
 }
 
-export function generateMetadata({ params }: { params: { sku: string } }): Metadata {
-  const machine = catalog.machines.find((m) => m.sku === params.sku);
+export async function generateMetadata({ params }: { params: Promise<{ sku: string }> }): Promise<Metadata> {
+  const { sku } = await params;
+  const machine = catalog.machines.find((m) => m.sku === sku);
   if (!machine) return { title: "Machine — JM Equipment" };
   return {
     title: `${machine.name} — JM Equipment`,
@@ -36,9 +37,10 @@ function ProductJsonLd({ machine }: { machine: ReturnType<typeof toPublicMachine
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
 }
 
-export default function MachinePage({ params }: { params: { sku: string } }) {
-  const rawMachine = catalog.machines.find((m) => m.sku === params.sku);
-  const detail = details[params.sku];
+export default async function MachinePage({ params }: { params: Promise<{ sku: string }> }) {
+  const { sku } = await params;
+  const rawMachine = catalog.machines.find((m) => m.sku === sku);
+  const detail = details[sku];
   if (!rawMachine || !detail) notFound();
 
   const machine = toPublicMachine(rawMachine);

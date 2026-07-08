@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button, Diamond, Eyebrow, StatusBand, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
@@ -43,15 +44,15 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
     <div>
       <div className="cmp-top">
         <div className="cmp-top__in">
-          <a className="brand" href="/">
+          <Link className="brand" href="/">
             <Diamond size={28} />
             <span>
               <b>JM Equipment</b>
               <small>Converting Machinery Solutions</small>
             </span>
-          </a>
+          </Link>
           <div className="cmp-top__nav">
-            <a href="/">Storefront</a>
+            <Link href="/">Storefront</Link>
             <Button size="sm" as="a" href="/#request">
               Request List{count > 0 ? ` · ${count}` : ""}
             </Button>

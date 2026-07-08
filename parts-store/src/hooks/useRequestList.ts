@@ -1,42 +1,67 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import type { RequestItem } from "@/data/types";
 
 const RKEY = "jme_request_v2";
 const EVT = "jme-req";
 
+/**
+ * localStorage-backed request list, synced across components (custom `jme-req`
+ * event) and across tabs (`storage` event). Built on useSyncExternalStore so
+ * the list hydrates without setState-in-effect and stays consistent everywhere.
+ */
+
+const EMPTY: RequestItem[] = [];
+
+/** getSnapshot must be referentially stable per raw value — cache the parse. */
+let cache: { raw: string | null; items: RequestItem[] } = { raw: null, items: EMPTY };
+
 function read(): RequestItem[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY;
+  let raw: string | null = null;
   try {
-    return (JSON.parse(localStorage.getItem(RKEY) || "[]") as RequestItem[]) || [];
+    raw = localStorage.getItem(RKEY);
   } catch {
-    return [];
+    return cache.items;
   }
+  if (raw !== cache.raw) {
+    let items: RequestItem[] = EMPTY;
+    try {
+      const parsed = JSON.parse(raw || "[]");
+      if (Array.isArray(parsed)) items = parsed as RequestItem[];
+    } catch {
+      items = EMPTY;
+    }
+    cache = { raw, items };
+  }
+  return cache.items;
+}
+
+function getServerSnapshot(): RequestItem[] {
+  return EMPTY;
+}
+
+function subscribe(onChange: () => void): () => void {
+  window.addEventListener(EVT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(EVT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
 }
 
 function write(items: RequestItem[]) {
-  localStorage.setItem(RKEY, JSON.stringify(items));
+  try {
+    localStorage.setItem(RKEY, JSON.stringify(items));
+  } catch {
+    // storage unavailable (private mode) — the event still notifies this tab
+  }
   window.dispatchEvent(new Event(EVT));
 }
 
-/**
- * localStorage-backed request list, synced across components (custom `jme-req`
- * event) and across tabs (`storage` event). Mirrors the design bundle behavior.
- */
 export function useRequestList() {
-  const [items, setItems] = useState<RequestItem[]>([]);
-
-  useEffect(() => {
-    setItems(read());
-    const sync = () => setItems(read());
-    window.addEventListener(EVT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(EVT, sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
+  const items = useSyncExternalStore(subscribe, read, getServerSnapshot);
 
   const add = useCallback((it: Omit<RequestItem, "qty">) => {
     const cur = read();

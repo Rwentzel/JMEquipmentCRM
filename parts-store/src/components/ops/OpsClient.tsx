@@ -55,6 +55,10 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
   }, []);
 
   useEffect(() => {
+    // Fetch-on-mount: load() awaits fetch before any setState, so state
+    // updates are asynchronous — the sync-setState rule can't see through
+    // the call and flags it conservatively.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 
@@ -124,7 +128,10 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
       <section className="ops__inbox" aria-label="RFQ inbox">
         <div className="ops__sechd">
           <h2>RFQ inbox</h2>
-          <button onClick={() => void load()}>Refresh</button>
+          <div className="ops__agentbtns">
+            <button onClick={() => { window.location.href = "/api/ops/rfqs/export"; }}>Export CSV</button>
+            <button onClick={() => void load()}>Refresh</button>
+          </div>
         </div>
         {loadErr && <p className="ops__err" role="alert">{loadErr}</p>}
         {!loadErr && rfqs.length === 0 && (
