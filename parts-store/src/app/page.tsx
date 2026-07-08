@@ -74,6 +74,7 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
             );
           })}
           <a href="/compare">Compare</a>
+          <a href="/parts/goodstrong">Goodstrong Parts</a>
         </div>
         <Button size="sm" onClick={() => go("request")}>
           Request List{count > 0 ? ` · ${count}` : ""}
@@ -392,7 +393,12 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
         (!family || p.cat === family) &&
         (!sub || subsystemOf(p) === sub) &&
         (!inStock || p.statusBand === "In Stock" || p.statusBand === "Limited Stock") &&
-        (!nq || (p.sku + " " + p.name).toLowerCase().includes(nq)),
+        (!nq ||
+          [p.sku, p.name, p.category, p.fitment, p.description, ...(p.keywords ?? [])]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(nq)),
     );
     const rank = (p: Part) => {
       if (!nq) return 0;
@@ -441,7 +447,7 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search 2,198 parts — SKU, name, machine, or keyword"
+            placeholder="Search parts — SKU, name, machine, or keyword"
             aria-label="Search parts"
           />
           <label className="ps-cat__stock">
@@ -612,11 +618,29 @@ function Services() {
 interface ContactForm {
   company: string;
   name: string;
+  lastName: string;
   email: string;
   phone: string;
+  phoneExt: string;
   serial: string;
+  shipAddress: string;
+  billingSameAsShipping: boolean;
+  billingAddress: string;
+  message: string;
+  consent: boolean;
+  wantsAccount: boolean;
   /** Honeypot — must stay empty; bots fill it. */
   website: string;
+}
+
+/** Live "1-555-555-5555" formatting as the customer types. */
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 11);
+  const d = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits.slice(0, 10);
+  if (d.length === 0) return "";
+  if (d.length <= 3) return `1-${d}`;
+  if (d.length <= 6) return `1-${d.slice(0, 3)}-${d.slice(3)}`;
+  return `1-${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6, 10)}`;
 }
 
 function Request({
@@ -636,16 +660,20 @@ function Request({
   contact: ContactForm;
   setContact: (c: ContactForm) => void;
   errors: Partial<Record<keyof ContactForm, string>>;
-  onBlur: (k: keyof ContactForm) => () => void;
+  onBlur: (k: "company" | "name" | "email") => () => void;
   sent: boolean;
   reference: string | null;
   onQty: (sku: string, qty: number) => void;
   onRemove: (sku: string) => void;
-  onSend: () => void;
+  onSend: (mode: "quote" | "message") => void;
   onPrint: () => void;
 }) {
-  const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+  const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setContact({ ...contact, [k]: e.target.value });
+  const setPhone = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setContact({ ...contact, phone: formatPhone(e.target.value) });
+  const setCheck = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setContact({ ...contact, [k]: e.target.checked });
 
   return (
     <section id="request" className="ps-sec">
@@ -671,13 +699,65 @@ function Request({
             <div className="jme-card__body">
               <div className="ps-fgrid">
                 <Field label="Company" placeholder="Your company" value={contact.company} onChange={set("company")} onBlur={onBlur("company")} required error={errors.company} />
-                <Field label="Contact name" placeholder="Full name" value={contact.name} onChange={set("name")} onBlur={onBlur("name")} required error={errors.name} />
+                <Field label="First name" placeholder="First name" value={contact.name} onChange={set("name")} onBlur={onBlur("name")} required error={errors.name} />
+                <Field label="Last name" hint="optional" placeholder="Last name" value={contact.lastName} onChange={set("lastName")} />
                 <Field label="Email" type="email" placeholder="you@company.com" value={contact.email} onChange={set("email")} onBlur={onBlur("email")} required error={errors.email} />
-                <Field label="Phone" placeholder="(000) 000-0000" value={contact.phone} onChange={set("phone")} />
+                <Field label="Phone" placeholder="1-555-555-5555" value={contact.phone} onChange={setPhone} />
+                <Field label="Ext." hint="optional" placeholder="1234" value={contact.phoneExt} onChange={set("phoneExt")} />
               </div>
+
+              <Field
+                as="textarea"
+                label="Shipping address"
+                hint="optional"
+                placeholder="Street, city, state, ZIP"
+                rows={2}
+                value={contact.shipAddress}
+                onChange={set("shipAddress")}
+              />
+              <label className="ps-check">
+                <input type="checkbox" checked={contact.billingSameAsShipping} onChange={setCheck("billingSameAsShipping")} />
+                Billing address is the same as shipping
+              </label>
+              {!contact.billingSameAsShipping && (
+                <Field
+                  as="textarea"
+                  label="Billing address"
+                  placeholder="Street, city, state, ZIP"
+                  rows={2}
+                  value={contact.billingAddress}
+                  onChange={set("billingAddress")}
+                />
+              )}
+
               <div className="ps-serial-wrap">
                 <Field label="Machine serial number" hint="optional" placeholder="From the machine dataplate" value={contact.serial} onChange={set("serial")} />
               </div>
+
+              <Field
+                as="textarea"
+                label="Message"
+                hint="optional — required if sending a message without a quote request"
+                placeholder="Anything else we should know?"
+                rows={3}
+                value={contact.message}
+                onChange={set("message")}
+                error={errors.message}
+              />
+
+              <label className="ps-check">
+                <input type="checkbox" checked={!contact.wantsAccount} onChange={(e) => setContact({ ...contact, wantsAccount: !e.target.checked })} />
+                Don&rsquo;t create an account for me (by default we&rsquo;ll set one up so you can track this request)
+              </label>
+
+              <label className="ps-check">
+                <input type="checkbox" checked={contact.consent} onChange={setCheck("consent")} required />
+                I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Sale</a> and{" "}
+                <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and consent to being contacted
+                about this request.
+                {errors.consent && <span className="ps-field-err" role="alert"> {errors.consent}</span>}
+              </label>
+
               {/* Honeypot: visually hidden, must remain empty */}
               <div aria-hidden className="ps-honeypot">
                 <label htmlFor="ps-website">Website</label>
@@ -728,8 +808,11 @@ function Request({
                 </div>
               ) : (
                 <div className="ps-actions">
-                  <Button onClick={onSend} disabled={items.length === 0}>
-                    Send request
+                  <Button onClick={() => onSend("quote")} disabled={items.length === 0}>
+                    Get a Quote
+                  </Button>
+                  <Button variant="ghost" onClick={() => onSend("message")} disabled={!contact.message.trim()}>
+                    Send a Message
                   </Button>
                   <Button variant="ghost" onClick={onPrint}>
                     Print summary
@@ -838,6 +921,7 @@ function Footer() {
               {m.name}
             </a>
           ))}
+          <a href="/parts/goodstrong">Goodstrong parts &amp; manuals</a>
         </div>
         <div>
           <h4>Information</h4>
@@ -948,9 +1032,17 @@ export default function StorefrontPage() {
   const [contact, setContactRaw] = useState<ContactForm>({
     company: "",
     name: "",
+    lastName: "",
     email: "",
     phone: "",
+    phoneExt: "",
     serial: "",
+    shipAddress: "",
+    billingSameAsShipping: true,
+    billingAddress: "",
+    message: "",
+    consent: false,
+    wantsAccount: true,
     website: "",
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
@@ -962,7 +1054,7 @@ export default function StorefrontPage() {
     if (sent) setSent(false);
   };
 
-  const blurField = (k: keyof ContactForm) => () => {
+  const blurField = (k: "company" | "name" | "email") => () => {
     const v = contact[k].trim();
     const next = { ...formErrors };
     if (k === "company" && !v) next.company = "Company is required.";
@@ -996,19 +1088,21 @@ export default function StorefrontPage() {
     show("Added to request");
   };
 
-  function validate(): boolean {
+  function validate(mode: "quote" | "message"): boolean {
     const e: Partial<Record<keyof ContactForm, string>> = {};
     if (!contact.company.trim()) e.company = "Company is required.";
     if (!contact.name.trim()) e.name = "Contact name is required.";
     if (!contact.email.trim()) e.email = "Email is required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) e.email = "Enter a valid email.";
+    if (!contact.consent) e.consent = "Required to submit.";
+    if (mode === "message" && !contact.message.trim()) e.message = "Enter a message.";
     setFormErrors(e);
     return Object.keys(e).length === 0;
   }
 
-  async function sendRequest() {
-    if (items.length === 0) return;
-    if (!validate()) {
+  async function sendRequest(mode: "quote" | "message") {
+    if (mode === "quote" && items.length === 0) return;
+    if (!validate(mode)) {
       show("Check the highlighted fields");
       return;
     }
@@ -1016,14 +1110,14 @@ export default function StorefrontPage() {
       const res = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contact, items }),
+        body: JSON.stringify({ contact, items: mode === "quote" ? items : [], mode }),
       });
       // Generic handling — the API returns generic messages by design.
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setReference(typeof data.ref === "string" ? data.ref : null);
         setSent(true);
-        show("Request sent — desk replies in writing");
+        show(mode === "message" ? "Message sent — desk replies in writing" : "Request sent — desk replies in writing");
       } else {
         show(data.error || "Check the form and try again");
       }

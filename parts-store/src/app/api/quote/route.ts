@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { contact?: Record<string, unknown>; items?: IncomingItem[] };
+  let body: { contact?: Record<string, unknown>; items?: IncomingItem[]; mode?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -69,8 +69,9 @@ export async function POST(req: Request) {
 
   const contact = body.contact ?? {};
   const items = Array.isArray(body.items) ? body.items : [];
+  const messageOnly = body.mode === "message";
 
-  const outcome = evaluateQuote(contact, items, validSkus);
+  const outcome = evaluateQuote(contact, items, validSkus, { messageOnly });
 
   // Honeypot: respond with a generic success and do nothing (bots fill it).
   if (outcome.kind === "honeypot") {
@@ -92,11 +93,18 @@ export async function POST(req: Request) {
     contact: {
       company: clean(contact.company, 200),
       name: clean(contact.name, 200),
+      lastName: clean(contact.lastName, 200) || undefined,
       email: clean(contact.email, 320),
       phone: clean(contact.phone, 40) || undefined,
+      phoneExt: clean(contact.phoneExt, 10) || undefined,
       serial: clean(contact.serial, 80) || undefined,
+      shipAddress: clean(contact.shipAddress, 500) || undefined,
+      billingSameAsShipping: contact.billingSameAsShipping !== false,
+      billingAddress: contact.billingSameAsShipping === false ? clean(contact.billingAddress, 500) || undefined : undefined,
+      wantsAccount: contact.wantsAccount !== false,
     },
     items: storedItems,
+    message: clean(contact.message, 4000) || undefined,
     freight: storedItems.some((it) => freightSkus.has(it.sku)),
   });
 

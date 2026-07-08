@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, JetBrains_Mono } from "next/font/google";
 import { catalog } from "@/data/catalog";
+import { FAQ } from "@/data/faq";
 import "./globals.css";
 
 const barlow = Barlow({
@@ -39,9 +40,17 @@ export const metadata: Metadata = {
     "converting machinery",
     "paper converting parts",
     "sheeter parts",
+    "Goodstrong sheeter parts",
+    "Goodstrong 1600 parts",
+    "Goodstrong 1600E parts",
+    "Goodstrong 1650 parts",
     "rollstand rebuild",
+    "Geo M. Martin rollstand parts",
     "core splitter",
+    "hydraulic core splitter blades",
     "industrial parts",
+    "converting machine downtime",
+    "sheeter blade replacement",
     "Sturgis Michigan",
   ],
   authors: [{ name: "JM Equipment Inc." }],
@@ -98,12 +107,45 @@ function OrgJsonLd() {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
 }
 
+/** FAQPage structured data — drives rich-result eligibility once the site is indexable. */
+function FaqJsonLd() {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
+}
+
+const IS_PREVIEW = process.env.NEXT_PUBLIC_PREVIEW === "1";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable} ${jetbrainsMono.variable}`}>
       <body>
+        {IS_PREVIEW && (
+          <div
+            style={{
+              background: "#b8920a",
+              color: "#141414",
+              textAlign: "center",
+              fontWeight: 700,
+              padding: "0.5rem 1rem",
+              fontSize: "0.85rem",
+              letterSpacing: "0.04em",
+            }}
+          >
+            PRIVATE PREVIEW — for JM Equipment review only. Quote forms and the assistant are disabled in this
+            preview; nothing here is live or indexed.
+          </div>
+        )}
         {children}
         <OrgJsonLd />
+        <FaqJsonLd />
       </body>
     </html>
   );

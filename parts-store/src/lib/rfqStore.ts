@@ -24,9 +24,15 @@ export const RFQ_STATUSES: RfqStatus[] = ["new", "reviewing", "quoted", "won", "
 export interface StoredRfqContact {
   company: string;
   name: string;
+  lastName?: string;
   email: string;
   phone?: string;
+  phoneExt?: string;
   serial?: string;
+  shipAddress?: string;
+  billingSameAsShipping?: boolean;
+  billingAddress?: string;
+  wantsAccount?: boolean;
 }
 
 export interface StoredRfqItem {
@@ -41,6 +47,7 @@ export interface StoredRfq {
   status: RfqStatus;
   contact: StoredRfqContact;
   items: StoredRfqItem[];
+  message?: string;
   /** True when any line item carries a freight-quote action. */
   freight: boolean;
 }
@@ -82,6 +89,7 @@ async function writeAll(rfqs: StoredRfq[]): Promise<void> {
 export interface NewRfqInput {
   contact: StoredRfqContact;
   items: StoredRfqItem[];
+  message?: string;
   freight: boolean;
 }
 
@@ -96,6 +104,7 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
       status: "new",
       contact: input.contact,
       items: input.items,
+      message: input.message,
       freight: input.freight,
     };
     const all = await readAll();

@@ -9,7 +9,7 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
 
 /** Resolve a photo filename to a public path; placeholder handling is per-component. */
 export function asset(file: string): string {
-  return "/images/" + file;
+  return (process.env.NEXT_PUBLIC_BASE_PATH || "") + "/images/" + file;
 }
 
 const ACTION_LABELS: Record<RfqAction, string> = {
