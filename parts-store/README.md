@@ -11,7 +11,7 @@ Implemented from the JME Design System (Claude Design handoff bundle).
 > `SECURITY_NOTES.md`, `DATA_BOUNDARIES.md`.
 
 ## Stack
-- Next.js 14 (App Router) · React 18 · TypeScript — zero runtime dependencies beyond these
+- Next.js 16 (App Router) · React 19 · TypeScript — only runtime dependency beyond these is nodemailer (env-gated RFQ email)
 - Fonts: Barlow Condensed (display), Barlow (body), JetBrains Mono (mono) via `next/font`
 - Styling: design-system tokens as CSS custom properties (`src/styles/`)
 - Storage: customer request list in `localStorage`; RFQ inbox + audit log in a
@@ -73,6 +73,9 @@ the environment — never in the repo.
 | `OPS_TOKEN` | Enables the ops desk login. Unset: `/ops` is open in dev (with banner), **disabled in production**. |
 | `ANTHROPIC_API_KEY` | Upgrades agents from rules engines to AI. Absent: fully functional offline. |
 | `JME_AI_MODEL` | Overrides the default agent model. |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | RFQ email delivery to the desk. Unset: silent no-op (RFQs still persist + show in /ops). |
+| `RFQ_NOTIFY_TO` / `RFQ_NOTIFY_FROM` | Desk inbox and sender for RFQ notifications. |
+| `JME_LAUNCH` | `live` (at **build time**) opens robots/indexing + sitemap. Anything else: fully gated. |
 | `RFQ_DATA_DIR` | Overrides the `.data/` store location (used by tests). |
 
 ## Structure

@@ -4,22 +4,22 @@
 
 ## Current posture
 - **Pre-launch.** This is a launch-candidate MVP. It is not deployed and is not launch-approved.
-- **No live integrations.** No Resend, SMTP, Formspree, Stripe, WooCommerce, QuickBooks, Outlook, Gmail, or any other external service is connected. The only *optional* outbound call is the Anthropic API for agent upgrades, and only when `ANTHROPIC_API_KEY` is provided via the environment.
+- **No integrations in the repo.** No payment processor, WooCommerce, or QuickBooks connection. Two *optional, env-gated* outbound integrations exist in code and are inert without configuration: SMTP delivery of RFQ notifications (`SMTP_*` + `RFQ_NOTIFY_TO`) and the Anthropic API for agent upgrades (`ANTHROPIC_API_KEY`). Neither has credentials in the repo; both no-op gracefully when unconfigured.
 - **No secrets.** No API keys, tokens, or credentials exist in the repo. All secrets (`OPS_TOKEN`, `ANTHROPIC_API_KEY`) are supplied via environment variables only and never committed.
 - **No deployment.** Nothing is deployed to any host.
-- **Noindex requirement.** Global and per-page `robots: { index:false, follow:false }`, plus `app/robots.ts` returning `Disallow: /`. The sandbox must not be indexed until launch is approved. `/ops` is additionally noindexed and never linked publicly.
+- **Indexing gated by launch mode.** Default (and every preview): global noindex + `robots.ts Disallow: /`. Setting `JME_LAUNCH=live` at build time — only in the approved production environment — flips robots/meta to indexable and publishes the sitemap (see LAUNCH.md). `/ops` and `/api/` are excluded from crawling even when live.
 - **Data boundaries.** No price, cost, margin, exact quantity, vendor, bin, supplier, or QuickBooks data exists in the client tier. See `DATA_BOUNDARIES.md`.
 - **Security headers.** CSP, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy` set globally in `next.config.mjs` (CSP still allows `unsafe-inline` for Next bootstrap — tighten with nonces pre-launch).
 
 ## Quote API (`/api/quote`)
-Validates input, persists the RFQ, and returns a crypto-random reference. It **does not send email or charge** anything.
+Validates input, persists the RFQ, returns a crypto-random reference, and — when SMTP is configured via environment — emails the desk. It never charges anything and never blocks the customer on delivery.
 - Server-side validation; required company / name / email; SKU allowlist; qty clamped.
 - **Honeypot** field — bot submissions get a fake success and are discarded.
 - **In-memory per-IP rate limiting** (single-instance; move to edge/Redis for production scale).
 - **No PII logging** — audit events carry event kind, timestamp, counts, and a hashed client key only.
 - **Generic** success/failure responses (no field-level detail leakage).
 - **Persistence:** RFQs (contact PII + line items) are written to `.data/rfqs.json` — gitignored, server-side only, readable exclusively through the ops-authenticated API. Retention/deletion policy required before launch.
-- `// TODO(production):` outbound email/CRM delivery, env-var configured, only after approval.
+- **Email delivery:** env-gated via `SMTP_*` + `RFQ_NOTIFY_TO` (src/lib/mail.ts); fire-and-forget, failures audited as `mail_error` with zero PII, RFQ always persisted regardless.
 
 ## Ops desk (`/ops` + `/api/ops/*`)
 - **Auth:** single shared token (`OPS_TOKEN` env). Login sets an httpOnly, sameSite=strict cookie holding a SHA-256 digest of the token; comparisons are constant-time; login endpoint is tightly rate-limited and failures are audited.

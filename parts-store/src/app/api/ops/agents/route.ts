@@ -17,7 +17,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
-  if (!verifySession(cookies().get(OPS_COOKIE)?.value)) {
+  if (!verifySession((await cookies()).get(OPS_COOKIE)?.value)) {
     return NextResponse.json({ ok: false }, { status: 403 });
   }
 

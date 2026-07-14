@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
 import { audit, hashKey } from "@/lib/auditLog";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendRfqNotification } from "@/lib/mail";
 import { saveRfq } from "@/lib/rfqStore";
 import { evaluateQuote } from "@/lib/validateQuote";
 
@@ -107,6 +108,10 @@ export async function POST(req: Request) {
     message: clean(contact.message, 4000) || undefined,
     freight: storedItems.some((it) => freightSkus.has(it.sku)),
   });
+
+  // Notify the parts desk (env-gated; no-op without SMTP config). Fire and
+  // forget — delivery must never delay or fail the customer's response.
+  void sendRfqNotification(rfq);
 
   // No PII logging — counts only.
   audit("quote_accepted", { n: storedItems.length });

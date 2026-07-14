@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { Button, Callout, DataPlate, Diamond, Eyebrow, SmartImg, SpecTable, StatBlock, StatusBand, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
@@ -83,13 +84,13 @@ export function MachineDetailClient({
       {/* Top bar */}
       <div className="md-top">
         <div className="md-top__in">
-          <a className="brand" href="/">
+          <Link className="brand" href="/">
             <Diamond size={28} />
             <span>
               <b>JM Equipment</b>
               <small>Converting Machinery Solutions</small>
             </span>
-          </a>
+          </Link>
           <a className="md-phone" href="tel:(269) 659-0093">
             (269) 659-0093
           </a>
@@ -99,9 +100,9 @@ export function MachineDetailClient({
       {/* Sub-nav with scroll spy */}
       <div className="md-subnav">
         <div className="md-subnav__in">
-          <a className="md-back" href="/">
+          <Link className="md-back" href="/">
             ← All machines
-          </a>
+          </Link>
           <div className="md-subnav__links">
             {SECTIONS.map(([id, label]) => (
               <a

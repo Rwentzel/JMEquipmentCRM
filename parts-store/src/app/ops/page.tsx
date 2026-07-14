@@ -13,7 +13,7 @@ import { OPS_COOKIE, opsMode, verifySession } from "@/lib/opsAuth";
 
 export const dynamic = "force-dynamic";
 
-export default function OpsPage() {
+export default async function OpsPage() {
   const mode = opsMode();
 
   if (mode === "disabled") {
@@ -28,7 +28,7 @@ export default function OpsPage() {
     );
   }
 
-  const authed = verifySession(cookies().get(OPS_COOKIE)?.value);
+  const authed = verifySession((await cookies()).get(OPS_COOKIE)?.value);
   if (!authed) return <OpsLogin />;
 
   return <OpsClient devOpen={mode === "dev-open"} />;

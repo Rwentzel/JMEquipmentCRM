@@ -12,18 +12,18 @@ import { listRfqs, rfqCounts, updateRfqStatus, RFQ_STATUSES, type RfqStatus } fr
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function authed(): boolean {
-  return verifySession(cookies().get(OPS_COOKIE)?.value);
+async function authed(): Promise<boolean> {
+  return verifySession((await cookies()).get(OPS_COOKIE)?.value);
 }
 
 export async function GET() {
-  if (!authed()) return NextResponse.json({ ok: false }, { status: 403 });
+  if (!(await authed())) return NextResponse.json({ ok: false }, { status: 403 });
   const [rfqs, counts] = await Promise.all([listRfqs(), rfqCounts()]);
   return NextResponse.json({ ok: true, rfqs, counts });
 }
 
 export async function PATCH(req: Request) {
-  if (!authed()) return NextResponse.json({ ok: false }, { status: 403 });
+  if (!(await authed())) return NextResponse.json({ ok: false }, { status: 403 });
 
   let body: { ref?: unknown; status?: unknown };
   try {

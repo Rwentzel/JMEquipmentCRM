@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   Button,
   DataPlate,
@@ -73,8 +74,8 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
               </a>
             );
           })}
-          <a href="/compare">Compare</a>
-          <a href="/parts/goodstrong">Goodstrong Parts</a>
+          <Link href="/compare">Compare</Link>
+          <Link href="/parts/goodstrong">Goodstrong Parts</Link>
         </div>
         <Button size="sm" onClick={() => go("request")}>
           Request List{count > 0 ? ` · ${count}` : ""}
@@ -421,7 +422,14 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
     });
   }, [dq, family, sub, inStock, sort]);
 
-  useEffect(() => setShown(PARTS_PAGE_SIZE), [dq, family, sub, inStock, sort]);
+  // Reset paging when any filter changes — adjust during render (React-endorsed
+  // pattern) rather than in an effect, which would double-render.
+  const filterKey = `${dq}|${family}|${sub}|${inStock}|${sort}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
+    setShown(PARTS_PAGE_SIZE);
+  }
   const visible = results.slice(0, shown);
   const activeFamily = TAXONOMY.find((f) => f.family === family);
   const hasFilters = Boolean(family || sub || inStock || dq);
@@ -921,11 +929,11 @@ function Footer() {
               {m.name}
             </a>
           ))}
-          <a href="/parts/goodstrong">Goodstrong parts &amp; manuals</a>
+          <Link href="/parts/goodstrong">Goodstrong parts &amp; manuals</Link>
         </div>
         <div>
           <h4>Information</h4>
-          <a href="/compare">Compare machines</a>
+          <Link href="/compare">Compare machines</Link>
           <a href="/freight">Freight &amp; shipping</a>
           <a href="/terms">Terms of sale</a>
           <a href="/privacy">Privacy policy</a>
@@ -1069,12 +1077,12 @@ export default function StorefrontPage() {
 
   useReveal();
 
-  if (typeof document !== "undefined") {
+  useEffect(() => {
     const r = document.documentElement.style;
     if (tw.accent !== "#A8353A") r.setProperty("--jme-red", tw.accent);
     else r.removeProperty("--jme-red");
     document.body.dataset.density = tw.density;
-  }
+  }, [tw]);
 
   const count = items.reduce((s, i) => s + (i.qty || 1), 0);
 
