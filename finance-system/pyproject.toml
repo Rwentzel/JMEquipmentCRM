@@ -1,0 +1,34 @@
+[project]
+name = "jm-finance-system"
+version = "0.1.0"
+description = "JM Equipment local-first sales, cost, profitability and commission engine (QuickBooks-workflow-inspired; not a QuickBooks clone)."
+requires-python = ">=3.11"
+
+# Exchange 1 runtime uses the standard library ONLY (sqlite3, decimal, csv, hashlib,
+# dataclasses, enum, uuid, unittest) so it runs on a stock Python install with no
+# network access. Optional dependencies below are introduced in later exchanges.
+dependencies = []
+
+[project.optional-dependencies]
+# Exchange 2: spreadsheet intake/export.
+excel = ["openpyxl>=3.1"]
+# Exchange 3: local operator UI (one candidate; final choice recorded in an ADR).
+ui = ["streamlit>=1.36"]
+# Dev tooling (optional; the suite also runs under stdlib unittest).
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+jm-finance-smoke = "finance_system.smoke:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["finance_system", "finance_system.migrations"]
+
+[tool.setuptools.package-data]
+"finance_system.migrations" = ["*.sql"]
