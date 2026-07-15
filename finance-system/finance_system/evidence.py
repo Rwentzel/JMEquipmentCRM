@@ -46,7 +46,7 @@ DEFAULT_EVIDENCE_MATRIX: tuple[EvidenceRequirement, ...] = (
     EvidenceRequirement(
         CalculationType.COST, "*",
         required_fields=("product_cost",),
-        recommended_fields=("freight_in", "freight_out", "vendor_id", "vendor_bill_number"),
+        recommended_fields=("freight_in", "freight_out"),
         rationale="Cost of goods needs at least a substantiated product cost.",
     ),
     EvidenceRequirement(
@@ -58,13 +58,13 @@ DEFAULT_EVIDENCE_MATRIX: tuple[EvidenceRequirement, ...] = (
     EvidenceRequirement(
         CalculationType.COMMISSION, "*",
         required_fields=("commission_rule_id", "commission_basis", "commission_rate"),
-        recommended_fields=("commission_eligibility",),
+        recommended_fields=(),
         rationale="Commission basis is never assumed; without a rule it is unverifiable.",
     ),
     EvidenceRequirement(
         CalculationType.PERIOD_ASSIGNMENT, "*",
         required_fields=("period_assignment_date",),
-        recommended_fields=("invoice_date", "ship_date"),
+        recommended_fields=(),
         rationale="A transaction must have a dated basis for period assignment.",
     ),
 )

@@ -8,8 +8,8 @@ of the real repository and environment.
 
 | Exchange | Title | Status |
 |---|---|---|
-| 1 | Discovery, architecture, executable foundation | ✅ Delivered (awaiting review) |
-| 2 | Intake, classification, reconciliation, reporting | ⏳ Pending review of #1 |
+| 1 | Discovery, architecture, executable foundation | ✅ Conditionally accepted |
+| 2 | Intake, classification, reconciliation, reporting | ✅ Delivered (awaiting review) |
 | 3 | Operational application (local UI) | ⛔ Not started |
 | 4 | Business intelligence & adversarial hardening | ⛔ Not started |
 | 5 | Release candidate, acceptance, handoff | ⛔ Not started |
@@ -63,10 +63,31 @@ _Pending ChatGPT review._
 ---
 
 ## Exchange 2 — Intake, classification, reconciliation, reporting
-_Not started. Scope: CSV/Excel/pasted intake, mapping workflow, normalization,
-calculation-level classification at scale, duplicate/conflict detection, staged review +
-posting, exception creation/resolution with preserved history, reconciliation engine,
-verified/provisional/exception reporting, Excel export, A–K batch output._
+**Status:** Delivered (awaiting review). **Tests:** 97 (43 Exchange-1 + 54 new), all pass.
+
+### Exchange 1 regression corrections (required before expansion)
+- **Defect 1 — snapshot persistence:** posting now writes an immutable snapshot for every
+  material calculation (`snapshots.py`, `posting.persist_line_snapshots`), append-only via DB
+  triggers; recalculation appends a new snapshot with `superseded_snapshot_id` set (originals
+  preserved). Migration `0002` adds the full field set. Regression tests in `test_snapshots.py`.
+- **Defect 2 — profitability population:** `reporting.py` maintains revenue-verified,
+  cost-verified, and profitability-verified populations; verified margin/markup use only the
+  profitability-verified population, with a reconciliation bridge (revenue excluded, reason,
+  cost awaiting proof, GP excluded). Regression tests in `test_profitability.py`.
+
+### Delivered scope
+CSV/TSV/pasted/JSON intake (gated XLSX, ADR-0007); mapping profiles + confidence;
+normalization with lineage; staging + calc-level classification; exact + likely duplicate
+detection (never merged); conflict detection; transactional posting with snapshot
+persistence; exception + evidence resolution; reconciliation with explicit tolerances; full
+A–K report; CSV export; operator CLI; expanded fixtures; end-to-end demo (`demo.py`).
+
+### Known deficiencies carried to review
+See `docs/KNOWN_LIMITATIONS.md` (single-line transactions, XLSX untested here, limited
+payment reconciliation, deterministic analytics only, heuristic scanner).
+
+### Acceptance result
+_Pending ChatGPT review._
 
 ## Exchange 3 — Operational application
 _Not started._

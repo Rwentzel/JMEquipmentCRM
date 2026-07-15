@@ -13,6 +13,7 @@
 private/
 inbox/
 real-data/
+exports/
 
 # Confidential export formats.
 *.xlsx

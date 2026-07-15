@@ -158,16 +158,22 @@ def rollback_batch(conn: sqlite3.Connection, batch_id: str) -> None:
     with conn:
         txn_ids = [r["id"] for r in conn.execute(
             "SELECT id FROM transactions WHERE import_batch_id = ?", (batch_id,))]
+        # A not-yet-posted batch has no calculation_snapshots (those are written at
+        # posting), so the append-only snapshot table is never touched here.
         for tid in txn_ids:
-            line_ids = [r["id"] for r in conn.execute(
-                "SELECT id FROM transaction_lines WHERE transaction_id = ?", (tid,))]
-            for lid in line_ids:
-                conn.execute("DELETE FROM cost_components WHERE transaction_line_id = ?", (lid,))
-                conn.execute("DELETE FROM record_verifications WHERE transaction_line_id = ?", (lid,))
             conn.execute("DELETE FROM cost_components WHERE transaction_id = ?", (tid,))
             conn.execute("DELETE FROM record_verifications WHERE transaction_id = ?", (tid,))
+            conn.execute("DELETE FROM commission_calculations WHERE transaction_id = ?", (tid,))
+            conn.execute("DELETE FROM exceptions WHERE transaction_id = ?", (tid,))
+            conn.execute(
+                "DELETE FROM duplicate_candidates WHERE transaction_id = ? OR other_transaction_id = ?",
+                (tid, tid))
+            conn.execute(
+                "DELETE FROM external_identifiers WHERE entity_kind='transaction' AND entity_id = ?",
+                (tid,))
             conn.execute("DELETE FROM transaction_lines WHERE transaction_id = ?", (tid,))
         conn.execute("DELETE FROM transactions WHERE import_batch_id = ?", (batch_id,))
+        conn.execute("DELETE FROM source_records WHERE import_batch_id = ?", (batch_id,))
         set_status(conn, batch_id, ImportBatchStatus.ROLLED_BACK)
         audit.record_event(conn, "import_batch_rolled_back",
                            f"rolled back {len(txn_ids)} staged transactions",

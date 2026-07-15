@@ -52,7 +52,8 @@ def main() -> int:
     report = scan_paths(paths)
     print(f"[safety-scan] {report.summary()}")
     for f in report.findings:
-        print(f"  [{f.severity.upper():6}] {f.kind:22} {f.path}:{f.line}  {f.excerpt}")
+        # Redact the matched text — never echo potentially-confidential content to logs.
+        print(f"  [{f.severity.upper():6}] {f.kind:22} {f.path}:{f.line}  <{len(f.excerpt)} chars redacted>")
     if report.errors:
         for e in report.errors:
             print(f"  [ERROR] {e}")
