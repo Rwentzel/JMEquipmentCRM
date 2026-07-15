@@ -202,15 +202,24 @@ def persist_line_snapshots(
           line_id=line_id, period_id=period_id, batch_id=batch_id, scale=4,
           supersede_of=sup(snapshots.CALC_CONTRIBUTION_AFTER_COMMISSION)); n += 1
 
-    # persist / refresh the commission_calculations row
+    # persist / refresh the commission_calculations row. A recalculation supersedes the
+    # prior current row (is_current=0) so totals never count both the old and new amount.
     if commission_amt is not None:
+        prior = conn.execute(
+            "SELECT id FROM commission_calculations WHERE transaction_line_id=? AND is_current=1",
+            (line_id,)).fetchone()
+        if prior:
+            conn.execute("UPDATE commission_calculations SET is_current=0 WHERE id=?", (prior["id"],))
         conn.execute(
-            """INSERT INTO commission_calculations(id, transaction_id, commission_rule_id,
-               basis_amount_minor, rate_canonical, commission_minor, verification_level,
-               created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (new_id("commission_calc"), txn_id, rule_id, basis_amt.minor if basis_amt else None,
-             rule["rate_canonical"] if rule else None, commission_amt.minor, comm_lvl.value,
-             utcnow_iso()),
+            """INSERT INTO commission_calculations(id, transaction_id, transaction_line_id,
+               commission_rule_id, basis_amount_minor, rate_canonical, commission_minor,
+               verification_level, is_current, superseded_calc_id, reporting_period_id,
+               import_batch_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)""",
+            (new_id("commission_calc"), txn_id, line_id, rule_id,
+             basis_amt.minor if basis_amt else None, rule["rate_canonical"] if rule else None,
+             commission_amt.minor, comm_lvl.value, prior["id"] if prior else None,
+             period_id, batch_id, utcnow_iso()),
         )
     return n
 

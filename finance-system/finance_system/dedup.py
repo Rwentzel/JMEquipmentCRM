@@ -127,14 +127,15 @@ def find_likely_duplicates(conn: sqlite3.Connection, batch_id: str) -> list[Like
     return out
 
 
-def persist_duplicates(conn: sqlite3.Connection, likely: list[LikelyDup]) -> int:
+def persist_duplicates(conn: sqlite3.Connection, likely: list[LikelyDup],
+                       batch_id: str | None = None) -> int:
     for d in likely:
         conn.execute(
             """INSERT INTO duplicate_candidates(id, candidate_group_id, transaction_id,
                other_transaction_id, match_score, matching_fields_json, conflicting_fields_json,
-               recommended_disposition, review_status, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)""",
+               recommended_disposition, review_status, import_batch_id, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)""",
             (new_id("reconciliation_finding"), d.candidate_group_id, d.transaction_id,
              d.other_transaction_id, d.match_score, json.dumps(d.matching_fields),
-             json.dumps(d.conflicting_fields), d.recommended_disposition, utcnow_iso()))
+             json.dumps(d.conflicting_fields), d.recommended_disposition, batch_id, utcnow_iso()))
     return len(likely)

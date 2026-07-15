@@ -8,6 +8,7 @@ into the repo working tree.
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -73,5 +74,16 @@ def export_report(report: dict, out_root: Path | None = None) -> Path:
     au = []
     _flatten("", report.get("J_database_update", {}), au)
     _write_csv(out_dir / "audit_summary.csv", au, ["metric", "value"])
+
+    # Manifest + integrity, plus content hashes of every exported file (reproducibility).
+    manifest = dict(report.get("manifest", {}))
+    hashes = {}
+    for p in sorted(out_dir.glob("*")):
+        if p.name == "manifest.json":
+            continue
+        hashes[p.name] = hashlib.sha256(p.read_bytes()).hexdigest()
+    manifest["export_hashes"] = hashes
+    manifest["integrity"] = report.get("integrity", {})
+    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     return out_dir

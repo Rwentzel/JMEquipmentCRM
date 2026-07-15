@@ -1,5 +1,31 @@
 # Changelog
 
+## Exchange 2.1 — reporting-integrity gate (2026-07-15)
+Mandatory corrections from the Exchange 2 review, before any operator-interface work.
+- **Explicit report scope (ADR-0008).** New `scope.py` `ReportScope`; every report/count/
+  total/bridge runs under an explicit scope. Monthly reports require a period; batch reports
+  require period+batch; all-time must be explicit. No query silently spans the whole DB.
+- **Cost reconciliation.** Cost breakdown and total actual cost now use the same scope and
+  sale-document population, reconciled by an explicit bridge (raw posted components −
+  non-sale-document cost − policy-excluded = policy-recognized total). The former $200
+  demo discrepancy is the sales order's product cost, now shown in the bridge, not hidden.
+- **Units.** Units ordered/invoiced/returned/net-sold; quotes, sales orders, payments, and
+  POs are excluded from units sold.
+- **Commission.** `commission_calculations.is_current` (migration `0003`); totals count only
+  current rows in scope; a recalculation supersedes the prior row (no double counting).
+- **Scoped counts.** Exceptions, duplicates, conflicts, reconciliations, customers, invoices,
+  units, and audit counts are scoped by batch/period (new scope columns, migration `0003`).
+- **Centralized current-snapshot selection** (`snapshots.current_snapshots`, `as_of` support)
+  with an `assert_single_current` invariant.
+- **Connection lifecycle.** CLI opens one connection and closes it in `finally`; demo closes
+  all handles. Suite and demo pass under `python -W error::ResourceWarning`.
+- **Real XLSX test** when `openpyxl` is installed (generated sanitized workbook; numeric/date
+  cells; formula cell per data-only policy; hidden sheet ignored). Gate test skips otherwise.
+- **Report manifest + integrity assertions** (migration `0003` `report_manifests`); a failed
+  invariant marks the report invalid and returns a non-zero CLI exit code.
+- **Managed safety hook** (`scripts/install-safety-hook.sh`) — opt-in, repo-local, documented.
+- Tests: 97 → 120 (119 pass, 1 environment-gated skip).
+
 ## Exchange 2 — intake, classification, reconciliation, reporting (2026-07-15)
 ### Financial-integrity corrections (from Exchange 1 review)
 - **Defect 1 fixed:** calculation snapshots are now **persisted on posting** for every

@@ -31,9 +31,17 @@ def _within(diff_minor: int) -> bool:
     return abs(diff_minor) <= MONEY_TOLERANCE_MINOR
 
 
-def reconcile_posted(conn: sqlite3.Connection, period_id: str | None = None) -> list[Recon]:
+def reconcile_posted(conn: sqlite3.Connection, period_id: str | None = None,
+                     batch_id: str | None = None) -> list[Recon]:
     out: list[Recon] = []
-    txns = conn.execute("SELECT * FROM transactions WHERE posted=1").fetchall()
+    clauses = ["posted=1"]
+    params: list = []
+    if period_id:
+        clauses.append("reporting_period_id=?"); params.append(period_id)
+    if batch_id:
+        clauses.append("import_batch_id=?"); params.append(batch_id)
+    txns = conn.execute(
+        f"SELECT * FROM transactions WHERE {' AND '.join(clauses)}", params).fetchall()
     for t in txns:
         line = conn.execute(
             "SELECT * FROM transaction_lines WHERE transaction_id=? LIMIT 1", (t["id"],)).fetchone()
@@ -94,10 +102,18 @@ def reconcile_posted(conn: sqlite3.Connection, period_id: str | None = None) -> 
                 "low" if _within(diff) else "high",
                 "commission amount reconciled to basis x rate", [t["id"]]))
 
-    # duplicate external identifiers across distinct entities
-    dup = conn.execute(
-        """SELECT namespace, value, COUNT(DISTINCT entity_id) AS n FROM external_identifiers
-           GROUP BY namespace, value HAVING n>1""").fetchall()
+    # duplicate external identifiers across distinct entities — limited to the scoped
+    # transaction population so a batch/period reconciliation is not inflated by unrelated
+    # historical records.
+    scoped_ids = [t["id"] for t in txns]
+    if scoped_ids:
+        placeholders = ",".join("?" * len(scoped_ids))
+        dup = conn.execute(
+            f"""SELECT namespace, value, COUNT(DISTINCT entity_id) AS n FROM external_identifiers
+                WHERE entity_id IN ({placeholders})
+                GROUP BY namespace, value HAVING n>1""", scoped_ids).fetchall()
+    else:
+        dup = []
     for d in dup:
         out.append(Recon(
             "duplicate_external_identifier", "1 entity", f"{d['n']} entities", str(d["n"] - 1),
@@ -106,16 +122,17 @@ def reconcile_posted(conn: sqlite3.Connection, period_id: str | None = None) -> 
     return out
 
 
-def persist_recon(conn: sqlite3.Connection, recons: list[Recon]) -> int:
+def persist_recon(conn: sqlite3.Connection, recons: list[Recon],
+                  batch_id: str | None = None, period_id: str | None = None) -> int:
     n = 0
     for r in recons:
         conn.execute(
             """INSERT INTO reconciliation_findings(id, finding_type, severity, subject_ref,
                detail, rule, expected_value, actual_value, difference, tolerance, status,
-               explanation, related_json, created_at)
-               VALUES (?, 'reconciliation', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               explanation, related_json, import_batch_id, reporting_period_id, created_at)
+               VALUES (?, 'reconciliation', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (new_id("reconciliation_finding"), r.severity, (r.related[0] if r.related else r.rule),
              r.explanation, r.rule, r.expected, r.actual, r.difference, r.tolerance, r.status,
-             r.explanation, json.dumps(r.related), utcnow_iso()))
+             r.explanation, json.dumps(r.related), batch_id, period_id, utcnow_iso()))
         n += 1
     return n

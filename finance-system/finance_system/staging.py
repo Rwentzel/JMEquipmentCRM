@@ -234,6 +234,8 @@ def stage_row(ctx: StageContext, row_number: int, raw: dict, mapping: MappingRes
         if calc in (CalculationType.COST, CalculationType.GROSS_PROFIT, CalculationType.COMMISSION):
             exception_register.exception_from_verification(
                 conn, cv, transaction_id=txn_id, transaction_line_id=line_id,
-                customer_ref=norm.get("customer"), priority=ExceptionPriority.HIGH)
+                customer_ref=norm.get("customer"), priority=ExceptionPriority.HIGH,
+                import_batch_id=ctx.batch_id, reporting_period_id=ctx.period_id,
+                source_record_id=src_id)
 
     return StagedRow(txn_id, norm, per_calc, "; ".join(notes) if notes else None, row_hash)

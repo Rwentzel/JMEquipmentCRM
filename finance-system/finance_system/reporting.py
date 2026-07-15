@@ -155,21 +155,30 @@ def _line_level(conn: sqlite3.Connection, line_id: str, txn_id: str,
 
 
 def compute_separated_totals(
-    conn: sqlite3.Connection, policy: CalculationPolicy
+    conn: sqlite3.Connection, policy: CalculationPolicy, scope=None
 ) -> ReportTotals:
-    """Compute separated totals + profitability populations over POSTED sale lines."""
-    from .costing import cost_components  # local import avoids cycle
+    """Compute separated totals + profitability populations over the scoped sale lines.
 
+    ``scope`` (a :class:`~finance_system.scope.ReportScope`) constrains the population by
+    reporting period, batch, customer, etc. When omitted, an explicit all-time scope is
+    used — never a silent global default in a scoped report.
+    """
+    from .costing import cost_components  # local import avoids cycle
+    from .scope import ReportScope
+
+    if scope is None:
+        scope = ReportScope.all_time_scope(policy)
+    scope.validate()
     currency = policy.currency
     totals = ReportTotals(currency=currency)
     pop = totals.populations
     pop.currency = currency
-    # Only revenue-bearing sale documents feed revenue/cost/GP totals — sales orders,
-    # quotes, payments, POs, etc. are stored and posted but are not revenue.
+    # Only the scoped revenue-bearing sale-document population feeds revenue/cost/GP.
+    where, params = scope.revenue_predicate("t")
     lines = conn.execute(
-        """SELECT l.*, t.id AS txn_id FROM transaction_lines l
-           JOIN transactions t ON t.id = l.transaction_id
-           WHERE t.posted = 1 AND t.transaction_type IN ('invoice','credit_memo','return')""",
+        f"""SELECT l.*, t.id AS txn_id FROM transaction_lines l
+            JOIN transactions t ON t.id = l.transaction_id WHERE {where}""",
+        params,
     ).fetchall()
     for l in lines:
         totals.lines_considered += 1

@@ -84,10 +84,13 @@ def analyze(conn: sqlite3.Connection, batch_id: str, *, allow_duplicates: bool =
                 conn.execute(
                     "UPDATE transactions SET review_status='rejected', dedup_status='exact_duplicate' WHERE id=?",
                     (d.staged_transaction_id,))
+        period_id = (conn.execute(
+            "SELECT reporting_period_id FROM transactions WHERE import_batch_id=? LIMIT 1",
+            (batch_id,)).fetchone() or {"reporting_period_id": None})["reporting_period_id"]
         likely = dedup.find_likely_duplicates(conn, batch_id)
-        dedup.persist_duplicates(conn, likely)
+        dedup.persist_duplicates(conn, likely, batch_id=batch_id)
         confs = conflicts.detect_conflicts(conn, batch_id)
-        conflicts.persist_conflicts(conn, confs)
+        conflicts.persist_conflicts(conn, confs, batch_id=batch_id, period_id=period_id)
         imports.set_status(conn, batch_id, ImportBatchStatus.UNDER_REVIEW)
     return AnalysisResult([d.__dict__ for d in exact], len(likely), len(confs))
 
@@ -114,7 +117,8 @@ def post(conn: sqlite3.Connection, batch_id: str, policy: CalculationPolicy,
     return posting.post_batch(conn, batch_id, policy, actor=actor)
 
 
-def run_reconciliation(conn: sqlite3.Connection, period_id: str | None = None) -> int:
+def run_reconciliation(conn: sqlite3.Connection, period_id: str | None = None,
+                       batch_id: str | None = None) -> int:
     with conn:
-        recons = reconcile.reconcile_posted(conn, period_id)
-        return reconcile.persist_recon(conn, recons)
+        recons = reconcile.reconcile_posted(conn, period_id, batch_id)
+        return reconcile.persist_recon(conn, recons, batch_id=batch_id, period_id=period_id)

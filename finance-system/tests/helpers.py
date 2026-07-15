@@ -58,3 +58,28 @@ def import_fixture(conn, *, post=True, period_id=None, content=None, filename=No
 
 def fresh_db():
     return init_db(":memory:")
+
+
+# A tiny second sanitized batch (distinct invoices) for scope-isolation tests.
+SMALL_CSV = (
+    b"Type,Customer,Item,Sales Rep,Invoice #,SO #,Date,Period Date,Qty,Unit Price,Discount,"
+    b"Return,Freight Billed,Tax,Cost,Freight In,Freight Out,Crating,Commission Plan,"
+    b"Commission Basis,Commission %\n"
+    b"Sales Order,SmallCo Test,Sample Part K,Sample Rep,,SO-9001,2026-06-02,2026-06-02,10,20.00,0,0,0,0,120.00,0,0,0,,,\n"
+    b"Invoice,SmallCo Test,Sample Part K,Sample Rep,INV-9001,,2026-06-05,2026-06-05,4,30.00,0,0,0,0,60.00,0,0,0,CR-GP10,gross_profit,10%\n"
+    b"Payment,SmallCo Test,Sample Part K,Sample Rep,INV-9001,,2026-06-09,2026-06-09,1,50.00,0,0,0,0,0,0,0,0,,,\n"
+    b"Return,SmallCo Test,Sample Part K,Sample Rep,RMA-9001,,2026-06-10,2026-06-10,1,0,0,20.00,0,0,0,0,0,0,,,\n"
+)
+
+
+def import_content(conn, content, *, period_id, post=True, filename="small.csv", rules=None):
+    from finance_system import pipeline
+    rules = rules if rules is not None else seed_rules(conn)
+    out = pipeline.register_and_stage(
+        conn, filename=filename, content=content, profile=make_profile(),
+        matrix=EvidenceMatrix(), policy=DEFAULT_POLICY, period_id=period_id, rule_lookup=rules)
+    pipeline.analyze(conn, out.batch_id)
+    if post:
+        pipeline.post(conn, out.batch_id, DEFAULT_POLICY)
+        pipeline.run_reconciliation(conn, period_id, out.batch_id)
+    return out.batch_id

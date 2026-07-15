@@ -1,6 +1,6 @@
 # Data dictionary
 
-Schema version: migrations `0001_initial` + `0002_exchange2`. All monetary columns are
+Schema version: migrations `0001_initial` + `0002_exchange2` + `0003_report_scope`. All monetary columns are
 INTEGER minor units at scale 4 (suffix `_minor`); rates are TEXT canonical decimals; dates
 are ISO-8601 TEXT. Internal ids are opaque (`<prefix>_<uuid4hex>`); external identifiers live
 only in `external_identifiers` and are never join keys.
@@ -26,7 +26,14 @@ only in `external_identifiers` and are never join keys.
 | reconciliation_findings | conflicts + reconciliations | finding_type, rule, expected/actual/difference/tolerance, status, severity, explanation |
 | override_authorizations | recorded duplicate-post overrides | scope, subject_ref, reason, authorized_by |
 | audit_events | append-only, PII-free events | kind, summary, detail_json, actor |
+| report_manifests | reproducibility record per generated report/export | scope_json, calculation_policy, integrity_ok, integrity_json, export_hashes_json |
 | schema_migrations | applied migrations | version, applied_at |
+
+**Exchange 2.1 scope columns:** `commission_calculations` gains `is_current`,
+`superseded_calc_id`, `transaction_line_id`, `reporting_period_id`, `import_batch_id`;
+`reconciliation_findings` and `exceptions` gain `import_batch_id`/`reporting_period_id`;
+`duplicate_candidates` gains `import_batch_id`; `exceptions` gains `source_record_id`.
+Reports scope on these so batch/period counts never include unrelated historical records.
 
 ## Transaction types (distinct; never conflated)
 quote, sales_order, invoice, shipment, payment, credit_memo, return, purchase_order,

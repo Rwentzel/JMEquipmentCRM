@@ -1,10 +1,16 @@
-# Known limitations (as of Exchange 2)
+# Known limitations (as of Exchange 2.1)
 
 Concrete, honest limitations — not aspirational gaps.
 
+0. **Report-level time travel is snapshot-granular.** `ReportScope.as_of_timestamp` and
+   `snapshots.current_snapshots(as_of=...)` reproduce a *calculation's* prior value exactly
+   (verified in `test_snapshot_selection`). Full report-metric time travel (rendering every
+   A–K number from historical snapshots) is not yet wired — scoped report metrics read the
+   current verification state. The snapshot history is the authoritative reproducibility
+   record; rendering an entire historical report is an Exchange 3+ item.
 1. **Single line per transaction.** Intake maps one source row to one transaction with one
    line. True multi-line documents (one invoice, many lines) are not yet modeled; two rows
-   sharing an invoice number are treated as separate transactions and will surface as a
+   sharing an invoice number are treated as separate transactions and surface as a
    likely-duplicate/conflict for review. Header/line separation is an Exchange 3 item.
 2. **XLSX is untested here.** `openpyxl` is not installed in this environment, so the XLSX
    parse path is exercised only by its gating test (clear failure + convert-to-CSV guidance).

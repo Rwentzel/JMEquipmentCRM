@@ -31,17 +31,22 @@ def raise_exception(
     known_amount_minor: int | None = None,
     effect_on_totals: str | None = None,
     priority: ExceptionPriority = ExceptionPriority.MEDIUM,
+    import_batch_id: str | None = None,
+    reporting_period_id: str | None = None,
+    source_record_id: str | None = None,
 ) -> str:
     exc_id = new_id("exception")
     conn.execute(
         """INSERT INTO exceptions
            (id, transaction_id, transaction_line_id, calculation_type, customer_ref,
             known_amount_minor, missing_information, why_critical, proof_needed,
-            effect_on_totals, priority, status, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            effect_on_totals, priority, status, import_batch_id, reporting_period_id,
+            source_record_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (exc_id, transaction_id, transaction_line_id, calculation_type, customer_ref,
          known_amount_minor, missing_information, why_critical, proof_needed,
-         effect_on_totals, priority.value, ExceptionStatus.OPEN.value, utcnow_iso()),
+         effect_on_totals, priority.value, ExceptionStatus.OPEN.value, import_batch_id,
+         reporting_period_id, source_record_id, utcnow_iso()),
     )
     audit.record_event(conn, "exception_opened", f"opened exception for {calculation_type or 'record'}",
                        entity_kind="exception", entity_id=exc_id,
@@ -58,6 +63,9 @@ def exception_from_verification(
     customer_ref: str | None = None,
     known_amount_minor: int | None = None,
     priority: ExceptionPriority = ExceptionPriority.MEDIUM,
+    import_batch_id: str | None = None,
+    reporting_period_id: str | None = None,
+    source_record_id: str | None = None,
 ) -> str | None:
     """Create an exception iff the calculation is UNVERIFIED. Returns id or None."""
     if cv.level is not VerificationLevel.UNVERIFIED:
@@ -75,6 +83,9 @@ def exception_from_verification(
         proof_needed=f"documentation supplying: {missing}",
         effect_on_totals=f"excluded from verified {cv.calculation.value} totals",
         priority=priority,
+        import_batch_id=import_batch_id,
+        reporting_period_id=reporting_period_id,
+        source_record_id=source_record_id,
     )
 
 

@@ -9,8 +9,9 @@ of the real repository and environment.
 | Exchange | Title | Status |
 |---|---|---|
 | 1 | Discovery, architecture, executable foundation | ✅ Conditionally accepted |
-| 2 | Intake, classification, reconciliation, reporting | ✅ Delivered (awaiting review) |
-| 3 | Operational application (local UI) | ⛔ Not started |
+| 2 | Intake, classification, reconciliation, reporting | ✅ Conditionally accepted |
+| 2.1 | Reporting-integrity gate (scope, bridges, lifecycle) | ✅ Delivered (awaiting review) |
+| 3 | Operational application (local UI) | ⛔ Gated on 2.1 acceptance |
 | 4 | Business intelligence & adversarial hardening | ⛔ Not started |
 | 5 | Release candidate, acceptance, handoff | ⛔ Not started |
 
@@ -89,8 +90,37 @@ payment reconciliation, deterministic analytics only, heuristic scanner).
 ### Acceptance result
 _Pending ChatGPT review._
 
+## Exchange 2.1 — Reporting-integrity gate
+**Status:** Delivered (awaiting review). **Tests:** 120 (119 pass, 1 environment-gated skip);
+suite + demo pass under `python -W error::ResourceWarning`.
+
+Corrections (all from the Exchange 2 review):
+1. Explicit `ReportScope` (ADR-0008); every report/count/total/bridge is scoped; monthly
+   reports require a period, batch reports require period+batch, all-time must be explicit.
+2. Cost breakdown reconciles to total actual cost via an explicit bridge; the former $200
+   demo discrepancy is the sales order's product cost, shown (not hidden).
+3. Units ordered/invoiced/returned/net; non-sales quantities excluded.
+4. Commission from current (`is_current=1`) calcs in scope; recalculation supersedes prior.
+5–8. Exceptions, duplicates, conflicts, reconciliations, customers, invoices, audit counts
+   scoped by batch/period (migration `0003` scope columns).
+9. Centralized `snapshots.current_snapshots` (+`as_of`) with `assert_single_current`.
+10. Connections closed deterministically; warnings-as-errors passes.
+11. Real XLSX test when `openpyxl` present; honest gate skip otherwise.
+12–13. Per-report integrity assertions (invalid ⇒ non-zero CLI exit) + reproducibility manifest.
+Plus: opt-in managed safety hook (`scripts/install-safety-hook.sh`).
+
+Demo (multi-batch/period): batch1(15)+batch2(5)=all-time(20) with isolated exception counts;
+cost bridge 1765 − 200 non-sale − 0 policy = 1565 = reported; units 10/10/2/8; commission
+current excludes 1 superseded row; as-of reproduces the prior GP snapshot; integrity passes
+on every scope.
+
+### Acceptance result
+_Pending ChatGPT review._
+
 ## Exchange 3 — Operational application
-_Not started._
+_Gated on Exchange 2.1 acceptance. Scope: local operator UI (one framework), multi-line
+documents, payment/credit cash application, vendor-evidence policy, crating revenue/recovery,
+and the workspaces + period/backup/config workflows in the review brief._
 
 ## Exchange 4 — Business intelligence & adversarial hardening
 _Not started._

@@ -98,14 +98,15 @@ def detect_conflicts(conn: sqlite3.Connection, batch_id: str) -> list[Conflict]:
     return out
 
 
-def persist_conflicts(conn: sqlite3.Connection, conflicts: list[Conflict]) -> int:
+def persist_conflicts(conn: sqlite3.Connection, conflicts: list[Conflict],
+                      batch_id: str | None = None, period_id: str | None = None) -> int:
     for c in conflicts:
         conn.execute(
             """INSERT INTO reconciliation_findings(id, finding_type, severity, subject_ref,
                detail, rule, expected_value, actual_value, status, explanation,
-               affected_calculations, created_at)
-               VALUES (?, 'conflict', ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)""",
+               affected_calculations, import_batch_id, reporting_period_id, created_at)
+               VALUES (?, 'conflict', ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)""",
             (new_id("reconciliation_finding"), c.severity, c.subject_ref, c.explanation,
              c.conflict_type, c.expected, c.actual, c.explanation, c.affected_calculations,
-             utcnow_iso()))
+             batch_id, period_id, utcnow_iso()))
     return len(conflicts)

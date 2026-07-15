@@ -124,3 +124,51 @@ def count_for_transaction(conn: sqlite3.Connection, transaction_id: str) -> int:
         "SELECT COUNT(*) FROM calculation_snapshots WHERE source_transaction_id = ?",
         (transaction_id,),
     ).fetchone()[0]
+
+
+# --- Centralized current-snapshot selection (Exchange 2.1, gate item 9) ------
+# One authoritative definition, reused everywhere. "Current for now" = the row that was
+# not later superseded. "Current as of T" = the latest row created at/before T for that
+# (entity, calculation).
+
+NOT_SUPERSEDED_SQL = (
+    "cs.id NOT IN (SELECT superseded_snapshot_id FROM calculation_snapshots "
+    "WHERE superseded_snapshot_id IS NOT NULL)")
+
+
+def current_snapshots(
+    conn: sqlite3.Connection, *, as_of: str | None = None,
+    calculation_name: str | None = None, transaction_ids: tuple[str, ...] | None = None,
+) -> list[sqlite3.Row]:
+    """Return the current snapshot per (entity, calculation), optionally as of a timestamp
+    and filtered by calculation name / source transaction. This is THE current-snapshot
+    query; callers must not re-derive it."""
+    params: list = []
+    if as_of is None:
+        sql = f"SELECT cs.* FROM calculation_snapshots cs WHERE {NOT_SUPERSEDED_SQL}"
+    else:
+        sql = (
+            "SELECT cs.* FROM calculation_snapshots cs WHERE cs.created_at <= ? "
+            "AND NOT EXISTS (SELECT 1 FROM calculation_snapshots s2 "
+            "WHERE s2.entity_type=cs.entity_type AND s2.entity_id=cs.entity_id "
+            "AND s2.calculation_name=cs.calculation_name AND s2.created_at <= ? "
+            "AND (s2.created_at > cs.created_at OR (s2.created_at=cs.created_at AND s2.id>cs.id)))")
+        params.extend([as_of, as_of])
+    if calculation_name:
+        sql += " AND cs.calculation_name = ?"
+        params.append(calculation_name)
+    if transaction_ids:
+        sql += f" AND cs.source_transaction_id IN ({','.join('?' * len(transaction_ids))})"
+        params.extend(transaction_ids)
+    return conn.execute(sql, params).fetchall()
+
+
+def assert_single_current(conn: sqlite3.Connection) -> None:
+    """Invariant: at most one non-superseded snapshot per (entity, calculation)."""
+    dupes = conn.execute(
+        f"""SELECT entity_type, entity_id, calculation_name, COUNT(*) AS n
+            FROM calculation_snapshots cs WHERE {NOT_SUPERSEDED_SQL}
+            GROUP BY entity_type, entity_id, calculation_name HAVING n > 1""").fetchall()
+    if dupes:
+        raise AssertionError(
+            f"multiple current snapshots for {len(dupes)} (entity, calculation) contexts")
