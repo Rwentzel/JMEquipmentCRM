@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyNav } from "@/components/PolicyNav";
+import { pageRobots } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Terms of Sale",
   description:
     "Terms and conditions governing quotations, orders, and returns at JM Equipment Inc.",
-  robots: { index: false, follow: false },
+  robots: pageRobots(),
 };
 
 export default function TermsPage() {

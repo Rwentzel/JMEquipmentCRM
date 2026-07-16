@@ -10,3 +10,14 @@
 export function isLive(): boolean {
   return process.env.JME_LAUNCH === "live";
 }
+
+/**
+ * Robots metadata for PUBLIC pages: index only when live. Per-page `robots`
+ * overrides the root layout's, so every public page must use this — a
+ * hardcoded `{ index: false }` would keep that page hidden even at launch.
+ * Internal surfaces (/ops) keep a hardcoded noindex and never use this.
+ */
+export function pageRobots(): { index: boolean; follow: boolean } {
+  const live = isLive();
+  return { index: live, follow: live };
+}

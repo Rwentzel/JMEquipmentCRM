@@ -4,6 +4,7 @@ import { catalog } from "@/data/catalog";
 import { details } from "@/data/details";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import { MachineDetailClient } from "@/components/machine/MachineDetailClient";
+import { pageRobots } from "@/lib/launch";
 
 export function generateStaticParams() {
   return catalog.machines.map((m) => ({ sku: m.sku }));
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sku: stri
   return {
     title: `${machine.name} — JM Equipment`,
     description: machine.blurb,
-    robots: { index: false, follow: false },
+    robots: pageRobots(),
   };
 }
 

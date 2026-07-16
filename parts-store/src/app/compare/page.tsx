@@ -3,11 +3,12 @@ import { catalog } from "@/data/catalog";
 import { details } from "@/data/details";
 import { toPublicMachine } from "@/data/sanitize";
 import { CompareClient, type CompareRow } from "@/components/machine/CompareClient";
+import { pageRobots } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Compare Machines — JM Equipment",
   description: "Side-by-side comparison of JM Equipment converting machinery — specs, availability, and applications.",
-  robots: { index: false, follow: false },
+  robots: pageRobots(),
 };
 
 export default function ComparePage() {

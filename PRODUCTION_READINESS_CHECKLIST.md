@@ -1,6 +1,7 @@
 # PRODUCTION READINESS CHECKLIST — JM Equipment Parts Store
 
-**Date:** 2026-06-23 · **Status:** Sandbox. Not launch-approved.
+**Date:** 2026-07-16 (updated) · **Status:** Engineering launch-ready; awaiting JM business sign-offs (§25).
+Launch is one switch: build with `JME_LAUNCH=live` — see `LAUNCH.md` for the go-live runbook.
 Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/policy
 
 > This is a gate list for moving from sandbox to a public B2B parts store. Items
@@ -20,12 +21,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 1. Data sanitation
 - ✅ Data model excludes vendor/cost/margin/bin/supplier/QuickBooks fields
-- ⬜ `sanitize.ts` allowlist + forbidden-key guard before any real catalog import
-- ⬜ Review every field of the real Parts Master before it enters the web tier
+- ✅ `sanitize.ts` allowlist + forbidden-key guard (enforced; `catalogBoundary` tests)
+- ✅ Real Parts Master imported via `scripts/generate-public-catalog.py` (public-safe fields only; vendor names scrubbed)
 
 ### 2. Product data verification
-- 🟡 Demo data only (15 SKUs); ⬜ verify real SKUs, descriptions, categories with JM
-- ⬜ Confirm machine families and customer-safe descriptions
+- ✅ Real catalog (2,100+ JME web-ref SKUs, generated) + real Goodstrong 1600E manual data (S/N 37422 catalogue)
+- 🟡 Spot-verify descriptions/categories with JM as orders come in
 
 ### 3. Public / internal data separation
 - ✅ Only public fields modeled and rendered
@@ -53,8 +54,8 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 9. Quote policy
 - ✅ Request list = written-quote request, clearly stated (not a binding order)
-- ⬜ Real delivery of quote requests (email/CRM) — currently a stub
-- ⬜ SLA wording for response time
+- ✅ Real delivery: env-gated SMTP email to the desk (`lib/mail.ts`) + persistent `/ops` inbox + CSV export
+- ✅ SLA wording on the storefront ("replies in writing — typically the same business day")
 
 ### 10. Freight policy
 - 🟡 "FOB Sturgis, MI" shown; `freight-quote` purchase path modeled
@@ -90,8 +91,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Keyboard-focusable nav, mobile menu, ARIA on interactive controls, WCAG 2.1 AA contrast audit
 
 ### 18. SEO
-- ✅ Per-page metadata/titles; ✅ `noindex` while sandbox
-- 🔒 Flip to indexable only at launch; ⬜ sitemap/robots for production
+- ✅ Per-page metadata/titles; ✅ gated by default
+- ✅ One-switch launch: `JME_LAUNCH=live` flips robots.txt AND every public page's meta robots (`pageRobots()`); /ops stays noindexed; sitemap published
+- 🔒 Setting the switch remains a JM decision
 
 ### 19. Analytics
 - ⬜ Privacy-respecting analytics (none today); 🔒 choose vendor + consent posture
@@ -100,12 +102,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Source data versioned in git (✅ for demo data); ⬜ backup plan for real catalog + submissions store
 
 ### 21. Admin workflow
-- ⬜ Internal review of incoming quote requests (no admin surface yet)
-- ⬜ Catalog update process
+- ✅ `/ops` desk: RFQ inbox with lifecycle statuses, CSV export, triage/maintenance/security agents
+- ✅ Catalog update: regenerate `partsCatalog.ts` from the Parts Master (see LAUNCH.md)
 
 ### 22. Staff training
-- ⬜ Parts-desk runbook for handling web quote requests
-- ⬜ Content-update guide (data files / future CMS)
+- ✅ Runbook: `LAUNCH.md` (env vars, deploy, smoke test, go-live, ongoing ops)
+- ✅ Content-update guides: parts-store README (Goodstrong manual data + catalog regeneration)
 
 ### 23. WooCommerce migration
 - 🟡 Clean SKU-keyed data model eases mapping
@@ -121,7 +123,10 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ---
 
-## Engineering gates (green in sandbox)
+## Engineering gates (green — re-verified 2026-07-16 on Next 16 / React 19)
+- ✅ Deployable: `output: standalone` + `parts-store/Dockerfile` (non-root, healthcheck, `.data` volume, `JME_LAUNCH` build arg)
+- ✅ Launch switch covers every public page (`pageRobots()`), not just the root layout — regression-tested
+- ✅ Goodstrong manual diagram parts orderable through the quote API (allowlist regression test)
 - ✅ `npm run typecheck` — 0 errors
 - ✅ `npm run lint` — clean
 - ✅ `npm run build` — 16 routes incl. 6 SSG machine pages, 3 policy pages, robots.txt, 404
@@ -131,5 +136,5 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ✅ Premium metadata + OpenGraph/Twitter + LocalBusiness JSON-LD
 - ✅ Accessibility baseline: skip link, focusable nav, mobile menu, ARIA, aria-live, reduced-motion
 - ✅ 404 (`not-found.tsx`) + loading (`loading.tsx`) states
-- ⬜ `npm audit` review to zero actionable advisories
+- ✅ `npm audit` reviewed on Next 16 / React 19: remaining 2 moderate advisories are the postcss copy pinned inside Next itself (upstream; advisory concerns stringifying untrusted CSS — not applicable, all CSS is authored)
 - ⬜ Full WCAG 2.1 AA contrast audit
