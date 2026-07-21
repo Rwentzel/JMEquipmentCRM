@@ -2,7 +2,7 @@
   "name": "jme-parts-store",
   "version": "0.1.0",
   "private": true,
-  "description": "JM Equipment Parts Store — production-candidate sandbox (industrial B2B parts storefront)",
+  "description": "JM Equipment Parts Store \u2014 production-candidate sandbox (industrial B2B parts storefront)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,7 +12,8 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "agent:maintenance": "tsx scripts/run-agent.ts maintenance",
     "agent:security": "tsx scripts/run-agent.ts security",
-    "agent:triage": "tsx scripts/run-agent.ts triage"
+    "agent:triage": "tsx scripts/run-agent.ts triage",
+    "retention": "tsx scripts/retention.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",
