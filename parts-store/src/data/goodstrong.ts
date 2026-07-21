@@ -278,6 +278,17 @@ export function findGoodstrongModel(id: string): GoodstrongModel | undefined {
 }
 
 /**
+ * Every part number that appears on a manual diagram page — these are
+ * orderable through the request flow, so the quote API must accept them
+ * alongside the catalog SKUs.
+ */
+export function goodstrongDiagramSkus(): string[] {
+  return goodstrongModels.flatMap((m) =>
+    Object.values(m.diagrams).flatMap((pages) => pages.flatMap((p) => p.parts.map((part) => part.sku))),
+  );
+}
+
+/**
  * Serial lookup: exact known serials first (from real factory documents),
  * then a model-number substring fallback for customers who type the model
  * into the serial box. Unknown serials fall through to the parts desk.

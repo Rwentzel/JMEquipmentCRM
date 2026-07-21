@@ -92,3 +92,20 @@ test("CSV with no records is just the header", () => {
   const lines = rfqsToCsv([]).trim().split("\r\n");
   assert.equal(lines.length, 1);
 });
+
+test("pageRobots follows the launch switch (per-page robots override the layout)", async () => {
+  const { pageRobots } = await import("../src/lib/launch");
+  delete process.env.JME_LAUNCH;
+  assert.deepEqual(pageRobots(), { index: false, follow: false });
+  process.env.JME_LAUNCH = "live";
+  assert.deepEqual(pageRobots(), { index: true, follow: true });
+  delete process.env.JME_LAUNCH;
+});
+
+test("goodstrong diagram parts are orderable (quote allowlist regression)", async () => {
+  const { goodstrongDiagramSkus } = await import("../src/data/goodstrong");
+  const skus = goodstrongDiagramSkus();
+  // Real belt part numbers from the GMC-TC 1600E factory catalogue.
+  assert.ok(skus.includes("MC2HA041003"));
+  assert.ok(skus.includes("1216-8YU-30"));
+});
