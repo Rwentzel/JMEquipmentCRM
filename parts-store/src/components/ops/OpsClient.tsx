@@ -109,6 +109,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         <Diamond size={14} />
         <b>JM Equipment · Ops Desk</b>
         <span className="ops__hd-note">internal — RFQ inbox &amp; automation</span>
+        <a className="ops__logout" href="/ops/quotes" style={{ marginLeft: "12px" }}>Quote Center →</a>
         {devOpen ? (
           <span className="ops__devbadge" title="Set OPS_TOKEN to require login">DEV MODE — no token set</span>
         ) : (

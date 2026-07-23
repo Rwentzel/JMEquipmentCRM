@@ -37,6 +37,7 @@ build-time grep of the compiled output for forbidden tokens (see `IMPLEMENTATION
 | **Staff-only tools** | admin surface | **Private** | **No** | Internal | Separate gated app/route |
 | RFQ form input (company / name / email / phone / serial / shipping & billing address / message) | user-entered | PII (server-side) | **N/A — not bundled** | Customer contact | Validate server-side; **no PII logging**; persisted only in gitignored `.data/`, readable only via ops-authenticated API |
 | Assistant question text | user-entered | PII-adjacent (transient) | **N/A** | Support routing | Never logged or persisted; answered from public catalog/FAQ only |
+| Quote Center data (quotes, client book, equipment sell pricing, cost/margin) | internal | Internal (PII + pricing) | **No** | Quoting workflow | Server-side .data/ only; ops-authed API; customer sees ONLY their own quote via unguessable share token (the policy's "written quote"); cost/margin never on customer surfaces; verified absent from client bundles |
 | Audit log events | system | Internal (non-PII) | **No** | Abuse detection | Event kind + counts + hashed client key only; no user strings, no IPs |
 
 ## Public status bands (the only allowed public availability labels)
