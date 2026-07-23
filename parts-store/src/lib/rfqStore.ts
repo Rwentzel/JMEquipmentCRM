@@ -40,6 +40,27 @@ export interface StoredRfqItem {
   qty: number;
 }
 
+/** One staff-entered pricing row on a written quotation. */
+export interface StoredQuoteLine {
+  label: string;
+  /** Display amount, e.g. "$1,480.00" — or "RFQ" when priced on consult. */
+  amount: string;
+}
+
+/**
+ * The written quotation attached to an RFQ by the parts desk. Prices live
+ * ONLY here — server-side, ops-authed, never in the public catalog.
+ */
+export interface StoredQuote {
+  number: string;
+  lines: StoredQuoteLine[];
+  freight?: string;
+  total: string;
+  validDays: number;
+  notes?: string;
+  updatedAt: string;
+}
+
 export interface StoredRfq {
   ref: string;
   createdAt: string;
@@ -50,6 +71,7 @@ export interface StoredRfq {
   message?: string;
   /** True when any line item carries a freight-quote action. */
   freight: boolean;
+  quote?: StoredQuote;
 }
 
 function dataDir(): string {
@@ -138,6 +160,19 @@ export function updateRfqStatus(ref: string, status: RfqStatus): Promise<StoredR
   });
 }
 
+/** Attach or replace the written quotation on an RFQ (parts desk only). */
+export function saveRfqQuote(ref: string, quote: Omit<StoredQuote, "updatedAt">): Promise<StoredRfq | null> {
+  return locked(async () => {
+    const all = await readAll();
+    const rfq = all.find((r) => r.ref === ref);
+    if (!rfq) return null;
+    rfq.quote = { ...quote, updatedAt: new Date().toISOString() };
+    if (rfq.status === "new" || rfq.status === "reviewing") rfq.status = "quoted";
+    rfq.updatedAt = new Date().toISOString();
+    await writeAll(all);
+    return rfq;
+  });
+}
 
 /** Result of a retention sweep. */
 export interface RetentionResult {
