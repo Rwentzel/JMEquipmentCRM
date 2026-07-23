@@ -42,6 +42,8 @@ const nextConfig = {
         basePath: process.env.NEXT_PUBLIC_BASE_PATH || "",
       }
     : {
+        // Self-contained server build for the Dockerfile (node .next/standalone/server.js).
+        output: "standalone",
         async headers() {
           return [{ source: "/:path*", headers: securityHeaders }];
         },

@@ -191,7 +191,10 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
       <section className="ops__inbox" aria-label="RFQ inbox">
         <div className="ops__sechd">
           <h2>RFQ inbox</h2>
-          <button onClick={() => void load()}>Refresh</button>
+          <div className="ops__agentbtns">
+            <button onClick={() => { window.location.href = "/api/ops/rfqs/export"; }}>Export CSV</button>
+            <button onClick={() => void load()}>Refresh</button>
+          </div>
         </div>
         {loadErr && <p className="ops__err" role="alert">{loadErr}</p>}
         {!loadErr && rfqs.length === 0 && (

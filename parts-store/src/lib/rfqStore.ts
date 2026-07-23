@@ -174,6 +174,40 @@ export function saveRfqQuote(ref: string, quote: Omit<StoredQuote, "updatedAt">)
   });
 }
 
+/** Result of a retention sweep. */
+export interface RetentionResult {
+  cutoff: string;
+  archived: number;
+  kept: number;
+  archiveFile: string | null;
+}
+
+/**
+ * PII retention sweep: move RFQs whose last update is older than `days` into
+ * a dated archive file next to the store, then drop them from the live book.
+ * Terminal statuses only (won/lost/archived) — open work is never purged.
+ * Dry-run by default; pass apply=true to write.
+ */
+export function sweepRetention(days: number, apply = false): Promise<RetentionResult> {
+  return locked(async () => {
+    const cutoffMs = Date.now() - days * 86_400_000;
+    const cutoff = new Date(cutoffMs).toISOString();
+    const all = await readAll();
+    const isExpired = (r: StoredRfq) =>
+      Date.parse(r.updatedAt) < cutoffMs && (r.status === "won" || r.status === "lost" || r.status === "archived");
+    const old = all.filter(isExpired);
+    const kept = all.filter((r) => !isExpired(r));
+    let archiveFile: string | null = null;
+    if (apply && old.length > 0) {
+      archiveFile = path.join(dataDir(), `rfq-archive-${cutoff.slice(0, 10)}.json`);
+      await mkdir(dataDir(), { recursive: true });
+      await writeFile(archiveFile, JSON.stringify(old, null, 2), "utf8");
+      await writeAll(kept);
+    }
+    return { cutoff, archived: old.length, kept: kept.length, archiveFile };
+  });
+}
+
 /** Status → count map for the ops dashboard. */
 export async function rfqCounts(): Promise<Record<RfqStatus, number>> {
   const all = await readAll();

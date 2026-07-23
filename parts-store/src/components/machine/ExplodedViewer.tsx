@@ -30,7 +30,7 @@ export function ExplodedViewer({
   function confirmAdd(qty: number) {
     if (!picking) return;
     addWithQty(
-      { sku: picking.sku, name: picking.name, source: `${model.label} · ${section.label} · p.${page.pageNumber} · #${picking.bubble}` },
+      { sku: picking.sku, name: picking.name, source: `${model.label} · ${section.label} · p.${page.pageLabel} · #${picking.bubble}` },
       qty,
     );
     show(`Added ${qty} × ${picking.sku} to your request`);
@@ -52,26 +52,26 @@ export function ExplodedViewer({
               <div className="gs-pager" role="group" aria-label="Diagram page">
                 {pages.map((p, i) => (
                   <button
-                    key={p.pageNumber}
+                    key={p.pageLabel}
                     className={"jme-btn jme-btn--ghost jme-btn--sm" + (i === pageIdx ? " gs-qtymodal__choice--on" : "")}
                     onClick={() => setPageIdx(i)}
                   >
-                    p.{p.pageNumber}
+                    p.{p.pageLabel}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <Callout title="Diagram layout is a placeholder">
-            Part numbers on this page are real. The page image and bubble positions are not from the real Goodstrong
-            manual yet — Drive access to the manuals folder is still blocked this session. They will be replaced with
-            the exact manual page once that unblocks.
+          <Callout title="From the factory Part Catalogue">
+            The parts list, locations, quantities, and page number on this page are transcribed from the machine&rsquo;s
+            factory Part Catalogue. The drawing scan and callout positions are pending digitization — until then the
+            image area is a placeholder, but every part below is real and orderable.
           </Callout>
 
           <div className="gs-explodedgrid">
             <div className="gs-diagram">
-              <div className="gs-diagram__pagestamp jme-mono">PAGE {page.pageNumber}</div>
+              <div className="gs-diagram__pagestamp jme-mono">PAGE {page.pageLabel}</div>
               <div className="gs-diagram__frame">
                 <SmartImg src={asset(page.image)} alt={page.caption} className="gs-diagram__img" />
                 {page.hotspots.map((h, i) => (
@@ -112,7 +112,7 @@ export function ExplodedViewer({
         <QtyPickerModal
           part={picking}
           locationCount={Math.max(1, locationCount(picking.bubble))}
-          pageNumber={page.pageNumber}
+          pageLabel={page.pageLabel}
           onConfirm={confirmAdd}
           onClose={() => setPicking(null)}
         />

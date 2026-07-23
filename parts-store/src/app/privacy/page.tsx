@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyNav } from "@/components/PolicyNav";
+import { pageRobots } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
     "How JM Equipment Inc. collects, uses, and protects your information.",
-  robots: { index: false, follow: false },
+  robots: pageRobots(),
 };
 
 export default function PrivacyPage() {

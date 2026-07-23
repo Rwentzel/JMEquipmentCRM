@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyNav } from "@/components/PolicyNav";
+import { pageRobots } from "@/lib/launch";
 
 export const metadata: Metadata = {
   title: "Freight & Shipping Policy",
   description:
     "Shipping terms, freight quoting, and delivery information for JM Equipment parts and machinery.",
-  robots: { index: false, follow: false },
+  robots: pageRobots(),
 };
 
 export default function FreightPage() {

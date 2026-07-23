@@ -11,7 +11,7 @@ Implemented from the JME Design System (Claude Design handoff bundle).
 > `SECURITY_NOTES.md`, `DATA_BOUNDARIES.md`.
 
 ## Stack
-- Next.js 14 (App Router) · React 18 · TypeScript — zero runtime dependencies beyond these
+- Next.js 16 (App Router) · React 19 · TypeScript — only runtime dependency beyond these is nodemailer (env-gated RFQ email)
 - Fonts: Barlow Condensed (display), Barlow (body), JetBrains Mono (mono) via `next/font`
 - Styling: design-system tokens as CSS custom properties (`src/styles/`)
 - Storage: customer request list in `localStorage`; RFQ inbox + audit log in a
@@ -29,14 +29,31 @@ Other scripts: `npm run build`, `npm start`, `npm run lint`, `npm run typecheck`
 ## Routes
 | Route | What |
 |-------|------|
-| `/` | Storefront (hero, machines, parts, request desk, FAQ, assistant widget) |
-| `/machine/[sku]` | Machine detail (configure, specs, related parts) — 6 SSG pages |
+| `/` | Storefront (hero, machines, McMaster-style parts browser, request desk, FAQ, assistant widget) |
+| `/machine/[sku]` | Machine detail (configure, specs, related parts) — SSG pages |
 | `/compare` | Side-by-side machine comparison |
+| `/parts/goodstrong` | Goodstrong sheeter hub — model picker (1600 / 1600-E / 1650) + serial-number lookup |
+| `/parts/goodstrong/[model]` | Manual index — the factory Part Catalogue's own sections & page numbers |
+| `/parts/goodstrong/[model]/[section]` | Exploded-view parts page: callout bubbles ↔ parts table, quantity picker → request list |
 | `/ops` | **Internal** ops desk — RFQ inbox, lifecycle, agent panels (gated, noindexed) |
-| `/api/quote` | RFQ intake — validated, honeypot, rate-limited, persisted |
+| `/api/quote` | RFQ intake — validated (incl. consent + message-only mode), honeypot, rate-limited, persisted |
 | `/api/assistant` | Support assistant — public-catalog-grounded, rate-limited |
 | `/api/ops/*` | Ops session, RFQ inbox, agent runner (ops session required) |
 | `/api/health` | Minimal liveness probe |
+
+## Goodstrong manual data (how to extend)
+All Goodstrong content lives in `src/data/goodstrong.ts` and is transcribed from real
+factory documents only — currently the **GMC-TC 1600 E (S/N 37422) Part Catalogue**:
+real section index + page labels, and the complete timing-belt (p.5-3) and flat-belt
+(p.5-4) specification tables. Serial `37422` resolves to the 1600-E via `KNOWN_SERIALS`.
+
+To digitize more of a manual:
+1. Scan/render the catalogue page to an image under `public/images/manuals/<model>/`.
+2. Add a `DiagramPage` to that model's `diagrams[sectionId]`: the manual's `pageLabel`,
+   the image filename, `hotspots` (bubble number + x/y as % of the image), and `parts`
+   (bubble ↔ part number/description/qty straight from the page's table).
+3. Add new serials to `KNOWN_SERIALS` as their manuals are confirmed.
+Nothing else is needed — the picker, index, viewer, and cart all run off this data.
 
 ## Built-in agents
 All agents run deterministic rules engines with **zero configuration** and
@@ -56,6 +73,9 @@ the environment — never in the repo.
 | `OPS_TOKEN` | Enables the ops desk login. Unset: `/ops` is open in dev (with banner), **disabled in production**. |
 | `ANTHROPIC_API_KEY` | Upgrades agents from rules engines to AI. Absent: fully functional offline. |
 | `JME_AI_MODEL` | Overrides the default agent model. |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` | RFQ email delivery to the desk. Unset: silent no-op (RFQs still persist + show in /ops). |
+| `RFQ_NOTIFY_TO` / `RFQ_NOTIFY_FROM` | Desk inbox and sender for RFQ notifications. |
+| `JME_LAUNCH` | `live` (at **build time**) opens robots/indexing + sitemap. Anything else: fully gated. |
 | `RFQ_DATA_DIR` | Overrides the `.data/` store location (used by tests). |
 
 ## Structure
@@ -66,7 +86,7 @@ the environment — never in the repo.
 - `src/lib/agents/` + `src/lib/ai/` — agent engines and the env-gated AI provider
 - `src/styles/` — tokens + base + component + page CSS
 - `tests/` — node:test suite (`npm test`)
-- `scripts/run-agent.ts` — agent CLI for cron/CI
+- `scripts/run-agent.ts` — agent CLI for cron/CI; `npm run retention` — PII retention sweep
 
 ## Data protection
 Only customer-safe fields exist in the public data model (SKU, name, description,

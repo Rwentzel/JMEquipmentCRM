@@ -38,7 +38,8 @@ function validUntil(iso: string, days: number): string {
   return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default async function QuoteDocPage({ params }: { params: { ref: string } }) {
+export default async function QuoteDocPage({ params }: { params: Promise<{ ref: string }> }) {
+  const { ref } = await params;
   const mode = opsMode();
   if (mode === "disabled") {
     return (
@@ -48,10 +49,10 @@ export default async function QuoteDocPage({ params }: { params: { ref: string }
       </main>
     );
   }
-  const authed = mode === "dev-open" || verifySession(cookies().get(OPS_COOKIE)?.value);
+  const authed = mode === "dev-open" || verifySession((await cookies()).get(OPS_COOKIE)?.value);
   if (!authed) return <OpsLogin />;
 
-  const rfq = await getRfq(params.ref);
+  const rfq = await getRfq(ref);
   if (!rfq || !rfq.quote) notFound();
   const q = rfq.quote;
   const c = catalog.contact;

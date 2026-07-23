@@ -9,13 +9,13 @@ const KEYPAD_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0"
 export function QtyPickerModal({
   part,
   locationCount,
-  pageNumber,
+  pageLabel,
   onConfirm,
   onClose,
 }: {
   part: DiagramPart;
   locationCount: number;
-  pageNumber: number;
+  pageLabel: string;
   onConfirm: (qty: number) => void;
   onClose: () => void;
 }) {
@@ -60,7 +60,7 @@ export function QtyPickerModal({
               <div className="jme-mono">{part.sku}</div>
               <div>{part.name}</div>
             </div>
-            <span className="jme-mono ps-fine gs-qtymodal__page">p. {pageNumber}</span>
+            <span className="jme-mono ps-fine gs-qtymodal__page">p. {pageLabel}</span>
           </div>
 
           {locationCount > 1 && (

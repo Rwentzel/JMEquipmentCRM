@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
+import { goodstrongDiagramSkus } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendRfqNotification } from "@/lib/mail";
 import { saveRfq } from "@/lib/rfqStore";
 import { evaluateQuote } from "@/lib/validateQuote";
 
@@ -10,10 +12,9 @@ import { evaluateQuote } from "@/lib/validateQuote";
  *
  * Validates the contact block and line items server-side, persists the RFQ to
  * the local ops store (gitignored `.data/`, readable only through the
- * token-gated ops API), and returns a safe crypto-random reference. It does
- * NOT send email or charge anything — there is no SMTP/Resend and no payment
- * processor. Outbound delivery is a future step, configured via environment
- * variables only.
+ * token-gated ops API), and returns a safe crypto-random reference. Desk
+ * email delivery is env-gated (lib/mail.ts — SMTP_* + RFQ_NOTIFY_TO) and
+ * fire-and-forget; there is no payment processor.
  *
  * Hardening: honeypot rejection, in-memory per-IP rate limiting, no PII
  * logging (audit events carry counts + hashed keys only), generic responses.
@@ -29,6 +30,8 @@ interface IncomingItem {
 const validSkus = new Set<string>([
   ...catalog.machines.map((m) => m.sku),
   ...catalog.parts.map((p) => p.sku),
+  // Parts listed on Goodstrong manual diagram pages are orderable too.
+  ...goodstrongDiagramSkus(),
 ]);
 
 const freightSkus = new Set<string>(
@@ -107,6 +110,10 @@ export async function POST(req: Request) {
     message: clean(contact.message, 4000) || undefined,
     freight: storedItems.some((it) => freightSkus.has(it.sku)),
   });
+
+  // Notify the parts desk (env-gated; no-op without SMTP config). Fire and
+  // forget — delivery must never delay or fail the customer's response.
+  void sendRfqNotification(rfq);
 
   // No PII logging — counts only.
   audit("quote_accepted", { n: storedItems.length });

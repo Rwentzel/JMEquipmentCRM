@@ -123,20 +123,23 @@ export interface DiagramPart {
 
 /** One exploded-view page within a manual section. */
 export interface DiagramPage {
-  pageNumber: number;
-  /** Filename under /public/images/manuals/<model>/. */
+  /** The manual's own page label, e.g. "5-3" or "5d-2-01". */
+  pageLabel: string;
+  /** Filename under /public/images (manual page scans live in images/manuals/<model>/). */
   image: string;
   caption: string;
   hotspots: Hotspot[];
   parts: DiagramPart[];
 }
 
-/** A manual's table-of-contents entry, mapped to the area taxonomy. */
+/** A manual's table-of-contents entry (real section title + page label). */
 export interface ManualSection {
   id: string;
   label: string;
-  startPage: number;
-  endPage: number;
+  /** The manual's page label for the section start, e.g. "5-3", "5a". */
+  pageLabel: string;
+  /** The manual's own sub-drawing index for this section (title + page label). */
+  drawings?: { title: string; pageLabel: string }[];
 }
 
 /** A Goodstrong sheeter model + its manual content. */

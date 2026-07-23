@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   audit("ops_login_ok");
-  cookies().set(OPS_COOKIE, sessionValue(), {
+  (await cookies()).set(OPS_COOKIE, sessionValue(), {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
@@ -50,6 +50,6 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE() {
-  cookies().delete(OPS_COOKIE);
+  (await cookies()).delete(OPS_COOKIE);
   return NextResponse.json({ ok: true });
 }

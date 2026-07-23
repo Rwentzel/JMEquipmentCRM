@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Barlow, Barlow_Condensed, JetBrains_Mono } from "next/font/google";
 import { catalog } from "@/data/catalog";
+import { isLive } from "@/lib/launch";
 import { FAQ } from "@/data/faq";
 import "./globals.css";
 
@@ -72,8 +73,8 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
   manifest: "/manifest.json",
-  // Sandbox: keep this build out of search indexes until launch is approved.
-  robots: { index: false, follow: false },
+  // Gated by launch mode: indexable only when JME_LAUNCH=live (see LAUNCH.md).
+  robots: isLive() ? { index: true, follow: true } : { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
