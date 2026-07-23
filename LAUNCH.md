@@ -51,11 +51,13 @@ the variable alone does nothing until the next build. Confirm
 - **Weekly**: `npm run agent:security` (or the ops panel) — non-zero exit = act.
 - **On catalog updates**: regenerate via `scripts/generate-public-catalog.py`,
   then `npm test` — the boundary tests hard-fail on any price/vendor leak.
-- **Monthly**: `npm audit` (zero known vulnerabilities as of this runbook) and
-  back up `RFQ_DATA_DIR`.
+- **Monthly**: back up `RFQ_DATA_DIR` and run the retention sweep once JM picks
+  a window: `npm run retention -- --days <N> --apply` (dry-run without `--apply`;
+  only closed RFQs older than the window are archived). `npm audit` runs in CI
+  on every push — currently zero known vulnerabilities.
 - **PII**: the RFQ store contains customer contact data. Keep the volume
-  access-restricted and define a retention window (e.g. archive → delete after
-  24 months). Never commit `.data/`.
+  access-restricted; enforce the retention window with `npm run retention`
+  (e.g. `--days 730` ≈ 24 months). Never commit `.data/`.
 
 ## Out of scope until explicitly approved
 

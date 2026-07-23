@@ -86,7 +86,7 @@ the environment — never in the repo.
 - `src/lib/agents/` + `src/lib/ai/` — agent engines and the env-gated AI provider
 - `src/styles/` — tokens + base + component + page CSS
 - `tests/` — node:test suite (`npm test`)
-- `scripts/run-agent.ts` — agent CLI for cron/CI
+- `scripts/run-agent.ts` — agent CLI for cron/CI; `npm run retention` — PII retention sweep
 
 ## Data protection
 Only customer-safe fields exist in the public data model (SKU, name, description,

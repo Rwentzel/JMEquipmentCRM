@@ -100,6 +100,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 20. Backups
 - ⬜ Source data versioned in git (✅ for demo data); ⬜ backup plan for real catalog + submissions store
+- ✅ PII retention tooling: `npm run retention -- --days N [--apply]` archives + purges old **closed** RFQs (open work never touched; dry-run default; tested) — JM picks the window (§25)
 
 ### 21. Admin workflow
 - ✅ `/ops` desk: RFQ inbox with lifecycle statuses, CSV export, triage/maintenance/security agents
@@ -136,5 +137,5 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ✅ Premium metadata + OpenGraph/Twitter + LocalBusiness JSON-LD
 - ✅ Accessibility baseline: skip link, focusable nav, mobile menu, ARIA, aria-live, reduced-motion
 - ✅ 404 (`not-found.tsx`) + loading (`loading.tsx`) states
-- ✅ `npm audit` reviewed on Next 16 / React 19: remaining 2 moderate advisories are the postcss copy pinned inside Next itself (upstream; advisory concerns stringifying untrusted CSS — not applicable, all CSS is authored)
+- ✅ `npm audit`: **0 vulnerabilities** (postcss override + brace-expansion patch); audit now gates CI on every push/PR (`--audit-level=moderate`)
 - ⬜ Full WCAG 2.1 AA contrast audit

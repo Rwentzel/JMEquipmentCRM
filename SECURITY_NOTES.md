@@ -1,6 +1,6 @@
 # SECURITY NOTES — JM Equipment Parts Store
 
-**Date:** 2026-07-04 · **Status:** MVP sandbox (pre-launch).
+**Date:** 2026-07-08 · **Status:** code-complete on main; launch is configuration (see LAUNCH.md).
 
 ## Current posture
 - **Pre-launch.** This is a launch-candidate MVP. It is not deployed and is not launch-approved.
@@ -31,12 +31,20 @@ Validates input, persists the RFQ, returns a crypto-random reference, and — wh
 - With `ANTHROPIC_API_KEY` set, agents upgrade to LLM output. **PII never enters a prompt**: the support agent is grounded on the public catalog/FAQ only (with a code-level refusal guardrail for pricing/quantity/vendor questions and an output screen for `$` amounts); triage/security agents receive PII-free projections (refs, counts, ages, hashed keys).
 - The audit log (`.data/audit.jsonl`) is PII-free by construction, so it is safe to feed to monitoring or an LLM.
 
-## Future production security requirements (pre-launch)
-- Tighten CSP with nonces/hashes; remove `unsafe-inline`.
-- Dependency audit (`npm audit`) to zero actionable advisories; keep Next on a patched release.
+## Decision record: CSP `unsafe-inline`
+The CSP keeps `'unsafe-inline'` for script/style. Removing it requires per-request
+nonces, which forces dynamic rendering and gives up the fully static build of a
+42-page catalog site. Accepted because the XSS surface is minimal by
+construction: no user-generated content is ever rendered as HTML anywhere —
+user input appears only as React text nodes (auto-escaped), and API responses
+are JSON. Revisit (nonce middleware) only if user-generated HTML is ever
+introduced. All other headers remain strict.
+
+## Future production security requirements (post-launch hardening)
+- Dependency audit gate now runs in CI on every push/PR (`npm audit --audit-level=moderate`); currently zero vulnerabilities.
 - Secrets manager for integration credentials; never in the repo.
 - Per-user authentication for the ops desk (replace shared token); keep it off public navigation.
 - Edge/server rate limiting and abuse protection (replace in-memory limiter).
-- PII handling and retention policy for stored RFQs (`.data/`); encrypted-at-rest storage or managed DB.
+- Retention tooling exists (`npm run retention`, archives+purges old closed RFQs); JM to pick the window and schedule it. Encrypted-at-rest volume or managed DB when scaling.
 - Penetration test and security review before public launch.
 - Legacy Electron CRM (repo root) uses `nodeIntegration:true` / `contextIsolation:false` — pre-existing and out of scope here; flag for separate review if that app is carried forward.
