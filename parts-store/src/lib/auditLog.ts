@@ -24,6 +24,8 @@ export type AuditKind =
   | "ops_login_fail"
   | "ops_status_change"
   | "ops_export"
+  | "qc_change"
+  | "qc_accept"
   | "mail_sent"
   | "mail_error"
   | "agent_run";
