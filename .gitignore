@@ -13,6 +13,17 @@ Thumbs.db
 # runtime data (RFQ store, audit log) — contains customer PII, never commit
 parts-store/.data/
 .data/
+
+# finance-system: authoritative confidential financial data (belt-and-suspenders;
+# see finance-system/.gitignore for the full list). Only code + sanitized fixtures ship.
+finance-system/.data/
+finance-system/private/
+finance-system/real-data/
+finance-system/*.db
+finance-system/*.sqlite
+*.qbw
+*.qbb
+*.iif
 # next build output
 parts-store/.next/
 *.tsbuildinfo
