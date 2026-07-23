@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Diamond } from "@/components/ui";
-import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
+import type { RfqStatus, StoredQuoteLine, StoredRfq } from "@/lib/rfqStore";
+import { fmtMoney, pipelineStats } from "@/lib/pipeline";
 import type { MaintenanceReport } from "@/lib/agents/maintenanceAgent";
 import type { SecurityReport } from "@/lib/agents/securityAgent";
 import type { TriageReport } from "@/lib/agents/triageAgent";
@@ -40,6 +41,64 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [agents, setAgents] = useState<AgentState>({ busy: false });
   const [tab, setTab] = useState<AgentName>("triage");
+  const [editRef, setEditRef] = useState<string | null>(null);
+  const [qNumber, setQNumber] = useState("");
+  const [qLines, setQLines] = useState<StoredQuoteLine[]>([]);
+  const [qFreight, setQFreight] = useState("");
+  const [qTotal, setQTotal] = useState("");
+  const [qDays, setQDays] = useState(30);
+  const [qNotes, setQNotes] = useState("");
+  const [qBusy, setQBusy] = useState(false);
+  const [qErr, setQErr] = useState<string | null>(null);
+
+  function openQuoteEditor(r: StoredRfq) {
+    setEditRef(r.ref);
+    setQErr(null);
+    if (r.quote) {
+      setQNumber(r.quote.number);
+      setQLines(r.quote.lines);
+      setQFreight(r.quote.freight ?? "");
+      setQTotal(r.quote.total);
+      setQDays(r.quote.validDays);
+      setQNotes(r.quote.notes ?? "");
+    } else {
+      const d = new Date();
+      const seq = r.ref.replace(/^RFQ-/, "").slice(0, 4);
+      setQNumber(`Q-${String(d.getFullYear()).slice(2)}-${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}-${seq}`);
+      setQLines(r.items.map((it) => ({ label: `${it.sku} ×${it.qty}`, amount: "" })));
+      setQFreight("");
+      setQTotal("");
+      setQDays(30);
+      setQNotes("");
+    }
+  }
+
+  async function saveQuote() {
+    if (!editRef) return;
+    setQBusy(true);
+    setQErr(null);
+    try {
+      const res = await fetch("/api/ops/rfqs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ref: editRef,
+          quote: { number: qNumber, lines: qLines, freight: qFreight, total: qTotal, validDays: qDays, notes: qNotes },
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Save failed.");
+      setEditRef(null);
+      void load();
+    } catch (e) {
+      setQErr(e instanceof Error ? e.message : "Save failed.");
+    } finally {
+      setQBusy(false);
+    }
+  }
+
+  const pipe = pipelineStats(rfqs.map((r) => ({ status: r.status, total: r.quote?.total })));
+  const editing = editRef ? rfqs.find((r) => r.ref === editRef) : undefined;
 
   const load = useCallback(async () => {
     try {
@@ -121,6 +180,14 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         ))}
       </section>
 
+      <section className="ops__pipe" aria-label="Quote pipeline">
+        <div><span>Open pipeline</span><b>{pipe.openCount} · {fmtMoney(pipe.openValue)}</b></div>
+        <div className="hot"><span>Weighted forecast</span><b>{fmtMoney(pipe.weightedForecast)}</b></div>
+        <div><span>Won</span><b>{pipe.wonCount} · {fmtMoney(pipe.wonValue)}</b></div>
+        <div><span>Win rate</span><b>{pipe.winRate === null ? "—" : pipe.winRate + "%"}</b></div>
+        <small>Forecast weights: draft/reviewing 25% · sent/quoted 55%. Amounts come only from written quotes below.</small>
+      </section>
+
       <section className="ops__inbox" aria-label="RFQ inbox">
         <div className="ops__sechd">
           <h2>RFQ inbox</h2>
@@ -140,6 +207,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                   <th>Company / contact</th>
                   <th>Lines</th>
                   <th>Flags</th>
+                  <th>Quote</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -178,6 +246,18 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                     </td>
                     <td>{r.freight && <span className="ops__flag">FREIGHT</span>}</td>
                     <td>
+                      {r.quote ? (
+                        <span className="ops__qcell">
+                          <a className="mono" href={`/ops/quote/${r.ref}`} target="_blank" rel="noreferrer" title="Open printable quote">
+                            {r.quote.number}
+                          </a>
+                          <button onClick={() => openQuoteEditor(r)}>Edit</button>
+                        </span>
+                      ) : (
+                        <button className="ops__qnew" onClick={() => openQuoteEditor(r)}>Create quote</button>
+                      )}
+                    </td>
+                    <td>
                       <select
                         value={r.status}
                         onChange={(e) => void setStatus(r.ref, e.target.value as RfqStatus)}
@@ -197,6 +277,49 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
           </div>
         )}
       </section>
+
+      {editing && (
+        <section className="ops__qedit" aria-label="Quote editor">
+          <div className="ops__sechd">
+            <h2>Written quote — {editing.ref} · {editing.contact.company}</h2>
+            <button onClick={() => setEditRef(null)}>Close</button>
+          </div>
+          <div className="ops__qgrid">
+            <label>Quote #<input value={qNumber} onChange={(e) => setQNumber(e.target.value)} /></label>
+            <label>Valid (days)<input type="number" min={1} max={365} value={qDays} onChange={(e) => setQDays(Number(e.target.value) || 30)} /></label>
+            <label>Freight (est.)<input value={qFreight} onChange={(e) => setQFreight(e.target.value)} placeholder="$180.00" /></label>
+            <label>Total<input value={qTotal} onChange={(e) => setQTotal(e.target.value)} placeholder="$3,612.00" /></label>
+          </div>
+          <div className="ops__qlines">
+            {qLines.map((l, i) => (
+              <div key={i} className="ops__qline">
+                <input
+                  value={l.label}
+                  onChange={(e) => setQLines((ls) => ls.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+                  aria-label={`Line ${i + 1} description`}
+                />
+                <input
+                  className="amt"
+                  value={l.amount}
+                  placeholder="$0.00 or RFQ"
+                  onChange={(e) => setQLines((ls) => ls.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))}
+                  aria-label={`Line ${i + 1} amount`}
+                />
+                <button onClick={() => setQLines((ls) => ls.filter((_, j) => j !== i))} aria-label={`Remove line ${i + 1}`}>×</button>
+              </div>
+            ))}
+            <button className="ops__qadd" onClick={() => setQLines((ls) => [...ls, { label: "", amount: "" }])}>+ Add line</button>
+          </div>
+          <label className="ops__qnotes">Notes<textarea value={qNotes} onChange={(e) => setQNotes(e.target.value)} rows={2} /></label>
+          {qErr && <p className="ops__err" role="alert">{qErr}</p>}
+          <div className="ops__qacts">
+            <button className="primary" onClick={() => void saveQuote()} disabled={qBusy}>{qBusy ? "Saving…" : "Save quote"}</button>
+            {editing.quote && (
+              <a href={`/ops/quote/${editing.ref}`} target="_blank" rel="noreferrer">Open printable document →</a>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="ops__agents" aria-label="Automation agents">
         <div className="ops__sechd">

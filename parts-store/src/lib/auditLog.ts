@@ -23,6 +23,7 @@ export type AuditKind =
   | "ops_login_ok"
   | "ops_login_fail"
   | "ops_status_change"
+  | "ops_quote_saved"
   | "agent_run";
 
 export interface AuditEvent {

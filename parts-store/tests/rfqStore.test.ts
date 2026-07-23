@@ -63,3 +63,22 @@ test("concurrent saves do not lose records", async () => {
   const afterCount = (await listRfqs()).length;
   assert.equal(afterCount, beforeCount + 5);
 });
+
+test("saveRfqQuote attaches pricing and advances status to quoted", async () => {
+  const { saveRfq, saveRfqQuote, getRfq } = await import("../src/lib/rfqStore");
+  const created = await saveRfq({
+    contact: { company: "Acme", name: "Jo", email: "jo@acme.test" },
+    items: [{ sku: "JME-VCS-0001", qty: 2 }],
+    freight: false,
+  });
+  const updated = await saveRfqQuote(created.ref, {
+    number: "Q-26-TEST-01",
+    lines: [{ label: "JME-VCS-0001 ×2", amount: "$100.00" }],
+    total: "$100.00",
+    validDays: 30,
+  });
+  assert.ok(updated);
+  assert.equal(updated?.status, "quoted");
+  const roundTrip = await getRfq(created.ref);
+  assert.equal(roundTrip?.quote?.number, "Q-26-TEST-01");
+});
