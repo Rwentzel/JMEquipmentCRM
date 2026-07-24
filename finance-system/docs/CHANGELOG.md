@@ -1,5 +1,19 @@
 # Changelog
 
+## Operational release — operator console + activation (2026-07-15)
+Makes the verified engine usable in real life without editing source code.
+- **Local operator web console** (`webapp.py`, standard library only, loopback-only): guided
+  monthly close — import (paste/CSV) → review duplicates/conflicts/exceptions → post →
+  reconcile → resolve → scoped report with integrity status → export → backup. Calls the same
+  tested services as the CLI; never writes to the database directly.
+- **`selfcheck` CLI command** and `python -m finance_system` entry point for install health.
+- **`docs/RUNBOOK.md`** — controlled real-data activation (private data location, dry run,
+  backups/restore, retention, confidentiality) for Windows/macOS/Linux.
+- **`docs/AUDIT.md`** — finance-system audited against `DATA_BOUNDARIES.md`,
+  `IMPLEMENTATION_PLAN_REVISED.md`, `LAUNCH.md`, `PRODUCTION_READINESS_CHECKLIST.md`, and
+  `.gitignore`; cross-references added in `DATA_BOUNDARIES.md` and readiness checklist §24.
+- Console script entry points (`jm-finance`, `jm-finance-console`). Tests: 120 → 124.
+
 ## Exchange 2.1 — reporting-integrity gate (2026-07-15)
 Mandatory corrections from the Exchange 2 review, before any operator-interface work.
 - **Explicit report scope (ADR-0008).** New `scope.py` `ReportScope`; every report/count/

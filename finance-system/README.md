@@ -39,17 +39,25 @@ python -m finance_system.demo
 # Exchange-1 skeleton smoke test (classifications + separated totals)
 python -m finance_system.smoke
 
+# Verify the install works end-to-end (in-memory; no real data touched)
+python -m finance_system.cli selfcheck
+
+# Local operator WEB CONSOLE (browser, loopback-only) — recommended for operators
+python -m finance_system.webapp            # then open http://127.0.0.1:8765
+
 # Operator CLI
 python -m finance_system.cli initialize
 python -m finance_system.cli import fixtures/sample_month_v2.csv --period 2026-06 --post
-python -m finance_system.cli report --period 2026-06
+python -m finance_system.cli report --period 2026-06     # exit code 3 if integrity fails
 python -m finance_system.cli export --period 2026-06
 
 # Confidential-data safety scan over git-tracked + staged files (exit != 0 on HIGH)
 python scripts/safety_scan.py
 ```
-See `docs/OPERATOR_GUIDE.md` for the full CLI and workflow, `docs/CALCULATION_REFERENCE.md`
-for formulas/evidence, and `docs/DATA_DICTIONARY.md` for the schema.
+See `docs/RUNBOOK.md` for controlled **real-data activation** on Windows,
+`docs/OPERATOR_GUIDE.md` for the full CLI/console workflow, `docs/CALCULATION_REFERENCE.md`
+for formulas/evidence, `docs/DATA_DICTIONARY.md` for the schema, and `docs/AUDIT.md` for the
+audit against the repository's data-boundary/readiness governance docs.
 
 The SQLite database is created on demand under `.data/finance.db` (gitignored). Override its
 location with `FINANCE_DATA_DIR`.

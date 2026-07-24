@@ -194,6 +194,39 @@ def cmd_safety_scan(args, conn) -> int:
     return EXIT_OK if rep.ok else EXIT_REFUSED
 
 
+def cmd_selfcheck(args, conn) -> int:
+    """End-to-end install verification on an in-memory database (no real data touched)."""
+    from .db import init_db as _init
+    fixture = Path(__file__).resolve().parent.parent / "fixtures" / "sample_month_v2.csv"
+    c = _init(":memory:")
+    try:
+        rules = {}
+        for code, name, basis, rate in (("CR-GP10", "GP 10%", "gross_profit", "0.10"),
+                                        ("CR-REV5", "Rev 5%", "revenue", "0.05")):
+            rid = new_id("commission_rule")
+            c.execute("""INSERT INTO commission_rules(id, name, basis, rate_canonical, eligibility,
+                         created_at) VALUES (?, ?, ?, ?, 'on_invoice', ?)""",
+                      (rid, name, basis, rate, utcnow_iso()))
+            rules[code] = rid
+        pid = new_id("reporting_period")
+        c.execute("""INSERT INTO reporting_periods(id, label, start_date, end_date, locked, created_at)
+                     VALUES (?, '2026-06', '2026-06-01', '2026-06-30', 0, ?)""", (pid, utcnow_iso()))
+        out = pipeline.register_and_stage(
+            c, filename="selfcheck.csv", content=fixture.read_bytes(), profile=_profile(),
+            matrix=EvidenceMatrix(), policy=DEFAULT_POLICY, period_id=pid, rule_lookup=rules)
+        pipeline.analyze(c, out.batch_id)
+        posted = pipeline.post(c, out.batch_id, DEFAULT_POLICY)
+        pipeline.run_reconciliation(c, pid, out.batch_id)
+        rep = batch_report.build_report(c, ReportScope.for_batch(pid, out.batch_id, DEFAULT_POLICY), DEFAULT_POLICY)
+        ok = posted["snapshots_created"] > 0 and rep["valid"]
+        print(f"[selfcheck] posted={posted['posted_transactions']} snapshots={posted['snapshots_created']} "
+              f"integrity={'PASS' if rep['valid'] else 'FAIL'}")
+        print("[selfcheck] OK — installation is healthy." if ok else "[selfcheck] FAIL")
+        return EXIT_OK if ok else EXIT_ERROR
+    finally:
+        c.close()
+
+
 def cmd_backup(args, conn) -> int:
     conn.commit()
     dest = Path(args.out or (Path(args.db or default_db_path()).parent /
@@ -232,6 +265,7 @@ def build_parser() -> argparse.ArgumentParser:
     pe = sub.add_parser("export"); pe.add_argument("--batch"); pe.add_argument("--period")
     pe.add_argument("--all-time", action="store_true"); pe.set_defaults(func=cmd_export)
     sub.add_parser("safety-scan").set_defaults(func=cmd_safety_scan)
+    sub.add_parser("selfcheck").set_defaults(func=cmd_selfcheck)
     pbk = sub.add_parser("backup"); pbk.add_argument("--out"); pbk.set_defaults(func=cmd_backup)
     return p
 

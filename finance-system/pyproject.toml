@@ -18,6 +18,8 @@ ui = ["streamlit>=1.36"]
 dev = ["pytest>=8.0"]
 
 [project.scripts]
+jm-finance = "finance_system.cli:main"
+jm-finance-console = "finance_system.webapp:main"
 jm-finance-smoke = "finance_system.smoke:main"
 
 [tool.pytest.ini_options]

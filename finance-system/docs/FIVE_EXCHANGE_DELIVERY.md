@@ -118,9 +118,17 @@ on every scope.
 _Pending ChatGPT review._
 
 ## Exchange 3 — Operational application
-_Gated on Exchange 2.1 acceptance. Scope: local operator UI (one framework), multi-line
-documents, payment/credit cash application, vendor-evidence policy, crating revenue/recovery,
-and the workspaces + period/backup/config workflows in the review brief._
+**Started (operational release).** Delivered now:
+- **Local operator web console** (`webapp.py`, stdlib http.server, loopback-only) calling the
+  same tested services as the CLI — guided monthly close, exception resolution, scoped report
+  with integrity status, export, and backup.
+- `selfcheck` command + `python -m finance_system` entry; console script entry points.
+- `docs/RUNBOOK.md` (controlled real-data activation) and `docs/AUDIT.md` (governance audit).
+
+Still pending for full Exchange 3 (unchanged from the review brief): multi-line documents,
+payment/credit cash application, vendor-evidence policy, crating revenue/recovery, master-data
+lookup and richer transaction/reconciliation workspaces, period/backup-restore/config
+workflows, and role-based access. See `docs/KNOWN_LIMITATIONS.md` and `docs/AUDIT.md`.
 
 ## Exchange 4 — Business intelligence & adversarial hardening
 _Not started._
