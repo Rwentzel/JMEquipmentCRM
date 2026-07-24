@@ -7,6 +7,10 @@ import { goodstrongModels } from "@/data/goodstrong";
  * (robots.ts disallows all crawling; layout.tsx sets robots: {index:false}).
  * Flip those two switches at launch and this file needs no changes.
  */
+// Required for the static preview export (output: "export"); the sitemap is
+// fully determined at build time.
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://parts.jmequipment.net";
   const staticRoutes = ["", "/compare", "/freight", "/terms", "/privacy", "/parts/goodstrong"];

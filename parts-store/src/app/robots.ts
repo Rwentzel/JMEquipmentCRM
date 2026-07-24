@@ -8,6 +8,10 @@ import { isLive } from "@/lib/launch";
  * every preview and sandbox — stays fully disallowed. /ops and the APIs are
  * never crawlable.
  */
+// Required for the static preview export (output: "export"); the result is
+// identical either way — launch mode is a build-time switch.
+export const dynamic = "force-static";
+
 export default function robots(): MetadataRoute.Robots {
   if (isLive()) {
     return {
