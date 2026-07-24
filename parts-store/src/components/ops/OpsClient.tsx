@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Diamond } from "@/components/ui";
 import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
 import type { MaintenanceReport } from "@/lib/agents/maintenanceAgent";
@@ -109,7 +110,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         <Diamond size={14} />
         <b>JM Equipment · Ops Desk</b>
         <span className="ops__hd-note">internal — RFQ inbox &amp; automation</span>
-        <a className="ops__logout" href="/ops/quotes" style={{ marginLeft: "12px" }}>Quote Center →</a>
+        <Link className="ops__logout" href="/quotes" style={{ marginLeft: "12px" }}>Quote Center →</Link>
         {devOpen ? (
           <span className="ops__devbadge" title="Set OPS_TOKEN to require login">DEV MODE — no token set</span>
         ) : (
