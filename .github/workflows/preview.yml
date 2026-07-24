@@ -38,7 +38,7 @@ jobs:
         run: npm ci
 
       - name: Strip server-only routes for the static preview
-        run: rm -rf src/app/api src/app/ops
+        run: rm -rf src/app/api src/app/ops src/app/quote
 
       - name: Build static preview
         env:
