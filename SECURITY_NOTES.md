@@ -41,7 +41,9 @@ are JSON. Revisit (nonce middleware) only if user-generated HTML is ever
 introduced. All other headers remain strict.
 
 ## Future production security requirements (post-launch hardening)
-- Dependency audit gate now runs in CI on every push/PR (`npm audit --audit-level=moderate`); currently zero vulnerabilities.
+- Dependency audit gate runs in CI on every push/PR, in two tiers:
+  - **Blocking — production dependencies** (`npm audit --omit=dev --audit-level=moderate`). Anything reaching a customer browser or the production server fails the build. Currently **zero vulnerabilities**.
+  - **Advisory — dev toolchain** (non-blocking, annotated as a CI warning). Build-time-only packages never ship. Some of their advisories cannot be cleared without breaking the toolchain: GHSA-mh99-v99m-4gvg (brace-expansion DoS) is patched only in 5.x, whose changed export shape breaks the minimatch 3.x that eslint 9 depends on, and moving to eslint 10 breaks the eslint-plugin-react bundled by eslint-config-next. Re-check when eslint-config-next ships an eslint 10 compatible release; the split keeps the production promise strict instead of tempting a blanket `--audit-level=high`.
 - Secrets manager for integration credentials; never in the repo.
 - Per-user authentication for the ops desk (replace shared token); keep it off public navigation.
 - Edge/server rate limiting and abuse protection (replace in-memory limiter).

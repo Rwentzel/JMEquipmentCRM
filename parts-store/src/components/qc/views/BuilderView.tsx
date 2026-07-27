@@ -9,7 +9,7 @@
 
 import { useEffect, useRef } from "react";
 import type { QcApp } from "@/components/qc/useQcApp";
-import { LOSS_REASONS } from "@/lib/qc/data";
+import { LOSS_REASONS } from "@/lib/qc/labels";
 import {
   actDot,
   actLabel,

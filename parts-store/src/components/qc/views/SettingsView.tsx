@@ -9,7 +9,7 @@
 
 import React from "react";
 import type { QcApp } from "../useQcApp";
-import { TERM_TPL } from "@/lib/qc/data";
+import { TERM_TPL } from "@/lib/qc/labels";
 import type { QcSettings } from "@/lib/qc/types";
 
 const card: React.CSSProperties = {
