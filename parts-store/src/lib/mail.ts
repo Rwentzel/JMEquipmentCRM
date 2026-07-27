@@ -1,5 +1,7 @@
 /**
- * RFQ email delivery — env-gated SMTP notification to the parts desk.
+ * Desk email delivery — env-gated SMTP notifications to JM Equipment:
+ * new RFQs from the parts store, and quote acceptances from the Quote
+ * Center's client link.
  *
  * SECURITY / DATA PROTECTION:
  * - Credentials come ONLY from environment variables (SMTP_HOST, SMTP_PORT,
@@ -80,6 +82,86 @@ export async function sendRfqNotification(rfq: StoredRfq): Promise<boolean> {
     // No PII, no error detail with addresses — the RFQ is safe in the store.
     audit("mail_error");
     console.error(`[mail] delivery failed for ${rfq.ref} — RFQ persisted; check SMTP_* configuration`);
+    return false;
+  }
+}
+
+/* ------------------------------------------------- quote acceptance --- */
+
+export interface AcceptedQuoteNotice {
+  number: string;
+  company: string;
+  contact: string;
+  contactEmail: string;
+  machine: string;
+  total: string;
+  signedName: string;
+  signedDate: string;
+  rep: string;
+}
+
+/**
+ * Plain-text desk notification for a customer-signed quote. Pure —
+ * unit-tested without a transport. Deliberately carries no cost or margin:
+ * the acceptance is a customer-side event and this text is quoted back in
+ * follow-ups (see DATA_BOUNDARIES.md).
+ */
+export function formatQuoteAcceptedEmail(a: AcceptedQuoteNotice): { subject: string; text: string } {
+  const lines = [
+    `Quote ${a.number} was ACCEPTED by the customer.`,
+    "",
+    `Signed by: ${a.signedName}`,
+    `Signed on: ${a.signedDate}`,
+    "",
+    `Company:   ${a.company}`,
+  ];
+  if (a.contact) lines.push(`Contact:   ${a.contact}`);
+  if (a.contactEmail) lines.push(`Email:     ${a.contactEmail}`);
+  lines.push(
+    `Equipment: ${a.machine}`,
+    `Total:     ${a.total}`,
+    `Sales rep: ${a.rep}`,
+    "",
+    `Open it in the Quote Center: /quotes/pipeline (quote ${a.number}).`,
+    "Next step: confirm the deposit terms and move the quote to Won once the PO lands.",
+  );
+  return {
+    subject: `[ACCEPTED] ${a.number} — ${a.company}`,
+    text: lines.join("\n"),
+  };
+}
+
+/**
+ * Send the acceptance notification. Fire-and-forget safe: never throws and
+ * never fails the customer's accept — the signature is already persisted.
+ */
+export async function sendQuoteAcceptedNotification(a: AcceptedQuoteNotice): Promise<boolean> {
+  if (!mailConfigured()) return false;
+  try {
+    const port = Number(process.env.SMTP_PORT || 587);
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: port === 465,
+      auth: process.env.SMTP_USER
+        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS ?? "" }
+        : undefined,
+    });
+    const { subject, text } = formatQuoteAcceptedEmail(a);
+    await transporter.sendMail({
+      from: process.env.RFQ_NOTIFY_FROM || process.env.SMTP_USER || "parts-store@jmequipment.net",
+      to: process.env.RFQ_NOTIFY_TO,
+      ...(a.contactEmail ? { replyTo: a.contactEmail } : {}),
+      subject,
+      text,
+    });
+    audit("mail_sent");
+    return true;
+  } catch {
+    // Acceptance is already recorded in the store — never surface mail errors
+    // to the customer, and never log the signer's details.
+    audit("mail_error");
+    console.error(`[mail] acceptance notice failed for ${a.number} — signature persisted; check SMTP_* configuration`);
     return false;
   }
 }

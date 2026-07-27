@@ -9,7 +9,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   applyPricedAxes,
   blankQuote,
@@ -78,6 +77,8 @@ export interface QcApp {
   closeLoss(): void;
   setLossReason(reason: string): void;
   copyLink(id: string): void;
+  openClientView(id: string): void;
+  confirmDeleteQuote(id: string): void;
   emailQuote(q: QcQuote): void;
   previewClient(): void;
   sendCurrent(): void;
@@ -131,7 +132,6 @@ export interface QcApp {
 }
 
 export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPart[]): QcApp {
-  const router = useRouter();
   const [quotes, setQuotes] = useState<QcQuote[]>(initialState.quotes);
   const [clients, setClients] = useState<QcClient[]>(initialState.clients);
   const [settings, setSettings] = useState<QcSettings>(initialState.settings);
@@ -152,14 +152,48 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
   const [toast, setToast] = useState<QcToast | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* ------------------------------------------------------------ persist --- */
-  const persist = useCallback((patch: Partial<QcState>) => {
+  /* ------------------------------------------------------------ persist ---
+   * Writes replace whole segments, so a naive PUT-per-keystroke both floods
+   * the server and risks a slow early response landing after a fast later
+   * one — persisting a stale prefix of what was typed. Patches are merged by
+   * segment and flushed on a short trailing debounce (and immediately on
+   * pagehide, so a quick navigation never drops the last edit). */
+  const pending = useRef<Partial<QcState>>({});
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flush = useCallback(() => {
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
+    const patch = pending.current;
+    pending.current = {};
+    if (!Object.keys(patch).length) return;
     void fetch("/api/qc/state", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
+      keepalive: true,
     }).catch(() => undefined);
   }, []);
+
+  const persist = useCallback(
+    (patch: Partial<QcState>) => {
+      pending.current = { ...pending.current, ...patch };
+      if (flushTimer.current) clearTimeout(flushTimer.current);
+      flushTimer.current = setTimeout(flush, 400);
+    },
+    [flush],
+  );
+
+  useEffect(() => {
+    const onHide = () => flush();
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      flush();
+    };
+  }, [flush]);
 
   const commitQuotes = useCallback(
     (qs: QcQuote[]) => {
@@ -208,7 +242,6 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
   const go = useCallback(
     (v: QcView) => {
       setView(v);
-      if (v === "clients") setClientId(null);
       try {
         window.history.pushState(null, "", "/quotes/" + (v === "dash" ? "" : v));
       } catch {
@@ -360,6 +393,30 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       showToast("Client link copied", "green");
     },
     [quotes, bq, shareUrl, showToast],
+  );
+
+  /** Open the customer-facing page exactly as the customer sees it (token and all). */
+  const openClientView = useCallback(
+    (id: string) => {
+      const q = quotes.find((x) => x.id === id);
+      if (!q) return;
+      window.open("/q/" + q.id + "/" + (q.token || ""), "_blank");
+    },
+    [quotes],
+  );
+
+  const confirmDeleteQuote = useCallback(
+    (id: string) => {
+      const q = quotes.find((x) => x.id === id);
+      if (!q) return;
+      const signed = q.status === "accepted" || q.status === "won";
+      const warning = signed
+        ? `\n\nWARNING: this quote was signed by the customer. Deleting it destroys that record and breaks the link they were sent.`
+        : "";
+      if (!window.confirm(`Delete quote ${q.number} for ${q.clientCompany || "this client"}?${warning}\n\nThis cannot be undone.`)) return;
+      deleteQuote(id);
+    },
+    [quotes, deleteQuote],
   );
 
   const emailQuote = useCallback(
@@ -760,6 +817,11 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
   const saveSettings = useCallback(() => showToast("Settings saved", "green"), [showToast]);
 
   const resetData = useCallback(() => {
+    // Drop any queued segment write — it predates the reset and would
+    // otherwise land afterwards and resurrect the data we just discarded.
+    if (flushTimer.current) clearTimeout(flushTimer.current);
+    flushTimer.current = null;
+    pending.current = {};
     void fetch("/api/qc/state", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -780,8 +842,6 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       })
       .catch(() => showToast("Could not reset"));
   }, [showToast]);
-
-  useEffect(() => () => router.prefetch("/quotes"), [router]);
 
   return useMemo<QcApp>(
     () => ({
@@ -821,6 +881,8 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       closeLoss: () => setLossModal(null),
       setLossReason: (reason: string) => setLossModal((lm) => (lm ? { ...lm, reason } : lm)),
       copyLink,
+      openClientView,
+      confirmDeleteQuote,
       emailQuote,
       previewClient,
       sendCurrent,
@@ -878,7 +940,7 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       quotes, clients, settings, catalog, parts, view, bq, equipCat, partQuery, partFam, pipeFilter, pipeQuery,
       pipeSort, clientId, editEquip, searchOpen, searchQuery, lossModal, toast, machine, effPhoto, baseUrl,
       showToast, go, navNewQuote, startQuote, editQuote, duplicateQuote, deleteQuote, saveQuote, setStatus,
-      onPipeStatus, confirmLoss, copyLink, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
+      onPipeStatus, confirmLoss, copyLink, openClientView, confirmDeleteQuote, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
       pickConfig, toggleCfgOpt, addAddon, setAddon, removeAddon, setPartQty, removePart, addPartToQuote,
       loadClientInto, saveClientFromBq, addClient, setClientField, deleteClient, startQuoteForClient,
       addMachine, removeMachine, setMachineField, setMachinePhoto, addMachineSpec, setMachineSpec,

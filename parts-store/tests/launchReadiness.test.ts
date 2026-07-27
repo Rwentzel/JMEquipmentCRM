@@ -1,7 +1,7 @@
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { isLive } from "../src/lib/launch";
-import { formatRfqEmail, mailConfigured } from "../src/lib/mail";
+import { formatQuoteAcceptedEmail, formatRfqEmail, mailConfigured } from "../src/lib/mail";
 import { rfqsToCsv } from "../src/lib/csv";
 import type { StoredRfq } from "../src/lib/rfqStore";
 
@@ -73,6 +73,25 @@ test("desk notification carries every RFQ field and flags freight", () => {
 test("desk notification never invents pricing", () => {
   const { text } = formatRfqEmail(rfq);
   assert.doesNotMatch(text, /\$\s?\d|price|cost/i);
+});
+
+test("quote-acceptance notice carries the signature and never leaks cost/margin", () => {
+  const { subject, text } = formatQuoteAcceptedEmail({
+    number: "Q-26-0512-44",
+    company: "Great Lakes Paper Co.",
+    contact: "M. Holt",
+    contactEmail: "mholt@greatlakespaper.com",
+    machine: "Dual Rotary Sheeter (GMC-TC II 1650)",
+    total: "$572,250",
+    signedName: "Marcus Holt",
+    signedDate: "Jul 24, 2026",
+    rep: "J. Miller",
+  });
+  assert.match(subject, /^\[ACCEPTED\] Q-26-0512-44 — Great Lakes Paper Co\.$/);
+  for (const needle of ["Marcus Holt", "Jul 24, 2026", "mholt@greatlakespaper.com", "$572,250", "J. Miller", "/quotes/pipeline"]) {
+    assert.ok(text.includes(needle), `missing from acceptance email: ${needle}`);
+  }
+  assert.doesNotMatch(text, /margin|\bcost\b/i);
 });
 
 /* ---- csv ---- */
