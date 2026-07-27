@@ -161,7 +161,9 @@ export function PipelineView({ app }: { app: QcApp }) {
         ))}
       </div>
       <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
-        <div className="jq-tbl scroll" style={{ "--minw": "860px", "--cols": "104px minmax(0,1fr) minmax(0,0.9fr) 90px 80px 110px 194px" } as React.CSSProperties}>
+        {/* Actions column is 264px (not the design's 194px) because this port adds a
+            fifth action, Delete — at 194px the row overflowed under the status select. */}
+        <div className="jq-tbl scroll" style={{ "--minw": "930px", "--cols": "104px minmax(0,1fr) minmax(0,0.9fr) 90px 80px 110px 264px" } as React.CSSProperties}>
           <div className="jq-tr head">
             {pipeCols.map((c) => (
               <div
@@ -205,10 +207,17 @@ export function PipelineView({ app }: { app: QcApp }) {
                   </select>
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: "6px" }}>
-                  <button onClick={() => window.open("/q/" + r.id, "_blank")} title="Client preview" style={actBtnStyle}>View</button>
+                  <button onClick={() => app.openClientView(r.id)} title="Client preview" style={actBtnStyle}>View</button>
                   <button onClick={() => app.emailQuote(r.q)} title="Email draft" style={actBtnStyle}>Email</button>
                   <button onClick={() => app.copyLink(r.id)} title="Copy client link" style={actBtnStyle}>Link</button>
                   <button onClick={() => app.duplicateQuote(r.id)} title="Duplicate / revise" style={actBtnStyle}>Revise</button>
+                  <button
+                    onClick={() => app.confirmDeleteQuote(r.id)}
+                    title="Delete quote"
+                    style={{ ...actBtnStyle, color: "var(--jme-red)" }}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             ))}

@@ -1,18 +1,24 @@
-# LAUNCH RUNBOOK — JM Equipment Parts Store
+# LAUNCH RUNBOOK — JM Equipment Parts Store & Quote Center
 
-The store is production-complete and ships **gated by default**: not indexable,
-ops desk disabled without a token, email delivery off without SMTP config.
-Going live is configuration, not code. Work through this list in order.
+Two surfaces ship from this app:
+
+- **Parts store** (public storefront + `/ops` desk) — RFQ-first, no public pricing.
+- **Quote Center** (`/quotes`, staff-only) — the internal quoting system, plus
+  the tokened customer quote links it sends out (`/q/<id>/<token>`).
+
+Both are production-complete and ship **gated by default**: not indexable, ops
+desk and Quote Center disabled without a token, email delivery off without SMTP
+config. Going live is configuration, not code. Work through this list in order.
 
 ## 1. Environment variables (set in the host's dashboard — never in the repo)
 
 | Variable | Required for | Value |
 |----------|--------------|-------|
-| `OPS_TOKEN` | Ops desk login at `/ops` | Long random string (e.g. `openssl rand -hex 24`). Without it, `/ops` is **disabled** in production. |
-| `SMTP_HOST` | RFQ email to the desk | Your mail provider's SMTP host |
+| `OPS_TOKEN` | Ops desk at `/ops` **and Quote Center at `/quotes`** | Long random string (e.g. `openssl rand -hex 24`). Without it, both are **disabled** in production. |
+| `SMTP_HOST` | RFQ email + quote-acceptance alerts | Your mail provider's SMTP host |
 | `SMTP_PORT` | " | `587` (STARTTLS) or `465` (TLS). Default 587. |
 | `SMTP_USER` / `SMTP_PASS` | " | SMTP credentials (use an app password / API key, not a personal login) |
-| `RFQ_NOTIFY_TO` | " | The desk inbox, e.g. `parts@jmequipment.net` |
+| `RFQ_NOTIFY_TO` | " | The desk inbox, e.g. `parts@jmequipment.net`. Also receives `[ACCEPTED]` alerts when a customer signs a quote. |
 | `RFQ_NOTIFY_FROM` | optional | Sender address if different from `SMTP_USER` |
 | `ANTHROPIC_API_KEY` | optional | Upgrades support/triage/security agents from rules engines to AI |
 | `JME_LAUNCH` | **search indexing** | Set to `live` ONLY at approved launch — flips robots/noindex and publishes the sitemap. Leave unset on previews. |
@@ -36,6 +42,10 @@ is lost; you just don't get the email ping.
 3. Log into `/ops` with `OPS_TOKEN` → the RFQ is in the inbox; move it to `reviewing`; **Export CSV** downloads the book.
 4. Run all three agent panels — maintenance must report **all checks passing**.
 5. Ask the storefront assistant a pricing question → it must refuse with the written-quote policy.
+6. Quote Center (`/quotes`, same `OPS_TOKEN`): build a quote → **Save** → **Copy Link**.
+   Open that link in a private window: the quote renders, **Download PDF** prints
+   clean, and trimming the token from the URL must give a 404. Sign it → the
+   `[ACCEPTED]` email lands at `RFQ_NOTIFY_TO` and the pipeline shows *Accepted*.
 
 ## 4. Go live (indexing)
 
@@ -54,10 +64,18 @@ the variable alone does nothing until the next build. Confirm
 - **Monthly**: back up `RFQ_DATA_DIR` and run the retention sweep once JM picks
   a window: `npm run retention -- --days <N> --apply` (dry-run without `--apply`;
   only closed RFQs older than the window are archived). `npm audit` runs in CI
-  on every push — currently zero known vulnerabilities.
+  on every push — zero known vulnerabilities in shipped code; the dev-tooling
+  audit is advisory (see SECURITY_NOTES.md) so check its output when it flags.
 - **PII**: the RFQ store contains customer contact data. Keep the volume
   access-restricted; enforce the retention window with `npm run retention`
   (e.g. `--days 730` ≈ 24 months). Never commit `.data/`.
+- **Quote Center data** (`.data/qc.json`) holds client contacts *and* dealer
+  pricing/cost. It lives on the same volume — back it up with the RFQ store. The
+  retention sweep deliberately does **not** touch it: accepted quotes are signed
+  business records, so purging them is a JM decision, not an automated one.
+- **Quote links** stay valid until the quote is deleted. To cut off a link that
+  was sent to the wrong address, duplicate the quote (the copy gets a fresh
+  token) and delete the original.
 
 ## Out of scope until explicitly approved
 

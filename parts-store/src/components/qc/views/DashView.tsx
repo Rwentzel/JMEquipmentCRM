@@ -33,7 +33,7 @@ export function DashView({ app }: { app: QcApp }) {
   const recentQuotes = app.quotes
     .slice()
     .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
-    .slice(0, 6)
+    .slice(0, 7)
     .map((q) => {
       const m = machineOf(q);
       const total = cashTotal(q, m);
