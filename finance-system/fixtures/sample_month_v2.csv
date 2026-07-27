@@ -1,0 +1,16 @@
+Type,Customer,Item,Sales Rep,Invoice #,SO #,Date,Period Date,Qty,Unit Price,Discount,Return,Freight Billed,Tax,Cost,Freight In,Freight Out,Crating,Commission Plan,Commission Basis,Commission %
+Invoice,Northwind Test Co,Sample Bearing A,Sample Rep,INV-2001,,2026-06-03,2026-06-03,2,100.00,0,0,20.00,0,120.00,0,15.00,0,CR-GP10,gross_profit,10%
+Invoice,Contoso Test Inc,Sample Seal B,Sample Rep,INV-2002,,2026-06-05,2026-06-05,3,50.00,0,0,0,0,,0,0,0,,,
+Invoice,Initech Test Ltd,Sample Motor C,Sample Rep,INV-2003,,2026-06-07,2026-06-07,1,500.00,0,0,0,0,300.00,0,0,0,,,
+Invoice,Umbrella Test Corp,Sample Roller D,Sample Rep,INV-2004,,2026-06-09,2026-06-09,1,200.00,0,0,10.00,0,100.00,0,50.00,0,CR-GP10,gross_profit,10%
+Invoice,Stark Test Industries,Sample Item E,Sample Rep,INV-2005,,2026-06-11,2026-06-11,0,100.00,0,0,0,0,0,0,0,0,,,
+Invoice,Wayne Test Enterprises,Sample Gasket F,Sample Rep,INV-2006,,2026-06-13,2026-06-13,1,80.00,0,0,0,0,100.00,0,0,0,CR-GP10,gross_profit,10%
+Invoice,Northwind Test Co,Sample Bearing A,Sample Rep,INV-2007,,2026-06-15,2026-06-15,5,100.00,25.00,0,0,0,300.00,0,0,0,CR-REV5,revenue,5%
+Credit Memo,Contoso Test Inc,Sample Seal B,Sample Rep,CM-2008,,2026-06-17,2026-06-17,1,0,0,40.00,0,0,0,0,0,0,,,
+Return,Wayne Test Enterprises,Sample Gasket G,Sample Rep,RMA-2009,,2026-06-18,2026-06-18,1,0,0,30.00,0,0,0,0,0,0,,,
+Sales Order,Acme Test LLC,Sample Valve H,Sample Rep,,SO-3001,2026-06-02,2026-06-02,4,75.00,0,0,0,0,200.00,0,0,0,,,
+Invoice,Acme Test LLC,Sample Valve H,Sample Rep,INV-2010,SO-3001,2026-06-08,2026-06-08,4,75.00,0,0,0,0,200.00,0,0,0,CR-GP10,gross_profit,10%
+Payment,Acme Test LLC,Sample Valve H,Sample Rep,INV-2010,,2026-06-20,2026-06-20,1,200.00,0,0,0,0,0,0,0,0,,,
+Invoice,Globex Test Co,Sample Widget I,Sample Rep,INV-2011,,2026-06-21,2026-06-21,2,150.00,0,0,0,0,90.00,0,0,25.00,CR-GP10,gross_profit,10%
+Invoice,Globex Test Co,Sample Widget I,Sample Rep,INV-2011,,2026-06-21,2026-06-21,2,150.00,0,0,0,0,90.00,0,0,25.00,CR-GP10,gross_profit,10%
+Invoice,Wrongco Test Co,Sample Bearing A,Sample Rep,INV-2001,,2026-06-22,2026-06-22,1,100.00,0,0,0,0,60.00,0,0,0,CR-GP10,gross_profit,10%

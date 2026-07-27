@@ -117,6 +117,13 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 ### 24. QuickBooks sync
 - 🔒 QuickBooks Desktop Enterprise 2024 remains source of truth
 - ⬜ Define SKU join + sync tool (e.g., Webgility) scope; do not connect live yet
+- 🟡 A separate **local-first `finance-system/`** now reproduces the useful QuickBooks
+  monthly sales/cost/profitability/commission **workflows** (NOT a clone, no live QB
+  connection, no compatibility claim until tested against authorized QBDE 2024 exports).
+  It keeps all cost/margin/vendor/pricing data OUT of the web tier (see `DATA_BOUNDARIES.md`),
+  uses opaque internal keys (SKU is a join *candidate* only), and exposes a documented
+  QuickBooks **adapter boundary** for future IIF/SDK/Web Connector work
+  (`finance-system/docs/adr/0006-quickbooks-adapter-boundary.md`). Do not connect live yet.
 
 ### 25. Launch approval
 - 🔒 Explicit JM sign-off required before: deploy, indexable SEO, live integrations, payments

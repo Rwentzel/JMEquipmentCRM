@@ -51,3 +51,17 @@ build-time grep of the compiled output for forbidden tokens (see `IMPLEMENTATION
 3. Any raw status/lead-time is normalized to one of the 7 bands before render.
 4. The build is grepped for `$`, price/cost/margin/vendor tokens, and bare quantities; a hit fails verification.
 5. New data sources must be classified in this table before import.
+
+## Where the Private financial data DOES live
+
+This table governs the **public web tier** (`parts-store/`): the Private fields above must
+never reach it. Those same fields — sell price, cost, margin/markup, vendor name/part #,
+exact quantity, QuickBooks references, customer-specific pricing — are the working data of
+the separate, **local-first** `finance-system/` (the monthly sales/cost/profitability/
+commission engine). That data lives ONLY in `finance-system/`'s gitignored local database
+(`.data/`) and private inputs (`private/`); it is never committed and never touches the web
+bundle. The two subsystems partition responsibility: this document is the boundary for the
+web tier, and `finance-system/docs/THREAT_MODEL.md` is the confidentiality model for the
+private financial data. SKU is a shared join *candidate* only — the finance-system uses
+opaque internal keys, never SKU, as its transaction join key (see
+`finance-system/docs/adr/0006-quickbooks-adapter-boundary.md`).

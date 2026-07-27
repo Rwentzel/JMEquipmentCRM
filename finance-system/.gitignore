@@ -1,0 +1,35 @@
+# finance-system — keep ALL real financial data out of git (Correction #7).
+# Only application code, schema, docs, and SANITIZED fixtures are ever committed.
+
+# Local database and runtime data (authoritative confidential data lives here).
+.data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Private inputs — real source files land here, never committed.
+private/
+inbox/
+real-data/
+exports/
+
+# Confidential export formats.
+*.xlsx
+*.xls
+*.qbw
+*.qbb
+*.iif
+*.ofx
+*.qbo
+
+# Python bytecode / caches.
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Exception: sanitized fixtures ARE committed (they carry the SANITIZED-FIXTURE marker).
+!fixtures/
+!fixtures/**
