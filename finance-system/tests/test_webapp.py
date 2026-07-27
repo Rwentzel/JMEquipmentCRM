@@ -75,6 +75,35 @@ class TestWebapp(unittest.TestCase):
         backups = list(Path(self.tmp.name).glob("backup-*.db"))
         self.assertTrue(backups)
 
+    def test_locked_period_refusal_is_surfaced_to_operator(self):
+        csv = ("Type,Customer,Item,Invoice #,Date,Period Date,Qty,Unit Price,Cost\n"
+               "Invoice,Locked Test,Widget B,INV-6001,2026-06-05,2026-06-05,1,10.00,5.00\n")
+        _, loc = self._post("/import", {"period": "2026-06", "filename": "c.csv", "content": csv})
+        batch = urllib.parse.parse_qs(urllib.parse.urlparse(loc).query)["id"][0]
+        # lock the period behind the console's back, then attempt to post
+        from finance_system.db import init_db
+        conn = init_db(self.srv.db_path)
+        try:
+            conn.execute("UPDATE reporting_periods SET locked=1")
+            conn.commit()
+        finally:
+            conn.close()
+        _, loc = self._post("/post", {"batch": batch})
+        self.assertIn("err=", loc)                       # refusal carried to the UI
+        s, html_out = self._get(loc)
+        self.assertIn("Action refused", html_out)        # and rendered for the operator
+        self.assertIn("locked reporting period", html_out)
+
+    def test_successful_post_reports_snapshot_count(self):
+        csv = ("Type,Customer,Item,Invoice #,Date,Period Date,Qty,Unit Price,Cost\n"
+               "Invoice,Happy Test,Widget C,INV-6002,2026-06-05,2026-06-05,2,50.00,20.00\n")
+        _, loc = self._post("/import", {"period": "2026-06", "filename": "c.csv", "content": csv})
+        batch = urllib.parse.parse_qs(urllib.parse.urlparse(loc).query)["id"][0]
+        _, loc = self._post("/post", {"batch": batch})
+        self.assertIn("ok=", loc)
+        s, html_out = self._get(loc)
+        self.assertIn("calculation snapshots recorded", html_out)
+
     def test_unknown_route_404(self):
         try:
             self._get("/nope")

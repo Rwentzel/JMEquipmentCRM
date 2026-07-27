@@ -82,12 +82,18 @@ def detect_conflicts(conn: sqlite3.Connection, batch_id: str) -> list[Conflict]:
         if fout and not line["customer_shipping_minor"]:
             out.append(Conflict("freight_cost_no_revenue", "low", t["id"],
                 "freight-out cost present but no freight billed to customer", "cost,revenue"))
-        # commission fields present but no authorized rule linked
+        # Commission implied by the source (an unverified commission classification exists)
+        # but no authorized rule is linked — the basis is never assumed, so flag it.
         if not t["commission_rule_id"]:
-            has_comm = conn.execute(
-                "SELECT 1 FROM record_verifications WHERE transaction_id=? AND calculation_type='commission' AND level!='verified' LIMIT 1",
+            implied = conn.execute(
+                """SELECT 1 FROM record_verifications WHERE transaction_id=?
+                   AND calculation_type='commission' AND level='unverified' LIMIT 1""",
                 (t["id"],)).fetchone()
-            # only a conflict if the source implied a commission (rate captured) — approximated by note
+            if implied and line["unit_sales_price_minor"]:
+                out.append(Conflict(
+                    "commission_without_rule", "medium", t["id"],
+                    "revenue line has no authorized commission rule; basis cannot be assumed",
+                    "commission"))
     # same external identifier mapped to multiple internal entities (product alias)
     alias_rows = conn.execute(
         """SELECT alias_value, COUNT(DISTINCT product_id) AS n FROM product_aliases

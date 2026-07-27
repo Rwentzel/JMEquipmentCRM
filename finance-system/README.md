@@ -27,7 +27,7 @@ extras (Excel, UI) arrive in later exchanges — see `pyproject.toml`.
 From this directory (`finance-system/`):
 
 ```bash
-# Full test suite (stdlib unittest; no pytest needed) — 120 tests
+# Full test suite (stdlib unittest; no pytest needed) — 134 tests
 python -m unittest discover -s tests -t .
 # Same, with unclosed-connection warnings treated as errors (must pass)
 python -W error::ResourceWarning -m unittest discover -s tests -t .

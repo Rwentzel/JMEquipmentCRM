@@ -1,5 +1,29 @@
 # Changelog
 
+## Hardening sweep — defect fixes (2026-07-24)
+Post-release code sweep; every item is a real defect found and fixed, with regression tests.
+- **Exact money in duplicate matching.** `dedup._line_amount_minor` computed extended amounts
+  with SQL **binary floating point** (`quantity_minor/10000.0 * price`), violating ADR-0003.
+  Now computed in Python with `Money`/`Decimal` in exact integer minor units, so two identical
+  documents can never compare unequal through float error.
+- **Duplicate detection bounded and correct.** The likely-duplicate pool scanned *every posted
+  transaction in the database* (unbounded growth across months) and used `b in staged` /
+  `pool.index(b)` inside a nested loop (O(n) scans per pair → O(n³)). The pool is now limited
+  to the batch's own reporting period(s) and pairing uses index arithmetic. Tests assert no
+  self-pairs, no mirrored duplicates, and no cross-period comparison.
+- **Commission-without-rule conflict implemented.** `conflicts.py` had a dead assignment that
+  computed a query result and discarded it; a revenue line whose commission is unverified and
+  has no authorized rule is now actually flagged (the basis is never assumed).
+- **Customer-concentration metric was a stub.** `top_customer_posted_txn_count` was hard-coded
+  to `0` in every report; it now computes the largest customer's scoped transaction count and
+  adds `customers_in_scope`.
+- **Operator errors are surfaced.** The web console silently swallowed `ValueError` on post /
+  rollback / evidence-resolution, so a locked-period refusal looked like a no-op. Refusals and
+  successes now redirect with a message and render as banners with corrective guidance.
+- **CLI `--batch` without `--period` no longer crashes**; the period is derived from the batch,
+  or an actionable error is printed (exit 1).
+- Tests: 124 → 134.
+
 ## Operational release — operator console + activation (2026-07-15)
 Makes the verified engine usable in real life without editing source code.
 - **Local operator web console** (`webapp.py`, standard library only, loopback-only): guided

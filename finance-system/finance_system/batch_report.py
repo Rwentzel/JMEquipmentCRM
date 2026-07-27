@@ -250,7 +250,8 @@ def _analytics(conn, scope, rev_sql, rev_params) -> dict:
     if not scoped_ids:
         return {"negative_margin_lines": 0, "freight_under_recovery_lines": 0,
                 "lines_missing_cost": 0, "duplicate_exposure_candidates": 0,
-                "unsupported_commission_lines": 0, "top_customer_posted_txn_count": 0}
+                "unsupported_commission_lines": 0, "top_customer_posted_txn_count": 0,
+                "customers_in_scope": 0}
     ph = ",".join("?" * len(scoped_ids))
     negmargin = _one(conn, f"""SELECT COUNT(*) FROM calculation_snapshots cs
         WHERE calculation_name='gross_profit' AND {_CURRENT} AND output_kind='money_minor'
@@ -262,10 +263,18 @@ def _analytics(conn, scope, rev_sql, rev_params) -> dict:
         WHERE calculation_type='cost' AND level='unverified' AND transaction_id IN ({ph})""", scoped_ids)
     unsupported = _one(conn, f"""SELECT COUNT(*) FROM record_verifications
         WHERE calculation_type='commission' AND level='unverified' AND transaction_id IN ({ph})""", scoped_ids)
+    # Customer concentration within scope: transaction count of the largest customer.
+    top = conn.execute(
+        f"""SELECT COUNT(*) AS n FROM transactions WHERE id IN ({ph}) AND customer_id IS NOT NULL
+            GROUP BY customer_id ORDER BY n DESC LIMIT 1""", scoped_ids).fetchone()
+    scoped_customers = _one(
+        conn, f"SELECT COUNT(DISTINCT customer_id) FROM transactions WHERE id IN ({ph})", scoped_ids)
     return {"negative_margin_lines": negmargin, "freight_under_recovery_lines": freight,
             "lines_missing_cost": missing_cost,
             "duplicate_exposure_candidates": _one(conn, f"SELECT COUNT(*) FROM duplicate_candidates WHERE transaction_id IN ({ph})", scoped_ids),
-            "unsupported_commission_lines": unsupported, "top_customer_posted_txn_count": 0}
+            "unsupported_commission_lines": unsupported,
+            "top_customer_posted_txn_count": (top["n"] if top else 0),
+            "customers_in_scope": scoped_customers}
 
 
 def _recommend(a, h) -> list:

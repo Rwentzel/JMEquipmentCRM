@@ -56,6 +56,18 @@ _NAV = ('<header><h1>JM Equipment — Finance Console</h1>'
         '<a href="/backup">Backup</a></nav></header>')
 
 
+def _flash(q: dict) -> str:
+    """Render success/error banners passed via the redirect query string."""
+    out = []
+    if q.get("ok"):
+        out.append(f"<div class='card' style='border-left:5px solid #0a7d33'>"
+                   f"<b class='ok'>Done.</b> {html.escape(q['ok'])}</div>")
+    if q.get("err"):
+        out.append(f"<div class='card' style='border-left:5px solid #b00020'>"
+                   f"<b class='bad'>Action refused.</b> {html.escape(q['err'])}</div>")
+    return "".join(out)
+
+
 def _page(title: str, body: str) -> bytes:
     return (f"<!doctype html><html><head><meta charset='utf-8'><title>{html.escape(title)}</title>"
             f"<style>{_CSS}</style></head><body>{_NAV}<main>{body}</main></body></html>").encode("utf-8")
@@ -159,6 +171,7 @@ class Handler(BaseHTTPRequestHandler):
             f"<td>{'🔒 locked' if p['locked'] else 'open'}</td></tr>" for p in periods) or \
             "<tr><td colspan=2 class='muted'>No reporting periods yet — create one on the Import page.</td></tr>"
         body = f"""
+        {_flash(q)}
         <div class='card'><div class='kv'>
           <div>Active database</div><div>{html.escape(self.server.db_path)}</div>
           <div>Schema version</div><div>{html.escape(str(schema))}</div>
@@ -203,6 +216,7 @@ class Handler(BaseHTTPRequestHandler):
             f"<tr><td>{html.escape(r['transaction_type'])}</td><td>{html.escape(r['review_status'])}</td>"
             f"<td>{html.escape(r['dedup_status'] or '')}</td></tr>" for r in rows)
         body = f"""
+        {_flash(q)}
         <div class='card'><h3>Batch review</h3>
         <div class='kv'>
           <div>Staged ready to post</div><div>{review.get('staged_ready_to_post','?')}</div>
@@ -243,7 +257,7 @@ class Handler(BaseHTTPRequestHandler):
                 f"<td>{html.escape(r['missing_information'])}{resolve}</td></tr>")
         table = "".join(items) or "<tr><td colspan=3 class='muted'>No open exceptions.</td></tr>"
         return _page("Exceptions",
-                     f"<div class='card'><h3>Where's Your Proof? register</h3>"
+                     f"{_flash(q)}<div class='card'><h3>Where's Your Proof? register</h3>"
                      f"<table><tr><th>Calculation</th><th>Priority</th><th>Missing / action</th></tr>{table}</table></div>")
 
     def page_report(self, conn, q):
@@ -306,32 +320,39 @@ class Handler(BaseHTTPRequestHandler):
 
     def act_post(self, conn, form):
         batch = form.get("batch", "")
+        q = urllib.parse.quote(batch)
         try:
-            pipeline.post(conn, batch, DEFAULT_POLICY)
+            res = pipeline.post(conn, batch, DEFAULT_POLICY)
             period = (conn.execute("SELECT reporting_period_id FROM transactions WHERE import_batch_id=? LIMIT 1",
                                    (batch,)).fetchone() or {"reporting_period_id": None})["reporting_period_id"]
             pipeline.run_reconciliation(conn, period, batch)
-        except ValueError:
-            pass  # locked period etc. — batch page will show unchanged state
-        return f"/batch?id={urllib.parse.quote(batch)}"
+            msg = (f"Posted {res['posted_transactions']} transaction(s); "
+                   f"{res['snapshots_created']} calculation snapshots recorded.")
+            return f"/batch?id={q}&ok={urllib.parse.quote(msg)}"
+        except ValueError as e:
+            # Surface the refusal with corrective guidance instead of failing silently.
+            return f"/batch?id={q}&err={urllib.parse.quote(str(e))}"
 
     def act_rollback(self, conn, form):
         batch = form.get("batch", "")
         try:
             imports.rollback_batch(conn, batch)
-        except ValueError:
-            pass
-        return "/"
+            return "/?ok=" + urllib.parse.quote("Batch rolled back; staged rows discarded.")
+        except ValueError as e:
+            return f"/batch?id={urllib.parse.quote(batch)}&err={urllib.parse.quote(str(e))}"
 
     def act_resolve(self, conn, form):
         try:
-            resolution.supply_cost_evidence(
+            res = resolution.supply_cost_evidence(
                 conn, form.get("exception_id", ""), product_cost=form.get("product_cost", "0"),
                 policy=DEFAULT_POLICY, matrix=EvidenceMatrix(),
                 vendor_bill_number=form.get("vendor_bill") or None)
-        except (KeyError, ValueError):
-            pass
-        return "/exceptions"
+            msg = (f"Evidence recorded: {len(res['resolved_exceptions'])} exception(s) resolved, "
+                   f"{res['new_snapshots']} new snapshots (prior history preserved).")
+            return "/exceptions?ok=" + urllib.parse.quote(msg)
+        except (KeyError, ValueError, ArithmeticError) as e:
+            return "/exceptions?err=" + urllib.parse.quote(
+                f"Could not record evidence: {e}. Check the cost value (e.g. 90.00).")
 
     def act_backup(self, conn, form):
         conn.commit()

@@ -58,6 +58,15 @@ def _scope(conn, args):
     period_id = _period_id(conn, getattr(args, "period", None))
     batch = getattr(args, "batch", None)
     if batch:
+        if not period_id:
+            # Batch reports require a period; derive it from the batch rather than crashing.
+            row = conn.execute(
+                """SELECT reporting_period_id FROM transactions WHERE import_batch_id=?
+                   AND reporting_period_id IS NOT NULL LIMIT 1""", (batch,)).fetchone()
+            period_id = row["reporting_period_id"] if row else None
+        if not period_id:
+            raise ValueError(
+                f"batch {batch} has no reporting period; pass --period YYYY-MM explicitly")
         return ReportScope.for_batch(period_id, batch, DEFAULT_POLICY)
     if getattr(args, "all_time", False) or not period_id:
         return ReportScope.all_time_scope(DEFAULT_POLICY)
@@ -163,7 +172,11 @@ def cmd_reconcile(args, conn) -> int:
 
 
 def cmd_report(args, conn) -> int:
-    scope = _scope(conn, args)
+    try:
+        scope = _scope(conn, args)
+    except ValueError as e:
+        print(f"[report] {e}", file=sys.stderr)
+        return EXIT_ERROR
     rep = batch_report.build_report(conn, scope, DEFAULT_POLICY)
     print(json.dumps(rep, indent=2, default=str))
     if not rep["valid"]:
@@ -173,7 +186,11 @@ def cmd_report(args, conn) -> int:
 
 
 def cmd_export(args, conn) -> int:
-    scope = _scope(conn, args)
+    try:
+        scope = _scope(conn, args)
+    except ValueError as e:
+        print(f"[export] {e}", file=sys.stderr)
+        return EXIT_ERROR
     rep = batch_report.build_report(conn, scope, DEFAULT_POLICY)
     if not rep["valid"]:
         print("[export] REFUSED — report failed integrity assertions", file=sys.stderr)

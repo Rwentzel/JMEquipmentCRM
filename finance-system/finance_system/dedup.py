@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from .db import utcnow_iso
 from .ids import new_id
+from .money import Money, quantity_from_stored
 
 
 def _invoice_number(conn, txn_id) -> str | None:
@@ -19,10 +20,18 @@ def _invoice_number(conn, txn_id) -> str | None:
 
 
 def _line_amount_minor(conn, txn_id) -> int:
-    r = conn.execute(
-        """SELECT COALESCE(SUM(COALESCE(quantity_minor,0)/10000.0 * COALESCE(unit_sales_price_minor,0)),0) AS amt
-           FROM transaction_lines WHERE transaction_id=?""", (txn_id,)).fetchone()
-    return int(round(r["amt"] or 0))
+    """Extended amount for duplicate matching, in exact integer minor units.
+
+    Computed in Python with Decimal/Money rather than SQL floating point: SQLite would
+    force these through binary floats, which ADR-0003 forbids for monetary values (and
+    which could make two identical documents compare unequal).
+    """
+    total = Money.zero()
+    for r in conn.execute(
+            """SELECT COALESCE(quantity_minor,0) AS q, COALESCE(unit_sales_price_minor,0) AS p
+               FROM transaction_lines WHERE transaction_id=?""", (txn_id,)):
+        total = total + Money.from_minor(r["p"]).multiply(quantity_from_stored(r["q"]))
+    return total.minor
 
 
 @dataclass
@@ -86,22 +95,38 @@ def _signals_for(conn, t) -> dict:
 
 
 def find_likely_duplicates(conn: sqlite3.Connection, batch_id: str) -> list[LikelyDup]:
-    """Explainable pairwise scoring among staged rows (and vs posted). Never merges."""
+    """Explainable pairwise scoring among staged rows and against comparable posted rows.
+
+    Never merges. The posted comparison pool is limited to the SAME reporting period(s) as
+    the batch: a likely-duplicate is only meaningful within a comparable window, and an
+    unbounded pool would make this scan the entire history every import.
+    """
     staged = conn.execute(
         "SELECT * FROM transactions WHERE import_batch_id=? AND posted=0", (batch_id,)).fetchall()
-    posted = conn.execute("SELECT * FROM transactions WHERE posted=1").fetchall()
+    period_ids = [r[0] for r in conn.execute(
+        """SELECT DISTINCT reporting_period_id FROM transactions
+           WHERE import_batch_id=? AND reporting_period_id IS NOT NULL""", (batch_id,))]
+    if period_ids:
+        ph = ",".join("?" * len(period_ids))
+        posted = conn.execute(
+            f"SELECT * FROM transactions WHERE posted=1 AND reporting_period_id IN ({ph})",
+            period_ids).fetchall()
+    else:
+        posted = conn.execute("SELECT * FROM transactions WHERE posted=1").fetchall()
+
     sig = {t["id"]: _signals_for(conn, t) for t in staged}
     for p in posted:
         sig[p["id"]] = _signals_for(conn, p)
 
     out: list[LikelyDup] = []
+    staged_count = len(staged)
     pool = list(staged) + list(posted)
     for i, a in enumerate(staged):
-        for b in pool:
+        # Compare each staged row against later staged rows (no double counting) and every
+        # comparable posted row. Index arithmetic avoids O(n) `in`/`index` scans per pair.
+        for j in range(i + 1, len(pool)) if staged_count else []:
+            b = pool[j]
             if a["id"] == b["id"]:
-                continue
-            # avoid double-counting staged/staged pairs
-            if b in staged and pool.index(b) <= i:
                 continue
             sa, sb = sig[a["id"]], sig[b["id"]]
             matching, conflicting = [], []
