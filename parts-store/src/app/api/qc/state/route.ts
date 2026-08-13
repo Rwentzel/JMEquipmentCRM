@@ -40,6 +40,10 @@ export async function PUT(req: Request) {
   if (Array.isArray(body.clients)) patch.clients = body.clients;
   if (Array.isArray(body.catalog)) patch.catalog = body.catalog;
   if (body.settings && typeof body.settings === "object") patch.settings = body.settings;
-  const state = await patchQcState(patch);
-  return NextResponse.json({ ok: true, state });
+  // The authoritative post-merge state goes back to the client so it can
+  // reconcile: any quote whose stored copy was newer (e.g. a customer signed
+  // it while this tab was open) is reported in `conflicts` and returned as
+  // the server holds it, not as the client sent it.
+  const { state, conflicts } = await patchQcState(patch);
+  return NextResponse.json({ ok: true, state, conflicts });
 }

@@ -13,9 +13,10 @@
  * exported API is intentionally small so that swap is a one-file change.
  */
 
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
+import { audit } from "@/lib/auditLog";
 
 export type RfqStatus = "new" | "reviewing" | "quoted" | "won" | "lost" | "archived";
 
@@ -69,21 +70,63 @@ function locked<T>(fn: () => Promise<T>): Promise<T> {
   return next;
 }
 
-async function readAll(): Promise<StoredRfq[]> {
+/**
+ * Move an unreadable store aside so the next write cannot overwrite it.
+ * Without this, one corrupt byte plus one ordinary customer submission
+ * silently replaces the entire RFQ book with a single record.
+ */
+async function quarantine(): Promise<void> {
+  const dest = `${storePath()}.corrupt-${new Date().toISOString().replace(/[:.]/g, "-")}`;
   try {
-    const raw = await readFile(storePath(), "utf8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as StoredRfq[]) : [];
+    await rename(storePath(), dest);
+    audit("rfq_store_corrupt");
+    console.error(`[rfq-store] unreadable store quarantined to ${dest} — starting a fresh store; recover the file before working the queue`);
   } catch {
-    return []; // missing or corrupt file → empty store (corrupt file is preserved on disk)
+    /* best effort — if we cannot preserve it we still must not write over it silently */
   }
 }
 
+async function readAll(): Promise<StoredRfq[]> {
+  let raw: string;
+  try {
+    raw = await readFile(storePath(), "utf8");
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw err; // EACCES/EMFILE: fail loudly rather than pretend the store is empty
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) return parsed as StoredRfq[];
+  } catch {
+    /* fall through to quarantine */
+  }
+  await quarantine();
+  return [];
+}
+
+/** Atomic AND durable — fsync the temp file and the directory around the rename. */
 async function writeAll(rfqs: StoredRfq[]): Promise<void> {
   await mkdir(dataDir(), { recursive: true });
   const tmp = storePath() + "." + randomUUID().slice(0, 8) + ".tmp";
-  await writeFile(tmp, JSON.stringify(rfqs, null, 2), "utf8");
-  await rename(tmp, storePath());
+  try {
+    const fh = await open(tmp, "w");
+    try {
+      await fh.writeFile(JSON.stringify(rfqs, null, 2), "utf8");
+      await fh.sync();
+    } finally {
+      await fh.close();
+    }
+    await rename(tmp, storePath());
+    const dir = await open(dataDir(), "r");
+    try {
+      await dir.sync();
+    } finally {
+      await dir.close();
+    }
+  } catch (err) {
+    await unlink(tmp).catch(() => undefined);
+    throw err;
+  }
 }
 
 export interface NewRfqInput {
@@ -164,9 +207,13 @@ export function sweepRetention(days: number, apply = false): Promise<RetentionRe
     const kept = all.filter((r) => !isExpired(r));
     let archiveFile: string | null = null;
     if (apply && old.length > 0) {
-      archiveFile = path.join(dataDir(), `rfq-archive-${cutoff.slice(0, 10)}.json`);
+      // Named for the RUN, not the cutoff: two sweeps with different windows
+      // can share a cutoff date, and the archive must never overwrite an
+      // earlier one — it is the only copy of the purged records.
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      archiveFile = path.join(dataDir(), `rfq-archive-${stamp}-cutoff-${cutoff.slice(0, 10)}.json`);
       await mkdir(dataDir(), { recursive: true });
-      await writeFile(archiveFile, JSON.stringify(old, null, 2), "utf8");
+      await writeFile(archiveFile, JSON.stringify(old, null, 2), { encoding: "utf8", flag: "wx" });
       await writeAll(kept);
     }
     return { cutoff, archived: old.length, kept: kept.length, archiveFile };
