@@ -134,6 +134,13 @@ export interface QcQuote {
   cfgOpts?: string[];
   /** Capability token for the public /q/[id]/[token] link — the quote id alone is not enough to view it. */
   token?: string;
+  /**
+   * Optimistic-concurrency counter, bumped by the server on every accepted
+   * write. A client PUT carrying a lower rev than the stored copy is a stale
+   * snapshot and is refused for that quote — this is what stops a long-open
+   * staff tab from overwriting a customer's acceptance.
+   */
+  rev?: number;
 }
 
 export interface QcClient {
