@@ -19,7 +19,7 @@ config. Going live is configuration, not code. Work through this list in order.
 | `SMTP_PORT` | " | `587` (STARTTLS) or `465` (TLS). Default 587. |
 | `SMTP_USER` / `SMTP_PASS` | " | SMTP credentials (use an app password / API key, not a personal login) |
 | `RFQ_NOTIFY_TO` | " | The desk inbox, e.g. `parts@jmequipment.net`. Also receives `[ACCEPTED]` alerts when a customer signs a quote. |
-| `RFQ_NOTIFY_FROM` | optional | Sender address if different from `SMTP_USER` |
+| `RFQ_NOTIFY_FROM` | **set this** | The address the notification is sent *from*, e.g. `parts@jmequipment.net`. Only optional when `SMTP_USER` is itself an address — several providers' usernames are not (SendGrid's is the literal `apikey`, SES uses an access-key id, Postmark a token), and the app falls back to `parts-store@jmequipment.net` rather than send a message with no `From` header. Set it explicitly and there is nothing to reason about. |
 | `ANTHROPIC_API_KEY` | optional | Upgrades support/triage/security agents from rules engines to AI |
 | `JME_LAUNCH` | **search indexing** | Set to `live` ONLY at approved launch — flips robots/noindex and publishes the sitemap. Leave unset on previews. |
 | `RFQ_DATA_DIR` | optional | Where the RFQ store + audit log live. Default `.data/` under the app. Point at a **persistent volume** in production. |
