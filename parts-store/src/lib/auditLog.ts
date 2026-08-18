@@ -31,6 +31,7 @@ export type AuditKind =
   | "qc_concurrent_keep"
   | "qc_store_corrupt"
   | "rfq_store_corrupt"
+  | "rfq_close_error"
   | "mail_sent"
   | "mail_error"
   | "agent_run";

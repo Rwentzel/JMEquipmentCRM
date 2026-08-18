@@ -25,7 +25,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { audit } from "@/lib/auditLog";
 import { SEED_CATALOG, qcDefaults, seedClients, seedQuotes } from "./data";
-import type { QcClient, QcQuote, QcState, QcTombstone } from "./types";
+import type { QcClient, QcQuote, QcState, QcStatus, QcTombstone } from "./types";
+import { getRfq, updateRfqStatus } from "../rfqStore";
 
 function dataDir(): string {
   return process.env.RFQ_DATA_DIR || path.join(process.cwd(), ".data");
@@ -351,8 +352,43 @@ export function patchQcState(patch: QcPatch): Promise<QcPatchResult> {
       tombstones,
     };
     await writeAll(next);
+    await closeSourceRequests(cur.quotes, quotes);
     return { state: next, conflicts };
   });
+}
+
+/** Quote states that mean the request behind it is finished. */
+const CLOSED_QUOTE: ReadonlySet<QcStatus> = new Set<QcStatus>(["accepted", "won", "lost"]);
+
+/**
+ * Close the storefront request a quote came from, once that quote is closed.
+ *
+ * Nothing connected the two, so a request stayed "quoted" for ever — including
+ * after the customer signed. sweepRetention only purges terminal RFQs, so every
+ * request that got as far as a quote sat outside the retention window
+ * permanently, holding the contact's name, email, phone, shipping address and
+ * machine serial. Those are precisely the records that progressed furthest and
+ * hold the most.
+ *
+ * Only an actual transition propagates, and only onto a request the desk has
+ * not already closed itself, so this cannot fight someone working the list. A
+ * failure here is logged and swallowed: the quote save is the customer-facing
+ * write and must not fail because a request could not be re-filed.
+ */
+async function closeSourceRequests(before: QcQuote[], after: QcQuote[]): Promise<void> {
+  const wasClosed = new Map(before.map((q) => [q.id, CLOSED_QUOTE.has(q.status)]));
+  const newly = after.filter((q) => q.rfqRef && CLOSED_QUOTE.has(q.status) && wasClosed.get(q.id) === false);
+  if (newly.length === 0) return;
+  try {
+    const open = new Set(["new", "reviewing", "quoted"]);
+    for (const q of newly) {
+      const current = await getRfq(q.rfqRef!);
+      if (!current || !open.has(current.status)) continue;
+      await updateRfqStatus(q.rfqRef!, q.status === "lost" ? "lost" : "won");
+    }
+  } catch {
+    audit("rfq_close_error", { n: newly.length });
+  }
 }
 
 /** Reset to seed data (Settings → "Restore demo data"). */
@@ -381,6 +417,10 @@ export function mutateQuote(id: string, fn: (q: QcQuote) => QcQuote): Promise<Qc
     const quotes = cur.quotes.slice();
     quotes[i] = updated;
     await writeAll({ ...cur, quotes });
+    // The customer's own acceptance arrives here, not through patchQcState.
+    // Wiring the closure only into the desk's save path left it inert for the
+    // one transition that matters most — the signature.
+    await closeSourceRequests([before], [updated]);
     return updated;
   });
 }

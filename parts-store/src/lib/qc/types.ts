@@ -143,6 +143,14 @@ export interface QcQuote {
    * SKU, the subtitle, and any spec whose key it repeats.
    */
   rfqBuild?: { sku: string; name: string; desc: string; specs: QcSpec[] };
+  /**
+   * The storefront request this quote was raised from.
+   *
+   * Kept as a field rather than left to the "Created from RFQ-…" line in the
+   * notes, which is free text a rep can edit away. Closing the quote closes
+   * that request, which is what lets the retention sweep ever reach it.
+   */
+  rfqRef?: string;
   /** Capability token for the public /q/[id]/[token] link — the quote id alone is not enough to view it. */
   token?: string;
   /**
