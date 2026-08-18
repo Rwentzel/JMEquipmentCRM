@@ -2,16 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { audit, hashKey } from "@/lib/auditLog";
 import { OPS_COOKIE, SESSION_TTL_SECONDS, issueSession, opsMode, verifyLoginToken } from "@/lib/opsAuth";
-import { rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimit } from "@/lib/rateLimit";
 
 /** Ops login/logout. Sets an httpOnly session cookie; never echoes the token. */
 
 export const runtime = "nodejs";
-
-function clientKey(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  return (xff ? xff.split(",")[0]!.trim() : "") || req.headers.get("x-real-ip") || "local";
-}
 
 export async function POST(req: Request) {
   const key = clientKey(req);

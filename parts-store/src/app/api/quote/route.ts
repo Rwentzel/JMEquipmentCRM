@@ -3,7 +3,7 @@ import { catalog } from "@/data/catalog";
 import { details } from "@/data/details";
 import { goodstrongDiagramSkus } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
-import { rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimit } from "@/lib/rateLimit";
 import { sendRfqNotification } from "@/lib/mail";
 import { saveRfq, type StoredRfq, type StoredRfqContact } from "@/lib/rfqStore";
 import { randomUUID } from "node:crypto";
@@ -69,11 +69,6 @@ const GENERIC_FAIL = "Please check the form and try again.";
 // Fallback contact details, for the case where we cannot record the request.
 const JME_PHONE = "(269) 659-0093";
 const JME_EMAIL = "parts@jmequipment.net";
-
-function clientKey(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  return (xff ? xff.split(",")[0]!.trim() : "") || req.headers.get("x-real-ip") || "local";
-}
 
 /** Trim + cap a user-supplied string before persistence. */
 function clean(v: unknown, max: number): string {
