@@ -18,6 +18,7 @@ export type AuditKind =
   | "quote_invalid"
   | "quote_honeypot"
   | "quote_rate_limited"
+  | "quote_store_failed"
   | "assistant_query"
   | "assistant_rate_limited"
   | "ops_login_ok"

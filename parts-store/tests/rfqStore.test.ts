@@ -1,6 +1,7 @@
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
+import { writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -62,4 +63,29 @@ test("concurrent saves do not lose records", async () => {
   await Promise.all(Array.from({ length: 5 }, () => saveRfq(input)));
   const afterCount = (await listRfqs()).length;
   assert.equal(afterCount, beforeCount + 5);
+});
+
+/* ---- storage-failure contract (see src/app/api/quote/route.ts) ---- */
+
+test("saveRfq rejects when the data directory cannot exist, rather than silently dropping the RFQ", async () => {
+  // A regular file where a directory must be: mkdir fails with ENOTDIR even
+  // for root, which chmod-based tests cannot reproduce in a container.
+  const blocker = path.join(mkdtempSync(path.join(tmpdir(), "jme-blocked-")), "not-a-dir");
+  await writeFile(blocker, "regular file");
+
+  const previous = process.env.RFQ_DATA_DIR;
+  process.env.RFQ_DATA_DIR = path.join(blocker, "data");
+  try {
+    await assert.rejects(
+      saveRfq({
+        contact: { company: "Fail Co", name: "Sam", email: "sam@f.com" },
+        items: [{ sku: "JME-BRK-0001", qty: 1 }],
+        freight: false,
+      }),
+      "a failed write must surface as a rejection so the route can tell the customer the truth",
+    );
+  } finally {
+    if (previous === undefined) delete process.env.RFQ_DATA_DIR;
+    else process.env.RFQ_DATA_DIR = previous;
+  }
 });

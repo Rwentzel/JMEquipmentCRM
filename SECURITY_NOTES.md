@@ -51,6 +51,11 @@ introduced. All other headers remain strict.
   `eslint-config-next` cannot load (its bundled `eslint-plugin-react` crashes on
   the v10 rule API). Nothing in that chain is bundled or served. **Re-check when
   `eslint-config-next` supports eslint 10** and restore the single hard gate.
+- Runtime kept on a supported Node release. Node 20 reached end-of-life in
+  April 2026, so the Docker image, both CI workflows, and `engines` now pin
+  Node 22 LTS (supported into 2027). An EOL runtime stops receiving security
+  patches entirely, which no amount of dependency auditing compensates for —
+  re-check this when Node 22 approaches its own EOL.
 - Secrets manager for integration credentials; never in the repo.
 - Per-user authentication for the ops desk (replace shared token); keep it off public navigation.
 - Edge/server rate limiting and abuse protection (replace in-memory limiter).
