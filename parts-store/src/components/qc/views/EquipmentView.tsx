@@ -11,7 +11,7 @@
 import type { QcApp } from "@/components/qc/useQcApp";
 import type { QcMachine } from "@/lib/qc/types";
 import { cfgMinBase, usd } from "@/lib/qc/logic";
-import { NumberInput } from "@/components/qc/NumberInput";
+import { NumberInput } from "@/components/NumberInput";
 
 function chipStyle(active: boolean): React.CSSProperties {
   return {
