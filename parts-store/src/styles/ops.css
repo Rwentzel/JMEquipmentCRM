@@ -155,7 +155,9 @@
   font-weight: var(--fw-semi);
   letter-spacing: var(--track-tag);
   text-transform: uppercase;
-  color: var(--paper-dim);
+  /* --paper-dim reads 2.58:1 against this button's grey fill; the ramp's next
+   * step up clears AA without changing the design's intent. */
+  color: #edece9;
   border: var(--bd-hair);
   border-radius: var(--r-pill);
 }
@@ -198,7 +200,10 @@
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
   text-transform: uppercase;
-  color: var(--paper-dim);
+  /* 10px mono on the dark chip. The inactive chip is drawn at opacity .55, so
+   * the colour has to be set bright enough to survive it: this lands at 4.5:1
+   * once composited, where --paper-dim came out at 3.26:1. */
+  color: #e6e1d8;
 }
 
 .ops__sechd {

@@ -195,6 +195,7 @@ export function PipelineView({ app }: { app: QcApp }) {
                 <div>
                   <select
                     className="jme-select"
+                    aria-label={`Status for quote ${r.id}`}
                     value={r.status}
                     onChange={(e) => app.onPipeStatus(r.id, e.target.value)}
                     style={{ padding: "5px 26px 5px 9px", fontSize: "12px", width: "auto" }}

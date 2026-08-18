@@ -75,7 +75,7 @@ export function DashView({ app }: { app: QcApp }) {
             </p>
             <div style={{ display: "flex", gap: "10px", marginTop: "20px", flexWrap: "wrap" }}>
               <button className="jme-btn jme-btn--sm" onClick={() => app.startQuote()}>+ New Quote</button>
-              <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={() => app.go("equipment")}>Browse Equipment</button>
+              <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--on-dark" onClick={() => app.go("equipment")}>Browse Equipment</button>
             </div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", border: "1px solid #3a3835", borderRadius: "var(--r-1)", overflow: "hidden", flex: "0 1 auto" }}>
@@ -158,8 +158,8 @@ export function DashView({ app }: { app: QcApp }) {
             <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "14px", letterSpacing: ".08em", color: "var(--paper-dim)", marginBottom: "14px" }}>Quick Start</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
               <button className="jme-btn jme-btn--sm jme-btn--block" onClick={() => app.startQuote()}>New Equipment Quote</button>
-              <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--block" onClick={() => app.go("equipment")}>Browse Equipment</button>
-              <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--block" onClick={() => app.go("parts")}>Parts Quote</button>
+              <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--block jme-btn--on-dark" onClick={() => app.go("equipment")}>Browse Equipment</button>
+              <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--block jme-btn--on-dark" onClick={() => app.go("parts")}>Parts Quote</button>
             </div>
           </div>
         </div>

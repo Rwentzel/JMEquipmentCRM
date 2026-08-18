@@ -7,10 +7,11 @@
  * not in the browser.
  */
 
-import React from "react";
+import React, { useId } from "react";
 import type { QcApp } from "../useQcApp";
 import { TERM_TPL } from "@/lib/qc/labels";
 import type { QcSettings } from "@/lib/qc/types";
+import { NumberInput } from "@/components/NumberInput";
 
 const card: React.CSSProperties = {
   background: "#fff",
@@ -29,15 +30,27 @@ const h3: React.CSSProperties = {
 };
 
 function Field({ app, label, k, num }: { app: QcApp; label: string; k: keyof QcSettings; num?: boolean }) {
+  // The visible label was not tied to its input, so a screen reader announced
+  // nine unnamed boxes on this screen. One id wires all of them.
+  const id = useId();
   return (
     <div className="jme-field">
-      <label className="jme-field__label">{label}</label>
-      <input
-        className="jme-input"
-        type={num ? "number" : "text"}
-        value={String(app.settings[k] ?? "")}
-        onChange={(e) => app.setSetting(k, num ? +e.target.value || 0 : e.target.value)}
-      />
+      <label className="jme-field__label" htmlFor={id}>{label}</label>
+      {num ? (
+        <NumberInput
+          id={id}
+          className="jme-input"
+          value={Number(app.settings[k] ?? 0)}
+          onChange={(n) => app.setSetting(k, n)}
+        />
+      ) : (
+        <input
+          id={id}
+          className="jme-input"
+          value={String(app.settings[k] ?? "")}
+          onChange={(e) => app.setSetting(k, e.target.value)}
+        />
+      )}
     </div>
   );
 }

@@ -185,7 +185,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Status</label>
-              <select className="jme-select" value={bq.status} onChange={(e) => app.setBq("status", e.target.value)}>
+              <select aria-label="Status" className="jme-select" value={bq.status} onChange={(e) => app.setBq("status", e.target.value)}>
                 <option value="draft">Draft</option>
                 <option value="sent">Sent</option>
                 <option value="accepted">Accepted</option>
@@ -195,14 +195,14 @@ export function BuilderView({ app }: { app: QcApp }) {
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Valid (days)</label>
-              <NumberInput className="jme-input" value={bq.validity} onChange={(n) => app.setBq("validity", n)} />
+              <NumberInput aria-label="Valid (days)" className="jme-input" value={bq.validity} onChange={(n) => app.setBq("validity", n)} />
             </div>
           </div>
 
           {bq.status === "lost" && (
             <div className="jme-field" style={{ marginTop: "14px" }}>
               <label className="jme-field__label" style={{ color: "var(--jme-red)" }}>Loss Reason</label>
-              <select className="jme-select" value={bq.lostReason || ""} onChange={(e) => app.setBq("lostReason", e.target.value)}>
+              <select aria-label="Loss Reason" className="jme-select" value={bq.lostReason || ""} onChange={(e) => app.setBq("lostReason", e.target.value)}>
                 <option value="">— Select reason —</option>
                 {LOSS_REASONS.map((r) => (
                   <option key={r} value={r}>{r}</option>
@@ -214,7 +214,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div className="jme-eyebrow" style={{ margin: "20px 0 12px" }}>Machine</div>
           <div className="jme-field">
             <label className="jme-field__label">Equipment</label>
-            <select className="jme-select" value={bq.machineId ?? ""} onChange={(e) => app.onMachineChange(e.target.value)}>
+            <select aria-label="Equipment" className="jme-select" value={bq.machineId ?? ""} onChange={(e) => app.onMachineChange(e.target.value)}>
               {app.catalog.map((m) => (
                 <option key={m.id} value={m.id}>{m.name + " — " + m.sku}</option>
               ))}
@@ -323,7 +323,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div className="jme-eyebrow" style={{ margin: "20px 0 12px" }}>Customer</div>
           <div className="jme-field" style={{ marginBottom: "12px" }}>
             <label className="jme-field__label">Load Existing Client</label>
-            <select className="jme-select" value="" onChange={(e) => app.loadClientInto(e.target.value)}>
+            <select aria-label="Load Existing Client" className="jme-select" value="" onChange={(e) => app.loadClientInto(e.target.value)}>
               <option value="">— Select client —</option>
               {app.clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.company}</option>
@@ -332,7 +332,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           </div>
           <div className="jme-field" style={{ marginBottom: "12px" }}>
             <label className="jme-field__label">Company</label>
-            <input
+            <input aria-label="Company"
               className="jme-input"
               value={bq.clientCompany}
               onChange={(e) => app.setBq("clientCompany", e.target.value)}
@@ -342,26 +342,26 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Contact</label>
-              <input className="jme-input" value={bq.clientContact} onChange={(e) => app.setBq("clientContact", e.target.value)} />
+              <input aria-label="Contact" className="jme-input" value={bq.clientContact} onChange={(e) => app.setBq("clientContact", e.target.value)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Department</label>
-              <input className="jme-input" value={bq.clientDept} onChange={(e) => app.setBq("clientDept", e.target.value)} />
+              <input aria-label="Department" className="jme-input" value={bq.clientDept} onChange={(e) => app.setBq("clientDept", e.target.value)} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">City / State</label>
-              <input className="jme-input" value={bq.clientCity} onChange={(e) => app.setBq("clientCity", e.target.value)} />
+              <input aria-label="City / State" className="jme-input" value={bq.clientCity} onChange={(e) => app.setBq("clientCity", e.target.value)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">PO Number</label>
-              <input className="jme-input" value={bq.po} onChange={(e) => app.setBq("po", e.target.value)} />
+              <input aria-label="PO Number" className="jme-input" value={bq.po} onChange={(e) => app.setBq("po", e.target.value)} />
             </div>
           </div>
           <div className="jme-field" style={{ marginBottom: "10px" }}>
             <label className="jme-field__label">Email</label>
-            <input
+            <input aria-label="Email"
               className="jme-input"
               type="email"
               value={bq.clientEmail}
@@ -377,17 +377,17 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Base Equipment ($)</label>
-              <NumberInput className="jme-input" value={bq.base} onChange={(n) => app.setBq("base", n)} />
+              <NumberInput aria-label="Base Equipment ($)" className="jme-input" value={bq.base} onChange={(n) => app.setBq("base", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Crating ($)</label>
-              <NumberInput className="jme-input" value={bq.crating} onChange={(n) => app.setBq("crating", n)} />
+              <NumberInput aria-label="Crating ($)" className="jme-input" value={bq.crating} onChange={(n) => app.setBq("crating", n)} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Payment</label>
-              <select className="jme-select" value={bq.payment} onChange={(e) => app.setBq("payment", e.target.value)}>
+              <select aria-label="Payment" className="jme-select" value={bq.payment} onChange={(e) => app.setBq("payment", e.target.value)}>
                 <option value="50-50">50% PO / 50% Ship</option>
                 <option value="30-60-10">30 / 60 / 10</option>
                 <option value="net30">Net 30</option>
@@ -395,19 +395,19 @@ export function BuilderView({ app }: { app: QcApp }) {
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Lead Time</label>
-              <input className="jme-input" value={bq.lead} onChange={(e) => app.setBq("lead", e.target.value)} />
+              <input aria-label="Lead Time" className="jme-input" value={bq.lead} onChange={(e) => app.setBq("lead", e.target.value)} />
             </div>
           </div>
           <div className="jme-field" style={{ marginBottom: "8px" }}>
             <label className="jme-field__label">Warranty</label>
-            <input className="jme-input" value={bq.warranty} onChange={(e) => app.setBq("warranty", e.target.value)} />
+            <input aria-label="Warranty" className="jme-input" value={bq.warranty} onChange={(e) => app.setBq("warranty", e.target.value)} />
           </div>
 
           <div className="jme-eyebrow" style={{ margin: "22px 0 12px" }}>Adjustments</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Discount Type</label>
-              <select className="jme-select" value={bq.discMode || "amt"} onChange={(e) => app.setBq("discMode", e.target.value)}>
+              <select aria-label="Discount Type" className="jme-select" value={bq.discMode || "amt"} onChange={(e) => app.setBq("discMode", e.target.value)}>
                 <option value="amt">Flat ($)</option>
                 <option value="pct">Percent (%)</option>
               </select>
@@ -415,7 +415,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             {bq.discMode === "pct" ? (
               <div className="jme-field">
                 <label className="jme-field__label">Discount (%)</label>
-                <NumberInput
+                <NumberInput aria-label="Discount (%)"
                   className="jme-input"
                   min={0}
                   max={100}
@@ -426,7 +426,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             ) : (
               <div className="jme-field">
                 <label className="jme-field__label">Discount ($)</label>
-                <NumberInput
+                <NumberInput aria-label="Discount ($)"
                   className="jme-input"
                   min={0}
                   value={bq.discAmt ?? 0}
@@ -438,21 +438,21 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Freight Estimate ($)</label>
-              <NumberInput className="jme-input" min={0} value={bq.freight ?? 0} onChange={(n) => app.setBq("freight", n)} />
+              <NumberInput aria-label="Freight Estimate ($)" className="jme-input" min={0} value={bq.freight ?? 0} onChange={(n) => app.setBq("freight", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Import Tariff (%)</label>
-              <NumberInput className="jme-input" min={0} value={bq.tariffPct ?? 0} onChange={(n) => app.setBq("tariffPct", n)} />
+              <NumberInput aria-label="Import Tariff (%)" className="jme-input" min={0} value={bq.tariffPct ?? 0} onChange={(n) => app.setBq("tariffPct", n)} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Sales Tax (%)</label>
-              <NumberInput className="jme-input" min={0} value={bq.taxPct ?? 0} onChange={(n) => app.setBq("taxPct", n)} />
+              <NumberInput aria-label="Sales Tax (%)" className="jme-input" min={0} value={bq.taxPct ?? 0} onChange={(n) => app.setBq("taxPct", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label" style={{ color: "var(--jme-gold)" }}>Your Cost ($) · internal</label>
-              <NumberInput className="jme-input" min={0} value={bq.cost ?? 0} onChange={(n) => app.setBq("cost", n)} />
+              <NumberInput aria-label="Your Cost ($) · internal" className="jme-input" min={0} value={bq.cost ?? 0} onChange={(n) => app.setBq("cost", n)} />
             </div>
           </div>
 
@@ -527,11 +527,11 @@ export function BuilderView({ app }: { app: QcApp }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div className="jme-field">
                   <label className="jme-field__label">Cores / day</label>
-                  <NumberInput className="jme-input" value={bq.roiCores} onChange={(n) => app.setBq("roiCores", n)} />
+                  <NumberInput aria-label="Cores / day" className="jme-input" value={bq.roiCores} onChange={(n) => app.setBq("roiCores", n)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Days / year</label>
-                  <NumberInput className="jme-input" value={bq.roiDays} onChange={(n) => app.setBq("roiDays", n)} />
+                  <NumberInput aria-label="Days / year" className="jme-input" value={bq.roiDays} onChange={(n) => app.setBq("roiDays", n)} />
                 </div>
               </div>
             </>
@@ -541,7 +541,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "12px", marginBottom: "12px", alignItems: "end" }}>
             <div className="jme-field">
               <label className="jme-field__label">Reminder Date</label>
-              <input className="jme-input" type="date" value={bq.followUpDate} onChange={(e) => app.setBq("followUpDate", e.target.value)} />
+              <input aria-label="Reminder Date" className="jme-input" type="date" value={bq.followUpDate} onChange={(e) => app.setBq("followUpDate", e.target.value)} />
             </div>
             <label
               style={{
@@ -560,7 +560,7 @@ export function BuilderView({ app }: { app: QcApp }) {
           </div>
           <div className="jme-field" style={{ marginBottom: "4px" }}>
             <label className="jme-field__label">Reminder Note</label>
-            <input
+            <input aria-label="Reminder Note"
               className="jme-input"
               value={bq.followUpNote}
               onChange={(e) => app.setBq("followUpNote", e.target.value)}
@@ -584,7 +584,7 @@ export function BuilderView({ app }: { app: QcApp }) {
               {summaryRows.map((r, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "12.5px", padding: "3px 0" }}>
                   <span style={{ color: "var(--muted)" }}>{r.label}</span>
-                  <b className="jme-mono" style={r.style}>{r.amount}</b>
+                  <b className="jme-mono" style={{ color: "var(--ink-text)", ...r.style }}>{r.amount}</b>
                 </div>
               ))}
             </div>
@@ -649,8 +649,8 @@ export function BuilderView({ app }: { app: QcApp }) {
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="jme-btn jme-btn--sm" onClick={() => app.saveQuote()} style={{ flex: 1 }}>Save</button>
-            <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={app.previewClient} style={{ flex: 1 }}>Preview</button>
-            <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={app.sendCurrent} style={{ flex: 1 }}>Send</button>
+            <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--on-dark" onClick={app.previewClient} style={{ flex: 1 }}>Preview</button>
+            <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--on-dark" onClick={app.sendCurrent} style={{ flex: 1 }}>Send</button>
           </div>
           {/* Link controls only make sense once the quote exists in the
               pipeline — an unsaved draft has no link to share or revoke. */}
@@ -664,7 +664,17 @@ export function BuilderView({ app }: { app: QcApp }) {
           )}
         </div>
       </aside>
-      <div id="builderPreviewCol" ref={colRef} style={{ background: "#33312e", overflow: "auto", height: "100vh" }}>
+      <div
+        id="builderPreviewCol"
+        ref={colRef}
+        // The preview scrolls but holds nothing focusable, so a keyboard user could
+        // not reach the rest of the quote. tabIndex makes the pane itself scrollable
+        // with the arrow keys; the region role gives it a name when landed on.
+        tabIndex={0}
+        role="region"
+        aria-label="Quote preview"
+        style={{ background: "#33312e", overflow: "auto", height: "100vh" }}
+      >
         <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: "26px 18px 60px" }}>
           <div id="builderPreviewStage" ref={stageRef} style={{ width: "790px", flex: "none" }}>
             {doc && <QuoteDoc doc={doc} />}

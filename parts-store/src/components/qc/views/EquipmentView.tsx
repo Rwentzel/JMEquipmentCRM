@@ -252,24 +252,24 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
           <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px dashed var(--hairline-2)", display: "flex", flexDirection: "column", gap: "8px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Photo</label>
-              <input className="jme-input" type="file" accept="image/*" onChange={onPhotoFile} style={{ padding: "7px 9px" }} />
+              <input aria-label="Photo" className="jme-input" type="file" accept="image/*" onChange={onPhotoFile} style={{ padding: "7px 9px" }} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Name</label>
-              <input className="jme-input" value={m.name} onChange={(e) => app.setMachineField(m.id, "name", e.target.value)} style={{ padding: "7px 9px" }} />
+              <input aria-label="Name" className="jme-input" value={m.name} onChange={(e) => app.setMachineField(m.id, "name", e.target.value)} style={{ padding: "7px 9px" }} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Subtitle</label>
-              <input className="jme-input" value={m.sub} onChange={(e) => app.setMachineField(m.id, "sub", e.target.value)} style={{ padding: "7px 9px" }} />
+              <input aria-label="Subtitle" className="jme-input" value={m.sub} onChange={(e) => app.setMachineField(m.id, "sub", e.target.value)} style={{ padding: "7px 9px" }} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <div className="jme-field">
                 <label className="jme-field__label">SKU</label>
-                <input className="jme-input" value={m.sku} onChange={(e) => app.setMachineField(m.id, "sku", e.target.value)} style={{ padding: "7px 9px" }} />
+                <input aria-label="SKU" className="jme-input" value={m.sku} onChange={(e) => app.setMachineField(m.id, "sku", e.target.value)} style={{ padding: "7px 9px" }} />
               </div>
               <div className="jme-field">
                 <label className="jme-field__label">Base ($)</label>
-                <NumberInput
+                <NumberInput aria-label="Base ($)"
                   className="jme-input"
                   value={m.base}
                   onChange={(n) => app.setMachineField(m.id, "base", n)}
@@ -280,16 +280,16 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
               <div className="jme-field">
                 <label className="jme-field__label">Lead Time</label>
-                <input className="jme-input" value={m.lead} onChange={(e) => app.setMachineField(m.id, "lead", e.target.value)} style={{ padding: "7px 9px" }} />
+                <input aria-label="Lead Time" className="jme-input" value={m.lead} onChange={(e) => app.setMachineField(m.id, "lead", e.target.value)} style={{ padding: "7px 9px" }} />
               </div>
               <div className="jme-field">
                 <label className="jme-field__label">Warranty</label>
-                <input className="jme-input" value={m.warranty} onChange={(e) => app.setMachineField(m.id, "warranty", e.target.value)} style={{ padding: "7px 9px" }} />
+                <input aria-label="Warranty" className="jme-input" value={m.warranty} onChange={(e) => app.setMachineField(m.id, "warranty", e.target.value)} style={{ padding: "7px 9px" }} />
               </div>
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Description</label>
-              <textarea
+              <textarea aria-label="Description"
                 className="jme-textarea"
                 rows={2}
                 value={m.desc}
