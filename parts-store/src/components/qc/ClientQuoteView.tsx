@@ -64,6 +64,7 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
     <div style={{ minHeight: "100vh", background: "#33312e" }} data-screen-label="Client Quote View">
       <div
         data-print-hide
+        className="qc-clienthead"
         style={{ background: "var(--ink-2)", color: "#fff", padding: "13px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 6, borderBottom: "1px solid #000" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

@@ -115,9 +115,32 @@ export function initConfig(q: QcQuote, m: QcMachine | null): QcQuote {
   return q;
 }
 
+/**
+ * The configuration a quote effectively has: the machine's axis defaults
+ * overlaid with anything explicitly chosen.
+ *
+ * Stored quotes routinely carry no `config` at all — the builder fills it in
+ * memory via initConfig(), but nothing writes it back unless the rep opens
+ * the configurator. Reading `q.config` directly therefore renders a customer
+ * quote as `" Head · " Frame · JME-VCS-`, while the same quote looks correct
+ * to staff. Every template/spec path resolves through here instead.
+ */
+export function effConfig(q: QcQuote, machine: QcMachine | null): Record<string, string> {
+  const out: Record<string, string> = {};
+  const axes = (machine && machine.cfg && machine.cfg.axes) || [];
+  axes.forEach((ax) => {
+    out[ax.key] = ax.default;
+  });
+  const conf = q.config || {};
+  Object.keys(conf).forEach((k) => {
+    if (conf[k] != null && conf[k] !== "") out[k] = conf[k]!;
+  });
+  return out;
+}
+
 export function fillTpl(tpl: string, q: QcQuote, machine: QcMachine | null): string {
   const cfg = (machine && machine.cfg) || ({} as QcCfg);
-  const conf = q.config || {};
+  const conf = effConfig(q, machine);
   return String(tpl).replace(/\{(\w+)\}/g, (_, k: string) => {
     if (k.slice(-5) === "Label") {
       const axk = k.slice(0, -5);
@@ -144,8 +167,9 @@ export function resolvedSubtitle(q: QcQuote, machine: QcMachine | null): string 
 export function cfgDerivedSpecs(q: QcQuote, machine: QcMachine | null): QcSpec[] {
   if (!machine || !machine.cfg || !machine.cfg.axes) return [];
   const out: QcSpec[] = [];
+  const conf = effConfig(q, machine);
   machine.cfg.axes.forEach((ax) => {
-    const val = (q.config || {})[ax.key];
+    const val = conf[ax.key];
     const o = (ax.options || []).find((x) => x.v === val);
     if (!o) return;
     if (ax.specLabel) out.push({ k: ax.specLabel, v: o.label });
