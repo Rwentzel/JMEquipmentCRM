@@ -78,6 +78,7 @@ export interface QcApp {
   setLossReason(reason: string): void;
   copyLink(id: string): void;
   openClientView(id: string): void;
+  reissueLink(id: string): void;
   confirmDeleteQuote(id: string): void;
   emailQuote(q: QcQuote): void;
   previewClient(): void;
@@ -466,6 +467,31 @@ export function useQcApp(
       window.open("/q/" + q.id + "/" + (q.token || ""), "_blank");
     },
     [quotes],
+  );
+
+  /**
+   * Rotate a quote's share token. The old link stops working immediately —
+   * the only way to take back a quote sent to the wrong address, short of
+   * deleting the quote itself. Dealer pricing sits behind these links, so
+   * this needs to be one click, not a duplicate-and-delete dance.
+   */
+  const reissueLink = useCallback(
+    (id: string) => {
+      const q = quotes.find((x) => x.id === id);
+      if (!q) return;
+      if (
+        !window.confirm(
+          `Issue a new link for ${q.number}?\n\nThe link already sent to ${q.clientCompany || "the customer"} will stop working immediately.`,
+        )
+      ) {
+        return;
+      }
+      const token = genToken();
+      commitQuotes(quotes.map((x) => (x.id === id ? { ...x, token } : x)));
+      setBqState((b) => (b && b.id === id ? { ...b, token } : b));
+      showToast("New link issued — the old one no longer works", "green");
+    },
+    [quotes, commitQuotes, showToast],
   );
 
   const confirmDeleteQuote = useCallback(
@@ -997,6 +1023,7 @@ export function useQcApp(
       setLossReason: (reason: string) => setLossModal((lm) => (lm ? { ...lm, reason } : lm)),
       copyLink,
       openClientView,
+      reissueLink,
       confirmDeleteQuote,
       emailQuote,
       previewClient,
@@ -1055,7 +1082,7 @@ export function useQcApp(
       quotes, clients, settings, catalog, parts, view, bq, equipCat, partQuery, partFam, pipeFilter, pipeQuery,
       pipeSort, clientId, editEquip, searchOpen, searchQuery, lossModal, toast, machine, effPhoto, baseUrl,
       showToast, go, navNewQuote, startQuote, editQuote, duplicateQuote, deleteQuote, saveQuote, setStatus,
-      onPipeStatus, confirmLoss, copyLink, openClientView, confirmDeleteQuote, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
+      onPipeStatus, confirmLoss, copyLink, openClientView, reissueLink, confirmDeleteQuote, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
       pickConfig, toggleCfgOpt, addAddon, setAddon, removeAddon, setPartQty, removePart, addPartToQuote,
       loadClientInto, saveClientFromBq, addClient, setClientField, deleteClient, startQuoteForClient,
       addMachine, removeMachine, setMachineField, setMachinePhoto, addMachineSpec, setMachineSpec,

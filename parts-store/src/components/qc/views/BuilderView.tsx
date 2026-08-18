@@ -65,6 +65,20 @@ const removeBtn: React.CSSProperties = {
   height: "34px",
 };
 
+const linkActionStyle: React.CSSProperties = {
+  background: "none",
+  border: "none",
+  color: "var(--paper-dim)",
+  fontSize: "11px",
+  letterSpacing: ".06em",
+  textTransform: "uppercase",
+  fontFamily: "var(--font-display)",
+  cursor: "pointer",
+  textDecoration: "underline",
+  textUnderlineOffset: "3px",
+  padding: 0,
+};
+
 export function BuilderView({ app }: { app: QcApp }) {
   const colRef = useRef<HTMLDivElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -641,6 +655,16 @@ export function BuilderView({ app }: { app: QcApp }) {
             <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={app.previewClient} style={{ flex: 1 }}>Preview</button>
             <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={app.sendCurrent} style={{ flex: 1 }}>Send</button>
           </div>
+          {/* Link controls only make sense once the quote exists in the
+              pipeline — an unsaved draft has no link to share or revoke. */}
+          {app.quotes.some((q) => q.id === bq.id) && (
+            <div style={{ display: "flex", gap: "14px", marginTop: "10px", justifyContent: "center" }}>
+              <button onClick={() => app.copyLink(bq.id)} style={linkActionStyle}>Copy client link</button>
+              <button onClick={() => app.reissueLink(bq.id)} style={linkActionStyle} title="Invalidate the link already sent and issue a new one">
+                Reissue link
+              </button>
+            </div>
+          )}
         </div>
       </aside>
       <div id="builderPreviewCol" ref={colRef} style={{ background: "#33312e", overflow: "auto", height: "100vh" }}>

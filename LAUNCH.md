@@ -76,9 +76,9 @@ the variable alone does nothing until the next build. Confirm
   pricing/cost. It lives on the same volume — back it up with the RFQ store. The
   retention sweep deliberately does **not** touch it: accepted quotes are signed
   business records, so purging them is a JM decision, not an automated one.
-- **Quote links** stay valid until the quote is deleted. To cut off a link that
-  was sent to the wrong address, duplicate the quote (the copy gets a fresh
-  token) and delete the original.
+- **Quote links** stay valid until reissued. Sent one to the wrong address?
+  Open the quote in the builder and hit **Reissue link** — the old URL stops
+  working immediately and you get a fresh one to send.
 
 ## Out of scope until explicitly approved
 
