@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, imports, masterdata, periods as periods_mod, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, config as config_mod, imports, masterdata, periods as periods_mod, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -161,6 +161,38 @@ def cmd_resolve(args, conn) -> int:
         return EXIT_ERROR
     conn.commit()
     print(f"[resolve] {json.dumps(res)}")
+    return EXIT_OK
+
+
+def cmd_config(args, conn) -> int:
+    """Show or change controlled configuration (versioned; history is never edited)."""
+    config_mod.bootstrap(conn, actor="cli")
+    if args.action == "show":
+        print(json.dumps({
+            "settings": config_mod.all_settings(conn),
+            "commission_rules_active": config_mod.commission_rules(conn),
+            "policy_versions": config_mod.policy_history(conn),
+            "mapping_profiles": config_mod.mapping_profiles(conn),
+            "evidence_acceptance": config_mod.evidence_acceptance(conn, DEFAULT_POLICY.key()),
+        }, indent=2, default=str))
+        return EXIT_OK
+    try:
+        if args.action == "set":
+            config_mod.set_setting(conn, args.key, args.value, actor="cli")
+            print(f"[config] {args.key} = {args.value}")
+        elif args.action == "rule":
+            config_mod.upsert_commission_rule(
+                conn, source_code=args.key, name=args.name or args.key,
+                basis=args.basis or "gross_profit", rate=args.value, actor="cli")
+            print(f"[config] commission rule {args.key} saved as a new version")
+        elif args.action == "evidence":
+            config_mod.set_evidence_acceptance(conn, DEFAULT_POLICY.key(), args.key,
+                                               args.value, actor="cli")
+            print(f"[config] evidence {args.key} now satisfies '{args.value}'")
+    except (KeyError, ValueError) as e:
+        print(f"[config] REFUSED: {e}", file=sys.stderr)
+        return EXIT_ERROR
+    conn.commit()
     return EXIT_OK
 
 
@@ -406,6 +438,11 @@ def build_parser() -> argparse.ArgumentParser:
     prv = sub.add_parser("restore-preview"); prv.add_argument("path"); prv.set_defaults(func=cmd_restore_preview)
     prs = sub.add_parser("restore"); prs.add_argument("path")
     prs.add_argument("--confirm", action="store_true"); prs.set_defaults(func=cmd_restore)
+    pc = sub.add_parser("config")
+    pc.add_argument("action", choices=["show", "set", "rule", "evidence"])
+    pc.add_argument("key", nargs="?"); pc.add_argument("value", nargs="?")
+    pc.add_argument("--name"); pc.add_argument("--basis")
+    pc.set_defaults(func=cmd_config)
     pm = sub.add_parser("master")
     pm.add_argument("kind", choices=["customer", "vendor", "product"])
     pm.add_argument("query", nargs="?"); pm.add_argument("--id")

@@ -20,7 +20,15 @@
   product price range / price & cost history with aliases. Potential duplicate master records
   are **reported** for review — merging is deliberately not automatic (it would need a
   reversible, audited process). Console **Master data** page and `cli master <kind>`.
-- Tests: 171 → 188.
+- **Controlled configuration (`config.py`, migration `0006`).** Operator-editable settings
+  (export/backup directory, reporting basis, money tolerance, retention months), **versioned
+  calculation policies**, **versioned commission rules**, saved mapping profiles, and
+  evidence-acceptance configuration. The governing rule is enforced in code: a historical
+  policy version can never be overwritten (`record_policy` refuses and tells you to bump the
+  version), and a commission-rule change **supersedes** rather than mutates, so historical
+  commission results stay explicable. Rates accept `10%` or `0.10`. Every change is audited.
+  Console **Configuration** page and `cli config {show,set,rule,evidence}`.
+- Tests: 171 → 197.
 
 ## Exchange 3 — documents, cash application, evidence, crating, restore (2026-07-27)
 Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.

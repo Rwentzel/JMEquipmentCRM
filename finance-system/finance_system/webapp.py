@@ -25,7 +25,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, explain, export as export_mod, imports, masterdata, periods, pipeline, resolution
+from . import backup as backup_mod, batch_report, cash, config as config_mod, explain, export as export_mod, imports, masterdata, periods, pipeline, resolution
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -54,7 +54,7 @@ _NAV = ('<header><h1>JM Equipment — Finance Console</h1>'
         '<a href="/">Dashboard</a><a href="/import">Import</a>'
         '<a href="/exceptions">Exceptions</a><a href="/report">Reports</a>'
         '<a href="/receivables">Receivables</a><a href="/find">Find</a>'
-        '<a href="/master">Master data</a>'
+        '<a href="/master">Master data</a><a href="/config">Configuration</a>'
         '<a href="/periods">Periods</a>'
         '<a href="/backup">Backup</a></nav></header>')
 
@@ -136,7 +136,7 @@ class Handler(BaseHTTPRequestHandler):
         routes = {"/": self.page_dashboard, "/import": self.page_import,
                   "/receivables": self.page_receivables, "/find": self.page_find,
                   "/transaction": self.page_transaction, "/periods": self.page_periods,
-                  "/master": self.page_master,
+                  "/master": self.page_master, "/config": self.page_config,
                   "/exceptions": self.page_exceptions, "/report": self.page_report,
                   "/batch": self.page_batch, "/backup": self.page_backup}
         fn = routes.get(parsed.path)
@@ -155,7 +155,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             handler = {"/import": self.act_import, "/post": self.act_post,
                        "/rollback": self.act_rollback, "/resolve": self.act_resolve,
-                       "/backup": self.act_backup, "/period": self.act_period}.get(parsed.path)
+                       "/backup": self.act_backup, "/period": self.act_period,
+                       "/config": self.act_config}.get(parsed.path)
             if not handler:
                 return self._send(404, _page("Not found", "<div class='card'>Not found.</div>"))
             location = handler(conn, form)
@@ -509,6 +510,57 @@ class Handler(BaseHTTPRequestHandler):
                      f"{table}</table><p class='muted'>A period must be verified before locking. "
                      f"Reopening a locked period requires an authorizer and a written reason; both are audited.</p></div>")
 
+    def page_config(self, conn, q):
+        config_mod.bootstrap(conn)
+        settings = config_mod.all_settings(conn)
+        srows = "".join(
+            f"""<tr><td>{html.escape(k)}</td><td>
+              <form method='post' action='/config' style='display:flex;gap:6px'>
+                <input type='hidden' name='what' value='setting'>
+                <input type='hidden' name='key' value='{html.escape(k)}'>
+                <input type='text' name='value' value='{html.escape(v)}'>
+                <input type='submit' value='Save'></form></td></tr>""" for k, v in settings.items())
+        rules = "".join(
+            f"<tr><td>{html.escape(r['source_code'] or '')}</td><td>{html.escape(r['name'])}</td>"
+            f"<td>{html.escape(r['basis'])}</td><td>{html.escape(r['rate_canonical'])}</td>"
+            f"<td>v{r['version']}</td></tr>" for r in config_mod.commission_rules(conn))
+        pol = "".join(
+            f"<tr><td>{html.escape(p['name'])}</td><td>v{p['version']}</td>"
+            f"<td>{'active' if p['active'] else 'historical'}</td>"
+            f"<td class='muted'>{html.escape(p['created_at'])}</td></tr>"
+            for p in config_mod.policy_history(conn))
+        acc = config_mod.evidence_acceptance(conn, DEFAULT_POLICY.key())
+        opts = lambda cur: "".join(
+            f"<option{' selected' if s2 == cur else ''}>{s2}</option>"
+            for s2 in ("verified", "provisional", "rejected"))
+        arows = "".join(
+            f"""<tr><td>{html.escape(t)}</td><td>
+              <form method='post' action='/config' style='display:flex;gap:6px'>
+                <input type='hidden' name='what' value='evidence'>
+                <input type='hidden' name='type' value='{html.escape(t)}'>
+                <select name='satisfies'>{opts(v)}</select>
+                <input type='submit' value='Save'></form></td></tr>""" for t, v in acc.items())
+        return _page("Configuration", f"""{_flash(q)}
+          <div class='card'><h3>Settings</h3><table><tr><th>Key</th><th>Value</th></tr>{srows}</table></div>
+          <div class='card'><h3>Commission rules (active)</h3>
+            <table><tr><th>Code</th><th>Name</th><th>Basis</th><th>Rate</th><th>Version</th></tr>{rules}</table>
+            <h4>Add / supersede a rule</h4>
+            <form method='post' action='/config'>
+              <input type='hidden' name='what' value='rule'>
+              <input type='text' name='code' placeholder='code e.g. CR-GP10' required>
+              <input type='text' name='name' placeholder='name' required>
+              <select name='basis'><option>gross_profit</option><option>revenue</option></select>
+              <input type='text' name='rate' placeholder='rate e.g. 0.10 or 10%' required>
+              <input type='submit' value='Save new version'></form>
+            <p class='muted'>Saving supersedes the current version; prior versions are retained so
+            historical commission results stay explicable.</p></div>
+          <div class='card'><h3>Calculation policy versions</h3>
+            <table><tr><th>Policy</th><th>Version</th><th>State</th><th>Recorded</th></tr>{pol}</table>
+            <p class='muted'>Historical policy versions are never edited — a change records a new
+            version so existing calculation snapshots stay reproducible.</p></div>
+          <div class='card'><h3>Cost-evidence acceptance</h3>
+            <table><tr><th>Evidence type</th><th>Satisfies</th></tr>{arows}</table></div>""")
+
     def page_backup(self, conn, q):
         return _page("Backup", """<div class='card'><h3>Backup</h3>
           <form method='post' action='/backup' onsubmit="return confirm('Create a database backup now?');">
@@ -575,6 +627,30 @@ class Handler(BaseHTTPRequestHandler):
             return "/periods?ok=" + urllib.parse.quote(msg)
         except periods.PeriodError as e:
             return "/periods?err=" + urllib.parse.quote(str(e))
+
+    def act_config(self, conn, form):
+        what = form.get("what")
+        try:
+            if what == "setting":
+                config_mod.set_setting(conn, form.get("key", ""), form.get("value", ""),
+                                       actor="operator")
+                msg = f"Setting '{form.get('key')}' saved."
+            elif what == "rule":
+                config_mod.upsert_commission_rule(
+                    conn, source_code=form.get("code", ""), name=form.get("name", ""),
+                    basis=form.get("basis", "gross_profit"), rate=form.get("rate", "0"),
+                    actor="operator")
+                msg = "Commission rule saved as a new version (prior version retained)."
+            elif what == "evidence":
+                config_mod.set_evidence_acceptance(
+                    conn, DEFAULT_POLICY.key(), form.get("type", ""),
+                    form.get("satisfies", "provisional"), actor="operator")
+                msg = "Evidence acceptance updated."
+            else:
+                return "/config?err=" + urllib.parse.quote("unknown configuration action")
+            return "/config?ok=" + urllib.parse.quote(msg)
+        except (KeyError, ValueError) as e:
+            return "/config?err=" + urllib.parse.quote(str(e))
 
     def act_backup(self, conn, form):
         conn.commit()
