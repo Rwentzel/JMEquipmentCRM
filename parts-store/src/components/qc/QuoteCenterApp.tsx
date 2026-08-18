@@ -169,7 +169,7 @@ export function QuoteCenterApp({
             <button onClick={() => app.startQuote()} className="jme-btn jme-btn--sm jme-btn--block" style={{ marginBottom: "8px" }}>+ New Quote</button>
             <div style={{ fontSize: "8.5px", letterSpacing: ".14em", textTransform: "uppercase", color: "#7d7d82", lineHeight: 1.5, marginBottom: "3px" }}>Converting Machinery Solutions</div>
             <span className="jme-mono" style={{ fontSize: "9.5px", color: "var(--jme-gold)", letterSpacing: ".08em" }}>Sturgis, MI · Est. 1989</span>
-            <span style={{ fontSize: "9.5px", color: "#6b6b72", letterSpacing: ".04em" }}>(269) 659-0093 · sales@jmequipment.net</span>
+            <span style={{ fontSize: "9.5px", color: "#838389", letterSpacing: ".04em" }}>(269) 659-0093 · sales@jmequipment.net</span>
           </div>
         </nav>
 

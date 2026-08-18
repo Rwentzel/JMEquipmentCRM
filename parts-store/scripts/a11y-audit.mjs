@@ -14,6 +14,11 @@
  *   npm i --no-save playwright-core axe-core
  *   node scripts/a11y-audit.mjs [baseUrl]   # default http://localhost:3000
  *
+ * Set OPS_TOKEN to the running server's token and the staff surfaces — the ops
+ * desk and every Quote Center screen — are audited too. Without it they are
+ * skipped with a notice rather than silently passing: they went unaudited for
+ * their whole life that way, and were carrying 39 unlabelled form controls.
+ *
  * Exits non-zero if any violation is found, so it can gate a release when a
  * browser is available in the runner.
  */
@@ -37,6 +42,14 @@ const ROUTES = [
   "/", "/compare", "/freight", "/terms", "/privacy",
   "/machine/JME-VCS12-75", "/parts/goodstrong", "/parts/goodstrong/1600e",
 ];
+/** Staff surfaces. Gated by OPS_TOKEN, so they need a session cookie to reach. */
+const STAFF_ROUTES = [
+  "/ops",
+  "/quotes", "/quotes/pipeline", "/quotes/builder",
+  "/quotes/equipment", "/quotes/parts", "/quotes/clients",
+  "/quotes/analytics", "/quotes/settings",
+];
+
 const DESKTOP = { width: 1440, height: 1000 };
 const MOBILE = { width: 390, height: 844 };
 
@@ -46,8 +59,13 @@ const browser = await chromium.launch({
 
 let failures = 0;
 
-async function audit(label, route, setup, viewport = DESKTOP) {
+async function audit(label, route, setup, viewport = DESKTOP, opsCookie = null) {
   const page = await browser.newPage({ viewport });
+  if (opsCookie) {
+    await page.context().addCookies([
+      { name: "jme_ops", value: opsCookie, url: BASE },
+    ]);
+  }
   try {
     await page.goto(BASE + route, { waitUntil: "networkidle" });
     if (setup) await setup(page);
@@ -103,10 +121,22 @@ await audit("request list populated", "/", async (page) => {
   await page.waitForTimeout(300);
 });
 
+// Staff surfaces. The session cookie stores a SHA-256 digest of OPS_TOKEN —
+// see src/lib/opsAuth.ts, which this mirrors rather than imports (the script is
+// plain ESM and deliberately outside the app's module graph).
+if (process.env.OPS_TOKEN) {
+  const { createHash } = await import("node:crypto");
+  const cookie = createHash("sha256").update(process.env.OPS_TOKEN).digest("hex");
+  for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, null, DESKTOP, cookie);
+} else {
+  console.log(`\nSKIP  ${STAFF_ROUTES.length} staff routes — set OPS_TOKEN to audit /ops and the Quote Center.`);
+}
+
 await browser.close();
 
 if (failures > 0) {
   console.error(`\n${failures} accessibility violation type(s) found.`);
   process.exit(1);
 }
-console.log(`\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5} page states.`);
+const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
+console.log(`\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount} page states.`);

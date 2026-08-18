@@ -158,3 +158,97 @@
   #jme-print-doc > div:first-child > div { flex-wrap: wrap; gap: 10px; }
   .qc-clienthead { padding: 10px 14px !important; }
 }
+
+/* ------------------------------------------------- Quote Center contrast ---
+ *
+ * The Quote Center screens sit on a light canvas but inherited the design
+ * system's text colours, which are built for the dark surfaces the rest of the
+ * app uses. --paper-dim as a field label on white measures 2.06:1 against a
+ * 4.5:1 floor, and every micro-label on these screens is 9-11px, so the effect
+ * is not academic: an audit found 226 unreadable elements across the eight
+ * staff screens.
+ *
+ * (components.css already carries `.jme-field.on-light` rules meant to cover
+ * this, but they key off the class being on the field itself while the app
+ * puts `on-light` on the container, so they have never matched anything.)
+ *
+ * Fixed per class rather than by remapping the tokens wholesale: these screens
+ * mix light panels with dark controls — selects and ghost buttons keep the
+ * dark treatment — so a blanket cascade turns the dark controls' text black on
+ * black. The palette itself is left alone; the storefront shares these tokens
+ * on dark surfaces and passes its own audit.
+ *
+ * On a light background there is no grey that reads as fainter than secondary
+ * and still clears AA, so everything muted lands on one secondary grey. The
+ * hierarchy here comes from size, weight and letter-spacing, all untouched.
+ */
+/* Every --subtle and --jme-gold in the Quote Center is text on a light panel
+ * (23 and 9 call sites, all inline styles, so a rule cannot reach them —
+ * the token is the only lever). Both are tuned for dark surfaces and land
+ * around 2.7-2.9:1 here. Scoped to .qc-main so the storefront, which uses
+ * them on dark and passes, is untouched. */
+.qc-main {
+  --subtle: #63636a;
+  --jme-gold: #806509;
+}
+
+.qc-main .jme-field__label,
+.qc-main .jme-eyebrow,
+
+.qc-main .qc-muted { color: #63636a; }
+
+/* Status badges: the design's greens, blues and golds are tuned for dark
+ * surfaces and land between 2.2:1 and 2.9:1 on the pipeline's white rows.
+ * Darkened to clear 4.5:1 while holding their hue, so a "won" badge still
+ * reads green at a glance. */
+.qc-main .jme-badge--stock { color: #2f7a51; }
+.qc-main .jme-badge--info { color: #3470c9; }
+.qc-main .jme-badge--lead { color: #806509; }
+.qc-main .jme-badge--out { color: #a8353a; }
+
+/* The nav rail's numbering and group labels are 9-10px on near-black. */
+.qc-nav-num,
+.qc-navgroup-label,
+.qc-search-trigger .jme-mono,
+.qc-search-trigger span { color: #838389 !important; }
+.qc-nav-it.on .qc-nav-num { color: #ebd1d2 !important; }
+
+/* The section eyebrows sit on the charcoal cards, where the bright brand red
+ * is 3.19:1. Softened just for those, rather than moving the brand token. */
+/* The bright brand red is 3.19:1 on the charcoal cards these sit in. Softened
+ * only where it is small text on that surface — the brand token itself is
+ * untouched, so the red stays the red everywhere it is a fill or a heading. */
+.qc-main [style*="--jme-red-bright"],
+.qc-clienthead [style*="--jme-red-bright"] { color: #cd6866 !important; }
+
+/* Ghost buttons take their text from --paper, which is the near-white meant
+ * for dark surfaces. On the Quote Center's light panels that is 1.2:1 —
+ * "Browse Equipment", "Preview", "Send" and "Restore Demo Data" were buttons
+ * you could only find by hovering. Cards keep the dark treatment, so their
+ * ghost buttons keep the light text. */
+.qc-main .jme-btn--ghost {
+  color: var(--ink-text);
+  border-color: var(--hairline-2);
+}
+.qc-main .jme-card .jme-btn--ghost {
+  color: var(--paper);
+  border-color: var(--line-lt);
+}
+
+/* The badge base colour is --paper-dim, unreadable on the pipeline's white
+ * rows for any badge without a status variant. */
+.qc-main .jme-badge { color: #63636a; }
+
+/* Ghost buttons that sit on the dark hero and the charcoal action bar keep the
+ * light text the variant was designed with — the rule above assumes the light
+ * panels, which is where most of them live. */
+.qc-main .jme-btn--on-dark {
+  color: var(--paper);
+  border-color: var(--line-lt);
+}
+
+/* The rail footer carries the parts desk's own phone number and address at
+ * 9.5px, which was 3.61:1 on the near-black rail — the one line on the screen
+ * someone reads because they need to dial it. Set at the element (the colour
+ * is inline there), with this as the backstop for anything else in the foot. */
+.qc-sidefoot span { color: #838389; }

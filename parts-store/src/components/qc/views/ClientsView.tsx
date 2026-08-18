@@ -117,32 +117,32 @@ export function ClientsView({ app }: { app: QcApp }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div className="jme-field">
                   <label className="jme-field__label">Company</label>
-                  <input className="jme-input" value={selC.company} onChange={(e) => app.setClientField("company", e.target.value)} />
+                  <input aria-label="Company" className="jme-input" value={selC.company} onChange={(e) => app.setClientField("company", e.target.value)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Contact</label>
-                  <input className="jme-input" value={selC.contact} onChange={(e) => app.setClientField("contact", e.target.value)} />
+                  <input aria-label="Contact" className="jme-input" value={selC.contact} onChange={(e) => app.setClientField("contact", e.target.value)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Email</label>
-                  <input className="jme-input" value={selC.email} onChange={(e) => app.setClientField("email", e.target.value)} />
+                  <input aria-label="Email" className="jme-input" value={selC.email} onChange={(e) => app.setClientField("email", e.target.value)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Phone</label>
-                  <input className="jme-input" value={selC.phone} onChange={(e) => app.setClientField("phone", e.target.value)} />
+                  <input aria-label="Phone" className="jme-input" value={selC.phone} onChange={(e) => app.setClientField("phone", e.target.value)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">City / State</label>
-                  <input className="jme-input" value={selC.city} onChange={(e) => app.setClientField("city", e.target.value)} />
+                  <input aria-label="City / State" className="jme-input" value={selC.city} onChange={(e) => app.setClientField("city", e.target.value)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Industry</label>
-                  <input className="jme-input" value={selC.industry} onChange={(e) => app.setClientField("industry", e.target.value)} />
+                  <input aria-label="Industry" className="jme-input" value={selC.industry} onChange={(e) => app.setClientField("industry", e.target.value)} />
                 </div>
               </div>
               <div className="jme-field" style={{ marginBottom: "18px" }}>
                 <label className="jme-field__label">Notes</label>
-                <textarea className="jme-textarea" rows={2} value={selC.notes} onChange={(e) => app.setClientField("notes", e.target.value)} style={{ resize: "vertical" }} />
+                <textarea aria-label="Notes" className="jme-textarea" rows={2} value={selC.notes} onChange={(e) => app.setClientField("notes", e.target.value)} style={{ resize: "vertical" }} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--hairline)", paddingTop: "16px" }}>
                 <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "15px", letterSpacing: ".04em", color: "var(--ink-text)" }}>Quotes</div>
