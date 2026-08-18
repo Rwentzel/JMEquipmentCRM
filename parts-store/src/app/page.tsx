@@ -437,6 +437,13 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
   return (
     <section id="parts" className="ps-sec ps-catalog">
       <div className="ps-wrap">
+        <div className="ps-down" role="note">
+          <span className="ps-down__flag">Machine down?</span>
+          <span className="ps-down__copy">
+            Skip the form — call <a href="tel:(269) 659-0093">(269)&nbsp;659-0093</a> and the parts desk picks up.
+            Stocked parts ship same day on POs received by 2:30 PM ET.
+          </span>
+        </div>
         <div className="ps-sechd ps-catalog__hd">
           <div>
             <Eyebrow>Parts catalog</Eyebrow>
