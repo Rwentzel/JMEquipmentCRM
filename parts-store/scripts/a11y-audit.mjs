@@ -109,7 +109,7 @@ await audit("route / (mobile)", "/", null, MOBILE);
  */
 const assertAuthed = async (page) => {
   if (await page.$("#ops-token")) {
-    throw new Error("not authenticated — OPS_TOKEN is wrong, or the session cookie format in this script has drifted from issueSession() in src/lib/opsAuth.ts");
+    throw new Error("not authenticated — the login succeeded but the app did not accept the session on this route");
   }
 };
 
@@ -134,17 +134,38 @@ await audit("request list populated", "/", async (page) => {
   await page.waitForTimeout(300);
 });
 
-// Staff surfaces. The session cookie is `<expiry>.<nonce>.<HMAC>` signed with
-// OPS_TOKEN — see issueSession() in src/lib/opsAuth.ts, which this mirrors
-// rather than imports (the script is plain ESM and deliberately outside the
-// app's module graph). Keep the two in step: a cookie the app rejects does not
-// fail the audit, it quietly redirects every staff route to the login form,
-// and a login form passes. assertAuthed below is the backstop for exactly that.
+/**
+ * Get a staff session by logging in the way a person does.
+ *
+ * This script used to mint the cookie itself, mirroring issueSession(). When
+ * the session format changed the copy drifted, the app rejected the cookie,
+ * and every staff route quietly rendered the login form — which passes, so the
+ * run reported eight screens nobody had looked at as clean. Asking the real
+ * endpoint removes the duplicated crypto altogether: there is no second
+ * implementation left to drift. assertAuthed stays as the backstop.
+ */
+async function staffCookie() {
+  const res = await fetch(`${BASE}/api/ops/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token: process.env.OPS_TOKEN }),
+  });
+  if (!res.ok) throw new Error(`ops login failed (${res.status}) — is OPS_TOKEN the one the server was started with?`);
+  const setCookie = res.headers.getSetCookie?.().find((c) => c.startsWith("jme_ops=")) ?? "";
+  const value = setCookie.split(";")[0]?.slice("jme_ops=".length);
+  if (!value) throw new Error("ops login returned no jme_ops cookie");
+  return value;
+}
+
+// Staff surfaces.
 if (process.env.OPS_TOKEN) {
-  const { createHmac, randomBytes } = await import("node:crypto");
-  const payload = `${Math.floor(Date.now() / 1000) + 3600}.${randomBytes(9).toString("base64url")}`;
-  const cookie = `${payload}.${createHmac("sha256", process.env.OPS_TOKEN).update(payload).digest("hex")}`;
-  for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, assertAuthed, DESKTOP, cookie);
+  try {
+    const cookie = await staffCookie();
+    for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, assertAuthed, DESKTOP, cookie);
+  } catch (err) {
+    failures += 1;
+    console.log(`ERROR staff routes — ${err.message}`);
+  }
 } else {
   console.log(`\nSKIP  ${STAFF_ROUTES.length} staff routes — set OPS_TOKEN to audit /ops and the Quote Center.`);
 }
