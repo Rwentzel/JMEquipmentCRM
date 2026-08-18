@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { audit, hashKey } from "@/lib/auditLog";
-import { OPS_COOKIE, opsMode, sessionValue, verifyLoginToken } from "@/lib/opsAuth";
+import { OPS_COOKIE, SESSION_TTL_SECONDS, issueSession, opsMode, verifyLoginToken } from "@/lib/opsAuth";
 import { rateLimit } from "@/lib/rateLimit";
 
 /** Ops login/logout. Sets an httpOnly session cookie; never echoes the token. */
@@ -39,12 +39,14 @@ export async function POST(req: Request) {
   }
 
   audit("ops_login_ok");
-  (await cookies()).set(OPS_COOKIE, sessionValue(), {
+  (await cookies()).set(OPS_COOKIE, issueSession(), {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 8, // 8h shift
+    // The browser hint and the signed expiry come from the same constant, so
+    // the cookie cannot outlive the session the server will actually accept.
+    maxAge: SESSION_TTL_SECONDS,
   });
   return NextResponse.json({ ok: true });
 }
