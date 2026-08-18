@@ -82,6 +82,11 @@ export function ExplodedViewer({
                     style={{ left: `${h.x}%`, top: `${h.y}%` }}
                     onMouseEnter={() => setActiveBubble(h.bubble)}
                     onMouseLeave={() => setActiveBubble(null)}
+                    // Keyboard users get the same cross-highlight a mouse gets:
+                    // focusing a callout lights up every matching parts row,
+                    // which is the whole point of the numbered bubbles.
+                    onFocus={() => setActiveBubble(h.bubble)}
+                    onBlur={() => setActiveBubble(null)}
                     onClick={() => {
                       const p = page.parts.find((pt) => pt.bubble === h.bubble);
                       if (p) setPicking(p);

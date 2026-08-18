@@ -39,6 +39,7 @@ export function PartsTable({
             onMouseEnter={() => onHover(p.bubble)}
             onMouseLeave={() => onHover(null)}
             onFocus={() => onHover(p.bubble)}
+            onBlur={() => onHover(null)}
             onClick={() => onSelect(p)}
           >
             <span className="gs-bubble gs-bubble--sm" role="cell">
