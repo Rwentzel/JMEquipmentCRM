@@ -142,7 +142,11 @@
   padding: 2px var(--s-2);
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
-  color: var(--ink);
+  /* Light ink on the red: --ink gave 2.83:1 at 10px, well under AA. The flag
+     went unnoticed because neither of its two triggers could fire — nothing in
+     the catalogue was banded for freight, and the account opt-out is rare — so
+     the accessibility sweep passed over a badge that never rendered. */
+  color: var(--paper);
   background: var(--accent);
   border-radius: var(--r-1);
 }
@@ -328,7 +332,11 @@
   margin-left: var(--s-2);
   font-family: var(--font-mono);
   font-size: var(--t-2xs);
-  color: var(--ink);
+  /* Light ink on the red: --ink gave 2.83:1 at 10px, well under AA. The flag
+     went unnoticed because neither of its two triggers could fire — nothing in
+     the catalogue was banded for freight, and the account opt-out is rare — so
+     the accessibility sweep passed over a badge that never rendered. */
+  color: var(--paper);
   background: var(--accent);
   border-radius: var(--r-1);
 }
