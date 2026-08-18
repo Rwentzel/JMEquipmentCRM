@@ -162,3 +162,83 @@ test("full disaster drill: backup, lose everything, restore", async () => {
   assert.equal(restored.rfqs[0].contact.company, "Acme");
   assert.equal((await readFile(path.join(rebuilt, "audit.jsonl"), "utf8")).trim().split("\n").length, 2);
 });
+
+/* ---- restoring ONTO corrupt data: the case the tool exists for ---- */
+
+test("the pre-restore snapshot archives corrupt data instead of refusing it", async () => {
+  // Restore takes a copy of what it is about to overwrite so that restoring
+  // the wrong archive is itself recoverable. The usual reason to be restoring
+  // is that the live data is broken, so that copy cannot parse-check its input
+  // — and a broken store is the one you most want a copy of before it goes.
+  const dir = await seedDataDir();
+  await writeFile(path.join(dir, "qc.json"), '{"quotes":[{"id":"trunc');
+
+  await assert.rejects(() => collectEntries(dir), /qc\.json is not valid JSON/);
+
+  const entries = await collectEntries(dir, { validate: false });
+  const qc = entries.find((e) => e.name === "qc.json")!;
+  assert.equal(Buffer.from(qc.bytes, "base64").toString("utf8"), '{"quotes":[{"id":"trunc');
+});
+
+test("writeBackup can snapshot a corrupt directory end to end", async () => {
+  // writeBackup re-reads its own output to catch truncation. That read-back
+  // must not re-apply content validation to a snapshot taken deliberately of
+  // invalid data, or the whole call fails after the bytes are already written.
+  const dir = await seedDataDir();
+  await writeFile(path.join(dir, "qc.json"), '{"quotes":[{"id":"trunc');
+  const out = tmp("snap");
+
+  await assert.rejects(() => writeBackup(dir, out), /qc\.json is not valid JSON/);
+
+  const { file } = await writeBackup(dir, out, new Date(), { validate: false });
+  const archive = parseArchive(await readFile(file), file, { validate: false });
+  const qc = archive.entries.find((e) => e.name === "qc.json")!;
+  assert.equal(Buffer.from(qc.bytes, "base64").toString("utf8"), '{"quotes":[{"id":"trunc');
+});
+
+test("checksums are still enforced on a snapshot of corrupt data", async () => {
+  // validate:false relaxes the parse check, never the integrity check.
+  const dir = await seedDataDir();
+  await writeFile(path.join(dir, "qc.json"), '{"quotes":[{"id":"trunc');
+  const out = tmp("snap2");
+  const { file } = await writeBackup(dir, out, new Date(), { validate: false });
+
+  const archive = parseArchive(await readFile(file), file, { validate: false });
+  archive.entries[0]!.bytes = Buffer.from("tampered").toString("base64");
+  const tampered = gzipSync(Buffer.from(JSON.stringify(archive)));
+  assert.throws(() => parseArchive(tampered, "t", { validate: false }), /checksum mismatch/);
+});
+
+test("disaster drill with corrupt live data: the runbook path end to end", async () => {
+  // The drill above loses the volume entirely, which leaves nothing to
+  // snapshot. This is the likelier failure and the one that was broken: the
+  // files are still there and one of them is truncated.
+  const live = await seedDataDir();
+  await writeFile(path.join(live, "qc.json"), JSON.stringify({ quotes: [{ id: "q1" }] }));
+  const out = tmp("drill-corrupt");
+  const { file } = await writeBackup(live, out);
+
+  await writeFile(path.join(live, "qc.json"), '{"quotes":[{"id":"trunc');
+  await writeFile(path.join(live, "rfqs.json"), "");
+
+  // The safety snapshot restore would take of the damaged directory.
+  const safety = await writeBackup(live, path.join(out, "pre-restore"), new Date(), { validate: false });
+  const kept = parseArchive(await readFile(safety.file), safety.file, { validate: false });
+  assert.equal(
+    Buffer.from(kept.entries.find((e) => e.name === "qc.json")!.bytes, "base64").toString("utf8"),
+    '{"quotes":[{"id":"trunc',
+    "the damaged copy has to survive, in case it is the one worth salvaging",
+  );
+
+  await applyRestore(parseArchive(await readFile(file), file), live);
+  assert.deepEqual(JSON.parse(await readFile(path.join(live, "qc.json"), "utf8")), { quotes: [{ id: "q1" }] });
+  assert.equal(JSON.parse(await readFile(path.join(live, "rfqs.json"), "utf8")).rfqs[0].ref, "RFQ-1");
+});
+
+test("a scheduled backup still refuses to archive a corrupt store", async () => {
+  // The relaxation is opt-in and must stay that way: archiving a broken store
+  // on a schedule buries the last good copy under 14 useless ones.
+  const dir = await seedDataDir();
+  await writeFile(path.join(dir, "qc.json"), '{"quotes":[{"id":"trunc');
+  await assert.rejects(() => writeBackup(dir, tmp("sched")), /qc\.json is not valid JSON/);
+});

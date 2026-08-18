@@ -78,7 +78,13 @@ async function main() {
 
   let safety: string | null = null;
   if (plan.items.some((i) => i.action === "overwrite") || plan.untouched.length > 0) {
-    safety = (await writeBackup(target, path.join(dir, "pre-restore"))).file;
+    // Deliberately unvalidated. This snapshot exists to preserve whatever is
+    // in the data directory right now, and the usual reason to be restoring is
+    // that what is there is corrupt. Parse-checking it made the tool refuse to
+    // run in the one situation it was written for: a truncated qc.json aborted
+    // the restore with "qc.json is not valid JSON", leaving the operator
+    // following the runbook with broken data and no way forward.
+    safety = (await writeBackup(target, path.join(dir, "pre-restore"), new Date(), { validate: false })).file;
   }
   console.log(`\nSafety copy of current data: ${safety ?? "none (nothing would be overwritten)"}`);
 
