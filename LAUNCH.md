@@ -114,8 +114,10 @@ the variable alone does nothing until the next build. Confirm
   `OPS_TOKEN=<your token> node scripts/a11y-audit.mjs http://localhost:3000`.
   It covers the storefront **and**, when `OPS_TOKEN` is set, `/ops` and all
   eight Quote Center screens; without the token it says how many staff routes
-  it skipped rather than reporting a clean run over half the app. Non-zero exit
-  = something on screen is unreadable or unlabelled.
+  it skipped rather than reporting a clean run over half the app. Add
+  `A11Y_QUOTE_PATH=/q/<id>/<token>` — copy a real link out of the builder — to
+  include the customer's quote page, desktop and phone. Non-zero exit =
+  something on screen is unreadable or unlabelled.
 - **Quarterly**: actually restore a backup into a scratch directory and look at
   it — `RFQ_DATA_DIR=/tmp/drill npm run restore -- --latest --apply`. An
   untested backup is a guess; this is the only step that turns it into a fact.
