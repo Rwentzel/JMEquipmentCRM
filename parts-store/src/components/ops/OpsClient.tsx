@@ -63,6 +63,9 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
     void load();
   }, [load]);
 
+  const [quoting, setQuoting] = useState<string | null>(null);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+
   async function setStatus(ref: string, status: RfqStatus) {
     const prev = rfqs;
     setRfqs((rs) => rs.map((r) => (r.ref === ref ? { ...r, status } : r)));
@@ -77,6 +80,33 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
     } catch {
       setRfqs(prev); // roll back optimistic update
     }
+  }
+
+  /**
+   * Hand this request to the Quote Center as a draft: client details and
+   * line items come across, the RFQ moves to "quoted", and the builder opens
+   * on the new quote. Beats retyping a customer's details into a document
+   * they will see.
+   */
+  async function createQuote(ref: string) {
+    if (quoting) return;
+    setQuoting(ref);
+    try {
+      const res = await fetch("/api/qc/from-rfq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ref }),
+      });
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; id?: string } | null;
+      if (res.ok && data?.ok && data.id) {
+        window.location.href = `/quotes/builder?q=${encodeURIComponent(data.id)}`;
+        return;
+      }
+      setQuoteError("Could not create the quote. Check that the Quote Center is enabled.");
+    } catch {
+      setQuoteError("Could not create the quote. Check your connection.");
+    }
+    setQuoting(null);
   }
 
   async function runAgent(agent: AgentName) {
@@ -136,6 +166,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
           </div>
         </div>
         {loadErr && <p className="ops__err" role="alert">{loadErr}</p>}
+        {quoteError && <p className="ops__err" role="alert">{quoteError}</p>}
         {!loadErr && rfqs.length === 0 && (
           <p className="ops__empty">No requests yet. Submissions from the storefront land here instantly.</p>
         )}
@@ -198,6 +229,14 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                           </option>
                         ))}
                       </select>
+                      <button
+                        className="ops__quotebtn"
+                        onClick={() => void createQuote(r.ref)}
+                        disabled={quoting !== null}
+                        title="Create a draft quote from this request"
+                      >
+                        {quoting === r.ref ? "Creating…" : "Create quote →"}
+                      </button>
                     </td>
                   </tr>
                 ))}

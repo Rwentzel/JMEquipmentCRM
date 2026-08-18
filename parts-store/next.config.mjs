@@ -3,9 +3,12 @@
 // Sandbox CSP. Kept functional for Next's hydration/styles; tighten with nonces
 // before production (see SECURITY_NOTES.md). 'unsafe-inline' is required here for
 // Next's inline bootstrap script and next/font styles.
+const isDev = process.env.NODE_ENV === "development";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  // React dev mode needs eval for stack reconstruction; production never gets it.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self' data:",

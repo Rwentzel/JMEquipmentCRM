@@ -22,7 +22,13 @@ export const metadata: Metadata = {
 const VIEWS = ["dash", "pipeline", "builder", "equipment", "parts", "clients", "analytics", "settings"] as const;
 export type QcView = (typeof VIEWS)[number];
 
-export default async function QuoteCenterPage({ params }: { params: Promise<{ view?: string[] }> }) {
+export default async function QuoteCenterPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ view?: string[] }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
   const mode = opsMode();
   if (mode === "disabled") {
     return (
@@ -41,5 +47,11 @@ export default async function QuoteCenterPage({ params }: { params: Promise<{ vi
   const seg = (await params).view?.[0] ?? "dash";
   const view: QcView = (VIEWS as readonly string[]).includes(seg) ? (seg as QcView) : "dash";
   const state = await readQcState();
-  return <QuoteCenterApp initialView={view} initialState={state} parts={PARTS_MASTER} />;
+  // ?q=<id> deep-links straight into a quote — how "Create quote" on the ops
+  // desk hands the rep the draft it just built from an RFQ.
+  const wanted = (await searchParams).q;
+  const initialQuoteId = wanted && state.quotes.some((x) => x.id === wanted) ? wanted : null;
+  return (
+    <QuoteCenterApp initialView={view} initialState={state} parts={PARTS_MASTER} initialQuoteId={initialQuoteId} />
+  );
 }

@@ -83,13 +83,24 @@ function LossModal({ app }: { app: QcApp }) {
   );
 }
 
-export function QuoteCenterApp({ initialView, initialState, parts }: { initialView: QcView; initialState: QcState; parts: QcPart[] }) {
-  const app = useQcApp(initialView, initialState, parts);
+export function QuoteCenterApp({
+  initialView,
+  initialState,
+  parts,
+  initialQuoteId = null,
+}: {
+  initialView: QcView;
+  initialState: QcState;
+  parts: QcPart[];
+  initialQuoteId?: string | null;
+}) {
+  const app = useQcApp(initialView, initialState, parts, initialQuoteId);
   return (
     <>
       <style>{SHELL_CSS}</style>
-      <div style={{ display: "grid", gridTemplateColumns: "240px 1fr", minHeight: "100vh" }}>
+      <div className="qc-shell" style={{ display: "grid", gridTemplateColumns: "240px 1fr", minHeight: "100vh" }}>
         <nav
+          className="qc-sidebar"
           style={{
             background: "var(--ink-2)",
             color: "#c8c8cc",
@@ -103,7 +114,7 @@ export function QuoteCenterApp({ initialView, initialState, parts }: { initialVi
             overflow: "auto",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "2px 8px 20px", borderBottom: "1px solid #2a2a2e", marginBottom: "18px" }}>
+          <div className="qc-brand" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "2px 8px 20px", borderBottom: "1px solid #2a2a2e", marginBottom: "18px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "34px", height: "auto", display: "block" }} />
             <div>
@@ -137,8 +148,8 @@ export function QuoteCenterApp({ initialView, initialState, parts }: { initialVi
             <span className="jme-mono" style={{ fontSize: "9px", letterSpacing: ".06em", color: "#5c5c61", border: "1px solid #33333a", borderRadius: "3px", padding: "2px 5px" }}>⌘K</span>
           </button>
           {NAV_GROUPS.map((g) => (
-            <div key={g.label} style={{ marginBottom: "16px" }}>
-              <div style={{ fontSize: "9px", fontWeight: 700, letterSpacing: ".22em", textTransform: "uppercase", color: "#5c5c61", padding: "0 8px 8px" }}>{g.label}</div>
+            <div key={g.label} className="qc-navgroup" style={{ marginBottom: "16px" }}>
+              <div className="qc-navgroup-label" style={{ fontSize: "9px", fontWeight: 700, letterSpacing: ".22em", textTransform: "uppercase", color: "#5c5c61", padding: "0 8px 8px" }}>{g.label}</div>
               {g.items.map((it) => (
                 <button
                   key={it.id}
@@ -154,7 +165,7 @@ export function QuoteCenterApp({ initialView, initialState, parts }: { initialVi
               ))}
             </div>
           ))}
-          <div style={{ marginTop: "auto", padding: "14px 8px 0", borderTop: "1px solid #2a2a2e", display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div className="qc-sidefoot" style={{ marginTop: "auto", padding: "14px 8px 0", borderTop: "1px solid #2a2a2e", display: "flex", flexDirection: "column", gap: "4px" }}>
             <button onClick={() => app.startQuote()} className="jme-btn jme-btn--sm jme-btn--block" style={{ marginBottom: "8px" }}>+ New Quote</button>
             <div style={{ fontSize: "8.5px", letterSpacing: ".14em", textTransform: "uppercase", color: "#7d7d82", lineHeight: 1.5, marginBottom: "3px" }}>Converting Machinery Solutions</div>
             <span className="jme-mono" style={{ fontSize: "9.5px", color: "var(--jme-gold)", letterSpacing: ".08em" }}>Sturgis, MI · Est. 1989</span>
@@ -162,7 +173,7 @@ export function QuoteCenterApp({ initialView, initialState, parts }: { initialVi
           </div>
         </nav>
 
-        <main className="on-light" style={{ minHeight: "100vh", minWidth: 0, background: "var(--canvas-tint)" }}>
+        <main className="on-light qc-main" style={{ minHeight: "100vh", minWidth: 0, background: "var(--canvas-tint)" }}>
           {app.view === "dash" && <DashView app={app} />}
           {app.view === "pipeline" && <PipelineView app={app} />}
           {app.view === "builder" && <BuilderView app={app} />}

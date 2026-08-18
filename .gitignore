@@ -10,9 +10,12 @@ Thumbs.db
 # Git metadata (if you ever nested repos)
 .git/
 
-# runtime data (RFQ store, audit log) — contains customer PII, never commit
-parts-store/.data/
-.data/
+# runtime data (RFQ store, Quote Center, audit log) — contains customer PII,
+# never commit. The wildcard also catches the throwaway dirs that testing and
+# debugging produce (.data-ops, .data-perf, ...); one of those was staged once,
+# and an ignore rule is cheaper than remembering every time.
+parts-store/.data*/
+.data*/
 # next build output
 parts-store/.next/
 *.tsbuildinfo

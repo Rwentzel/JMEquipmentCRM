@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 // Point the store at a throwaway dir BEFORE importing it.
+process.env.QC_DEMO_SEED = "1"; // these tests exercise the demo-seed path
 process.env.RFQ_DATA_DIR = mkdtempSync(path.join(tmpdir(), "jme-qc-test-"));
 
 import {
@@ -140,4 +141,25 @@ test("store: mutateQuote applies accept atomically and rejects unknown ids", asy
   const s = await readQcState();
   assert.equal(s.quotes.find((q) => q.id === "q2")!.signedName, "M. Holt");
   assert.equal(await mutateQuote("nope", (q) => q), null);
+});
+
+test("client doc resolves machine config from axis defaults when the quote stored none", () => {
+  // Seeded/older quotes carry no `config`; the builder fills it in memory but
+  // never writes it back. buildDoc must not render `" Head · " Frame`.
+  const q = seedQuotes().find((x) => x.id === "q1")!; // vcs-12-75, configurable
+  assert.equal(q.config, undefined, "fixture must be a quote with no stored config");
+  const doc = buildDoc(q, machineOf(q), settings)!;
+  assert.equal(doc.sku, "JME-VCS12-75");
+  assert.equal(doc.machineSubtitle, '12" Head · 75" Frame');
+  assert.doesNotMatch(doc.machineSubtitle, /^"|·\s*"\s/, "no empty placeholders left in the subtitle");
+  // The configured axes still surface as specs on the customer's document.
+  assert.ok(doc.specs.some((s) => s.k === "Core Head" && s.v === '12"'));
+  assert.ok(doc.specs.some((s) => s.k === "Frame Length" && s.v === '75"'));
+});
+
+test("an explicit quote config still overrides the machine defaults", () => {
+  const q = { ...seedQuotes().find((x) => x.id === "q1")!, config: { head: "14", frame: "45" } };
+  const doc = buildDoc(q, machineOf(q), settings)!;
+  assert.equal(doc.sku, "JME-VCS14-45");
+  assert.equal(doc.machineSubtitle, '14" Head · 45" Frame');
 });

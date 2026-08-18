@@ -52,3 +52,97 @@
   #clientPreviewCol > div { padding: 0 !important; display: block !important; }
   @page { size: Letter; margin: 0.45in; }
 }
+
+/* ---------------------------------------------------------------- responsive
+ * The design handoff is a desktop tool (240px rail + 392px builder column +
+ * wide grid tables). These rules make it usable on the phone and tablet a rep
+ * actually carries: the sidebar becomes a scrolling top bar, the builder
+ * stacks under its preview, and multi-column blocks collapse.
+ *
+ * Overrides need !important because the ported markup carries inline styles
+ * verbatim from the design — that fidelity is deliberate, so the responsive
+ * layer sits on top of it rather than rewriting it. */
+
+@media (max-width: 900px) {
+  .qc-shell { grid-template-columns: 1fr !important; }
+
+  .qc-sidebar {
+    height: auto !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 10px 12px !important;
+    border-right: none !important;
+    border-bottom: 1px solid #000;
+    -webkit-overflow-scrolling: touch;
+  }
+  .qc-brand {
+    flex: none;
+    padding: 0 10px 0 2px !important;
+    margin-bottom: 0 !important;
+    border-bottom: none !important;
+    border-right: 1px solid #2a2a2e;
+  }
+  .qc-brand small { display: none !important; }
+  .qc-search-trigger { width: auto !important; margin-bottom: 0 !important; flex: none; }
+  .qc-search-trigger span:not(.jme-mono) { display: none; }
+  .qc-navgroup { display: flex; align-items: center; gap: 4px; margin-bottom: 0 !important; flex: none; }
+  .qc-navgroup-label { display: none !important; }
+  .qc-nav-it { margin-bottom: 0; white-space: nowrap; }
+  .qc-sidefoot { display: none !important; }
+
+  /* Every view root carries data-screen-label; trim the 40px desk padding. */
+  .qc-main > div[data-screen-label] { padding: 20px 16px !important; }
+
+  /* Stat strips: 5 across is unreadable, 2 is fine. */
+  .qc-main [style*="repeat(5,1fr)"],
+  .qc-main [style*="repeat(4,1fr)"],
+  .qc-main [style*="repeat(3,1fr)"] { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* The builder's fixed 392px form rail + live preview stack before they crush. */
+@media (max-width: 1100px) {
+  .qc-main > div[data-screen-label="Quote Builder"] {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .qc-main [style*="1fr 1fr"],
+  .qc-main [style*="1.4fr 1fr"],
+  .qc-main [style*="1.55fr 1fr"],
+  .qc-main [style*="360px 1fr"] { grid-template-columns: 1fr !important; }
+  /* Stat strips stay 2-up even on the narrowest phone — one KPI per screenful
+     turns the dashboard into a scrolling exercise. */
+
+  /* ...but the quotation document keeps its two-column blocks, so the on-screen
+     preview still matches the sheet the customer prints. */
+  #jme-print-doc [style*="1fr 1fr"] { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* The quotation document itself on a phone. Customers open quote links on
+ * their phones, and the sheet could not shrink below ~423px: table cells are
+ * nowrap (right for a printed sheet, wrong for a 390px screen) and the page
+ * carries 38px side padding. Screen-only — print keeps the Letter layout. */
+@media screen and (max-width: 700px) {
+  #jme-print-doc [style*="26px 38px"],
+  #jme-print-doc [style*="22px 38px"] {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+  #jme-print-doc .jq-tr.body > div,
+  #jme-print-doc .jq-tr.head > div { white-space: normal !important; }
+}
+
+/* Both banner rows are flex with space-between and cannot shrink past their
+ * content on a 390px screen; let them wrap instead of widening the page. */
+@media screen and (max-width: 700px) {
+  .qc-clienthead,
+  .qc-clienthead > div,
+  #jme-print-doc > div:first-child,
+  #jme-print-doc > div:first-child > div { flex-wrap: wrap; gap: 10px; }
+  .qc-clienthead { padding: 10px 14px !important; }
+}

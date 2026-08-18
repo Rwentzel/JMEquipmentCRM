@@ -667,3 +667,24 @@
     font-size: var(--t-sm);
   }
 }
+
+/* Photo-on-request fallback for machines without photography yet */
+.md-hero__ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.md-hero__ph-fam {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 15px;
+  color: #b6b3ac;
+}
+.md-hero__ph-note {
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: #7d7a73;
+}

@@ -18,8 +18,6 @@ export const details: Record<string, MachineDetail> = {
     gallery: [
       { src: "core-splitter.png", cap: "Full machine — 75″ frame", fit: "contain" },
       { src: "core-splitter-pump.png", cap: "Hydraulic power pack — 5 HP", fit: "contain" },
-      { src: "core-splitter-panel.png", cap: "AB Micro 810 control panel", fit: "contain" },
-      { src: "split-core.png", cap: "Split core — recyclable", fit: "contain" },
     ],
     options: [
       {
@@ -200,13 +198,75 @@ export const details: Record<string, MachineDetail> = {
     ],
   },
 
-  "JME-RR-16": {
-    tagline: "The JME RollRite rollstand — smooth parent-roll feed for any converting line.",
-    lead: "The RollRite is JME's own shaftless rollstand, built to feed slitters, sheeters, bag machines, forming presses, laminators, and more. Core size capabilities of 4, 3–6, 10–12, and 16 inches, with custom chucks available. Sold and supported from Sturgis, Michigan.",
+  "JME-LD-12": {
+    tagline: "Out-of-round rolls put tension spikes in your web. The dancer takes them back out.",
+    lead: "The JME Linear Dancer is an accumulator-style tension system custom-designed for your converting line. A 12-inch precision-balanced dead-shaft aluminum dancer roll rides on a pneumatic load system with electronic pressure control and position feedback, absorbing the tension fluctuations that out-of-round and eccentric rolls throw into the web — the fluctuations that show up downstream as short sheets, length variation, and beaten-up knives.",
     heroStats: [
-      { value: "4–16 in", label: "Core sizes" },
-      { value: "Shaftless", label: "Design" },
-      { value: "Custom", label: "Chucks available" },
+      { value: "1,500 FPM", label: "Web speed" },
+      { value: "0.5–50 PLI", label: "Tension range" },
+      { value: "< 0.3 s", label: "Dynamic response" },
+    ],
+    badge: { band: "Quote Required" },
+    gallery: [],
+    options: [
+      {
+        id: "width",
+        label: "Web width",
+        type: "radio",
+        choices: [
+          { v: "To 40 in", sku: "W40" },
+          { v: "40–63 in", sku: "W63", note: "Common" },
+          { v: "Over 63 in", sku: "W63P" },
+        ],
+      },
+      {
+        id: "integration",
+        label: "Line integration",
+        type: "radio",
+        choices: [
+          { v: "Ahead of sheeter", sku: "IS", note: "Most common" },
+          { v: "Ahead of slitter / laminator", sku: "IL" },
+          { v: "Other (describe in notes)", sku: "IO" },
+        ],
+      },
+      {
+        id: "addons",
+        label: "Add-ons",
+        type: "check",
+        choices: [
+          { v: "Position feedback display", sku: "PF" },
+          { v: "Spare dancer roll", sku: "SR" },
+          { v: "Commissioning on site", sku: "CM", note: "Recommended" },
+        ],
+      },
+    ],
+    how: [
+      { n: "01", t: "Survey", d: "JME engineers the mounting frame and geometry around your web width, speed range, and existing machine interfaces." },
+      { n: "02", t: "Absorb", d: "The dancer roll strokes with each tension spike, accumulating and releasing web instead of passing the jolt downstream." },
+      { n: "03", t: "Regulate", d: "The E/P transducer and position sensor hold set tension across the 0.5–50 PLI range in under 0.3 seconds." },
+      { n: "04", t: "Cut clean", d: "Steadier web in — consistent sheet lengths out, with less shock load on the sheeter knives." },
+    ],
+    apps: ["Sheeting lines", "Fine paper mills", "Web processors", "Laminators", "Slitting"],
+    proof: {
+      stat: "40–60%",
+      label: "Short-sheet waste reduction",
+      quote:
+        "On lines fighting out-of-round rolls, accumulator dancers typically cut short-sheet waste 40–60% and hold length consistency to ±0.010 in. Figures from JME application engineering — confirmed against your line during the survey.",
+    },
+    partsCat: "Edge Guide & Tension",
+    downloads: [
+      { t: "Application worksheet", m: "Web width, speeds, roll condition" },
+      { t: "Integration drawing (sample)", m: "Mounting frame & clearances" },
+    ],
+  },
+
+  "JME-RR-16": {
+    tagline: "The right rollstand at the right price — 7,000 lb rolls handled without a core shaft or a strained back.",
+    lead: "The RollRite is JME's shaftless dual-position pivoting-arm rollstand. Hydraulic lift arms and the standard E-Z Load side-shifting trolley put 7,000 lb, 83-inch parent rolls on the line without manual shaft handling; closed-loop tension control and a pressure-regulated pneumatic brake keep the web steady into slitters, sheeters, bag machines, presses, and laminators. Built new and parts-backed in Sturgis, Michigan.",
+    heroStats: [
+      { value: "7,000 lb", label: "Roll capacity" },
+      { value: "83 in", label: "Max roll dia." },
+      { value: "63 in", label: "Max web width" },
     ],
     badge: { band: "Quote Required" },
     gallery: [{ src: "rollrite-gmc.jpg", cap: "GMC-built shaftless pivot-arm unwind — the RollRite platform", fit: "cover" }],
@@ -233,10 +293,10 @@ export const details: Record<string, MachineDetail> = {
       },
     ],
     how: [
-      { n: "01", t: "Mount", d: "Parent roll loads onto chucks sized to your core ID." },
-      { n: "02", t: "Tension", d: "The stand holds steady web tension as the downstream machine pulls." },
-      { n: "03", t: "Guide", d: "The web tracks smoothly into the line." },
-      { n: "04", t: "Feed", d: "Controlled delivery into the slitter, sheeter, bag machine, press, or laminator." },
+      { n: "01", t: "Load", d: "The E-Z Load side-shifting trolley positions the parent roll; hydraulic arms lift it — no core shaft, no crane." },
+      { n: "02", t: "Chuck", d: "Quick-change chucks (3–6 / 10–12 in, 8 / 16 in adaptors) grip the core; split-roll capable." },
+      { n: "03", t: "Tension", d: "Closed-loop control and the pneumatic brake hold steady web tension as the line pulls." },
+      { n: "04", t: "Feed", d: "Controlled delivery into the slitter, sheeter, bag machine, press, or laminator — brake auto-engages on power loss." },
     ],
     apps: ["Slitters", "Sheeters", "Bag machines", "Forming presses", "Laminators"],
     proof: {
