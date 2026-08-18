@@ -87,8 +87,18 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - 🔒 Legal review before launch
 
 ### 17. Accessibility
-- 🟡 focus-visible, reduced-motion, alt text, semantic landmarks
-- ⬜ Keyboard-focusable nav, mobile menu, ARIA on interactive controls, WCAG 2.1 AA contrast audit
+- ✅ focus-visible, reduced-motion, alt text, semantic landmarks
+- ✅ Keyboard-focusable nav, mobile menu, ARIA on interactive controls
+- ✅ **WCAG 2.1 AA audit passing** — axe-core over a real browser, 13 page states
+  (8 routes + mobile + assistant widget, category rail, mobile nav, populated
+  request list): **0 violations**. Reproduce with `node scripts/a11y-audit.mjs`.
+- Contrast fixes made to reach it: an AA-safe `--jme-red-text` token for red type
+  on dark surfaces (the fill-weight `--jme-red-bright` was 3.08:1 as body text),
+  light-surface overrides for badges/eyebrows inside the paper-background parts
+  catalog (as low as 1.82:1), and light-on-maroon for the assistant button.
+- ⬜ Manual audit still worth doing before launch: screen-reader walkthrough
+  (NVDA/VoiceOver) and full keyboard-only journey — axe catches roughly a third
+  of WCAG issues and cannot judge focus order or announcement quality.
 
 ### 18. SEO
 - ✅ Per-page metadata/titles; ✅ gated by default
@@ -138,4 +148,4 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ✅ Accessibility baseline: skip link, focusable nav, mobile menu, ARIA, aria-live, reduced-motion
 - ✅ 404 (`not-found.tsx`) + loading (`loading.tsx`) states
 - ✅ `npm audit`: **0 vulnerabilities** (postcss override + brace-expansion patch); audit now gates CI on every push/PR (`--audit-level=moderate`)
-- ⬜ Full WCAG 2.1 AA contrast audit
+- ✅ Full WCAG 2.1 AA contrast audit — 0 violations across 13 page states (`scripts/a11y-audit.mjs`)

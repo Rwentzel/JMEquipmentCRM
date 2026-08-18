@@ -56,3 +56,9 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      # Static chunks are served without authentication, so this proves the
+      # dealer pricing and customer records in src/lib/qc/data.ts never reach
+      # a browser bundle — regardless of which page they were imported from.
+      - name: Client-bundle data-boundary check
+        run: npm run verify:bundles

@@ -6,7 +6,7 @@
  * Money math is integer-dollar rounding exactly as the prototype does it.
  */
 
-import { DISCLOSURES, TERM_TPL } from "./data";
+import { DISCLOSURES, TERM_TPL } from "./labels";
 import type {
   QcActivity,
   QcCfg,

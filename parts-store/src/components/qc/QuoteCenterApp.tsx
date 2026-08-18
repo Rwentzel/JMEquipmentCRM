@@ -12,7 +12,7 @@ import "@/styles/qc.css";
 import { useQcApp } from "./useQcApp";
 import type { QcApp, QcView } from "./useQcApp";
 import type { QcPart, QcState } from "@/lib/qc/types";
-import { LOSS_REASONS } from "@/lib/qc/data";
+import { LOSS_REASONS } from "@/lib/qc/labels";
 import { SearchOverlay } from "./SearchOverlay";
 import { DashView } from "./views/DashView";
 import { PipelineView } from "./views/PipelineView";
