@@ -7,14 +7,19 @@ import "./globals.css";
 
 const barlow = Barlow({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  // 300 is never used (--fw-light has no references); every weight here costs
+  // a font file on every page load.
+  weight: ["400", "500", "600", "700"],
   variable: "--font-barlow",
   display: "swap",
 });
 
 const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  // 900 is the display face's headline weight (--fw-black: hero h1, machine
+  // h1, the logo mark). Without it the browser synthesises a fake bold from
+  // 800, so the most brand-defining type on the site was not the real cut.
+  weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-barlow-condensed",
   display: "swap",
 });
