@@ -1,6 +1,25 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { evaluateQuote } from "../src/lib/validateQuote";
+import { details } from "../src/data/details";
+
+/**
+ * Mirrors resolveOptions() in src/app/api/quote/route.ts. Route modules cannot
+ * export helpers under Next 16, so the behaviour is pinned here against the
+ * same data the route reads.
+ */
+function resolveOptionsForTest(machineSku: string, raw: unknown): string[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  const opts = details[machineSku]?.options ?? [];
+  if (opts.length === 0) return [];
+  const wanted = new Set(raw.slice(0, 40).map((v) => String(v)));
+  const lines: string[] = [];
+  for (const opt of opts) {
+    const picked = opt.choices.filter((c) => wanted.has(c.sku));
+    if (picked.length > 0) lines.push(`${opt.label}: ${picked.map((c) => c.v).join(", ")}`);
+  }
+  return lines;
+}
 
 const skus = new Set(["JM108", "VCS-SK-12"]);
 const good = { company: "Acme", name: "Pat", email: "pat@acme.com", consent: true };
@@ -49,4 +68,45 @@ test("message-only mode accepts an empty item list when a message is present", (
 
 test("message-only mode still rejects an empty message", () => {
   assert.equal(evaluateQuote({ ...good, message: "" }, [], skus, { messageOnly: true }).kind, "invalid");
+});
+
+/* ---- configurator selections must reach the desk ---- */
+
+test("a configured machine carries its options through to the stored item", () => {
+  // The bug this covers: the configurator showed "Power: 5 HP / 460V 3Ø,
+  // Frame height: 90 in (16″ head)", said "Added to request", and then sent
+  // the desk a bare JME-VCS12-75 — the standard 230V, 75-inch build. JM would
+  // have quoted the wrong machine, and the SKU itself contradicts the choice.
+  const machine = "JME-VCS12-75";
+  const opts = details[machine]!.options;
+  const power = opts.find((o) => o.id === "power")!;
+  const nonDefault = power.choices[2]!; // 460V 3Ø
+
+  const resolved = resolveOptionsForTest(machine, [nonDefault.sku]);
+  assert.deepEqual(resolved, [`${power.label}: ${nonDefault.v}`]);
+});
+
+test("an option id the machine does not offer is dropped, not echoed", () => {
+  // Choice ids come from the browser, so a crafted payload must not put
+  // arbitrary text into the desk's email or its CSV export.
+  assert.deepEqual(resolveOptionsForTest("JME-VCS12-75", ["=HYPERLINK(\"http://x\")"]), []);
+  assert.deepEqual(resolveOptionsForTest("JME-VCS12-75", ["NOT-A-CHOICE"]), []);
+});
+
+test("a machine with no configurator, and the standard build, add nothing", () => {
+  assert.deepEqual(resolveOptionsForTest("JME-VCS12-75", []), []);
+  assert.deepEqual(resolveOptionsForTest("NO-SUCH-MACHINE", ["P4"]), []);
+});
+
+test("multiple choices in one option group are listed together", () => {
+  const opts = details["JME-VCS12-75"]!.options;
+  const check = opts.find((o) => o.type === "check");
+  if (!check || check.choices.length < 2) return; // nothing multi-select to assert on
+  const [a, b] = check.choices;
+  const resolved = resolveOptionsForTest("JME-VCS12-75", [a!.sku, b!.sku]);
+  assert.equal(resolved.length, 1);
+  // Plain containment: choice text carries regex metacharacters of its own
+  // (e.g. "Spare blade set (4)"), so building a pattern from it is a trap.
+  assert.ok(resolved[0]!.startsWith(`${check.label}: `));
+  assert.ok(resolved[0]!.includes(a!.v) && resolved[0]!.includes(b!.v));
 });
