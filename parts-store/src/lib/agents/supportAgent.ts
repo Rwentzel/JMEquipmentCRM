@@ -46,7 +46,11 @@ const SOURCING_REFUSAL =
  */
 const GUARDED: Array<{ re: RegExp; refusal: string }> = [
   {
-    re: /\b(vendor|vendors|supplier|suppliers|wholesale|distributor|who makes|who manufactures|where do you (get|source|buy))\b/i,
+    // "supplies/supplied/supplying" and "who do you buy from" are the same
+    // question as "supplier" and were slipping past this screen — a customer
+    // asking "who supplies your bearings" got a parts listing instead of the
+    // sourcing answer.
+    re: /\b(vendor|vendors|supplier|suppliers|supplies|supplied|supplying|sourced|sourcing|wholesale|distributor|who makes|who manufactures|who do you (buy|get|source)|where do you (get|source|buy))\b/i,
     refusal: SOURCING_REFUSAL,
   },
   {
