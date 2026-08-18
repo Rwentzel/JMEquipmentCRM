@@ -19,14 +19,14 @@ real, concrete shortfall, not an aspirational nice-to-have.
 ## Real gaps (concrete, prioritized)
 | # | Gap | Impact | Disposition |
 |---|---|---|---|
-| 1 | **Single line per transaction** — multi-line invoices not modeled | Real invoices have many lines; today two lines share an invoice # → flagged as likely-duplicate | Exchange 3 (header/line model). Documented in KNOWN_LIMITATIONS |
-| 2 | **Payment/credit cash application incomplete** | Invoice balance, partial/over-payment, unapplied cash, AR status not fully reconciled | Exchange 3. Payments stored + excluded from revenue today |
-| 3 | **Backup restore validation/preview + history** | Backup exists; safe restore-into-separate-location + validation not yet | Exchange 3 (READINESS §20) |
+| 1 | ~~Single line per transaction~~ | — | **CLOSED (Exchange 3):** document/line identity separated; three-level duplicate detection; header reconciles to all lines |
+| 2 | ~~Payment/credit cash application incomplete~~ | — | **CLOSED (Exchange 3):** `cash.py` — balances, partial/over payment, unapplied cash, credits, returns, reversals, AR status, cash bridge |
+| 3 | ~~Backup restore validation/preview + history~~ | — | **CLOSED (Exchange 3):** `backup.py` — validation, restore preview, safe restore with automatic pre-restore safety backup |
 | 4 | **No operator GUI** (CLI only before this release) | "No source-code editing for normal use" needs a UI | **Addressed this release** — local web operator console (`webapp.py`) |
 | 5 | **No role-based access in finance-system** | `users` table exists but unused; single local operator only | Fine for single-operator local use; multi-user/auth is Exchange 3+ (mirror LAUNCH's OPS_TOKEN→SSO path) |
-| 6 | **Vendor-cost evidence not configurable by type; crating recovery heuristic** | Cost verification doesn't yet accept alternative evidence; crating recovery = −cost when no crating revenue field | Exchange 3 |
+| 6 | ~~Vendor-cost evidence not configurable; crating recovery heuristic~~ | — | **CLOSED (Exchange 3):** `cost_evidence.py` (9 evidence types, configurable acceptance, expiry); crating recovery = crating revenue − crating cost, unverified when revenue absent |
 | 7 | **No documented retention window for finance-system `.data/`** | LAUNCH §5 sets a retention posture for RFQ PII; the finance side lacked one | **Addressed this release** — `docs/RUNBOOK.md` §Retention |
-| 8 | **XLSX intake untested without `openpyxl`** | Optional extra; real path runs only when installed | Documented (ADR-0007); gate test + real test both present |
+| 8 | **XLSX intake needs the `openpyxl` extra** | Real workbook parsing runs only when the extra is installed | Documented (ADR-0007); real test when present, honest skip when absent |
 | 9 | **QuickBooks import/export not implemented** | Adapter boundary only | By design (ADR-0006); no compat claim until authorized QB test |
 | 10 | **Report-level as-of time travel is snapshot-granular** | `as_of` reproduces a calculation's prior value; full historical report rendering reads current verification | Exchange 3+; snapshot history is the reproducibility record |
 
@@ -38,6 +38,12 @@ real, concrete shortfall, not an aspirational nice-to-have.
 - No finance-system module imports from `parts-store/`, and vice versa — clean separation.
 - `DATA_BOUNDARIES.md` and `PRODUCTION_READINESS_CHECKLIST.md §24` now cross-reference the
   finance-system so the private-data home is documented.
+
+## Post-Exchange-3 status
+Gaps 1, 2, 3, and 6 are closed with tests. Remaining open items are 5 (no role-based access),
+8 (XLSX optional extra), 9 (no QuickBooks integration — by design), 10 (report-level as-of
+time travel), plus automatic payment-to-invoice matching. None is a confidentiality or
+correctness defect.
 
 ## Bottom line
 The finance-system is **consistent with every governance document** and safe for controlled

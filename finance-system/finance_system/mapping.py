@@ -45,6 +45,7 @@ DEFAULT_ALIASES: dict[str, tuple[str, ...]] = {
     "credit": ("credit", "credit amount"),
     "return": ("return", "return amount", "returned"),
     "customer_shipping": ("freight billed", "shipping", "shipping charged", "freight revenue"),
+    "customer_crating": ("crating billed", "crating revenue", "crating charged", "packaging billed"),
     "other_charges": ("other charges", "misc", "other"),
     "tax": ("tax", "sales tax", "tax amount"),
     "product_cost": ("cost", "unit cost", "product cost", "cogs", "our cost"),

@@ -53,18 +53,31 @@ class LikelyDup:
 
 
 def find_exact_duplicates(conn: sqlite3.Connection, batch_id: str) -> list[ExactDup]:
-    """Exact = same source-row hash already posted, or same invoice# under same customer posted."""
+    """Exact duplicates at three distinct levels (Exchange 3).
+
+    * document level — the same document identity (external number + customer + type) is
+      already posted, or the whole document's content hash was already posted;
+    * source-row level — every constituent row was already posted (content identical);
+    * line level      — reported separately via :func:`find_duplicate_lines`; a repeated
+      line inside one document is NOT a duplicate document.
+
+    A multi-line invoice therefore never registers as a duplicate merely because its lines
+    share an invoice number.
+    """
     out: list[ExactDup] = []
     staged = conn.execute(
         "SELECT * FROM transactions WHERE import_batch_id=? AND posted=0", (batch_id,)).fetchall()
     for t in staged:
-        if t["source_row_hash"]:
+        # 1. identical document content already posted
+        if t["document_hash"]:
             m = conn.execute(
-                """SELECT id FROM transactions WHERE posted=1 AND source_row_hash=? LIMIT 1""",
-                (t["source_row_hash"],)).fetchone()
+                "SELECT id FROM transactions WHERE posted=1 AND document_hash=? LIMIT 1",
+                (t["document_hash"],)).fetchone()
             if m:
-                out.append(ExactDup(t["id"], m["id"], "identical source row already posted"))
+                out.append(ExactDup(t["id"], m["id"],
+                                    "identical document content already posted"))
                 continue
+        # 2. same document identity (invoice number + customer + type) already posted
         inv = _invoice_number(conn, t["id"])
         if inv and t["customer_id"]:
             m = conn.execute(
@@ -74,8 +87,25 @@ def find_exact_duplicates(conn: sqlite3.Connection, batch_id: str) -> list[Exact
                 (inv, t["customer_id"], t["transaction_type"])).fetchone()
             if m:
                 out.append(ExactDup(t["id"], m["id"],
-                                    f"invoice {inv} for same customer already posted"))
+                                    f"document {inv} for same customer already posted"))
     return out
+
+
+def find_duplicate_lines(conn: sqlite3.Connection, batch_id: str) -> list[dict]:
+    """Line-level duplicates: identical source rows repeated INSIDE one staged document.
+
+    Reported for review (a genuinely repeated line item is legitimate; a copy-paste error
+    is not) and never merged automatically.
+    """
+    rows = conn.execute(
+        """SELECT l.transaction_id, l.source_row_hash, COUNT(*) AS n,
+                  GROUP_CONCAT(l.id) AS line_ids
+           FROM transaction_lines l JOIN transactions t ON t.id=l.transaction_id
+           WHERE t.import_batch_id=? AND t.posted=0 AND l.source_row_hash IS NOT NULL
+           GROUP BY l.transaction_id, l.source_row_hash HAVING n > 1""", (batch_id,)).fetchall()
+    return [{"transaction_id": r["transaction_id"], "occurrences": r["n"],
+             "line_ids": (r["line_ids"] or "").split(","),
+             "reason": "identical source row repeated within one document"} for r in rows]
 
 
 _SIGNALS = ("customer_id", "transaction_type", "invoice", "amount", "date", "product")

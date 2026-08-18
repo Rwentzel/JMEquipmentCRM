@@ -78,13 +78,15 @@ def persist_line_snapshots(
     returns = Money.from_minor(line["return_minor"], currency)
     shipping = Money.from_minor(line["customer_shipping_minor"], currency)
     other = Money.from_minor(line["other_charges_minor"], currency)
+    crating_billed = Money.from_minor(
+        line["customer_crating_minor"] if "customer_crating_minor" in line.keys() else 0, currency)
     costs = cost_components(conn, line_id, currency)
     cost_map = load_cost_map(conn, line_id, currency)
 
     result = compute_line(
         quantity=qty, unit_sales_price=unit_price, discounts=discounts, credits=credits,
-        returns=returns, customer_shipping=shipping, other_authorized_charges=other,
-        costs=costs, policy=policy)
+        returns=returns, customer_shipping=shipping,
+        other_authorized_charges=other + crating_billed, costs=costs, policy=policy)
 
     rev_lvl = _level(conn, line_id, txn_id, CalculationType.REVENUE)
     cost_lvl = _level(conn, line_id, txn_id, CalculationType.COST)
@@ -102,7 +104,17 @@ def persist_line_snapshots(
     ucost = unit_actual_cost(result.total_cost, qty)
     ugp = unit_gross_profit(unit_price, ucost) if ucost is not None else None
     freight_recovery = shipping - cost_map[CostComponentType.FREIGHT_OUT]
-    crating_recovery = Money.zero(currency) - cost_map[CostComponentType.CRATING]
+    # Crating recovery = customer crating revenue - actual crating cost. When no crating
+    # revenue was supplied the recovery is not a verified fact, so it is recorded against
+    # the cost verification level with the revenue treated as absent (not as zero revenue).
+    crating_revenue = Money.from_minor(
+        line["customer_crating_minor"] if "customer_crating_minor" in line.keys() else 0, currency)
+    crating_cost = cost_map[CostComponentType.CRATING]
+    crating_recovery = crating_revenue - crating_cost
+    crating_level = cost_lvl
+    if crating_cost.minor and not crating_revenue.minor:
+        # cost known, customer crating revenue unknown -> cannot be verified
+        crating_level = VerificationLevel.UNVERIFIED
     gm = gross_margin_pct(result.gross_profit, result.net_revenue)
     mk = markup_pct(result.gross_profit, result.total_cost)
 
@@ -164,8 +176,8 @@ def persist_line_snapshots(
           line_id=line_id, period_id=period_id, batch_id=batch_id, scale=4,
           supersede_of=sup(snapshots.CALC_FREIGHT_RECOVERY)); n += 1
     _snap(conn, snapshots.CALC_CRATING_RECOVERY, line_id,
-          {"crating_cost": cost_map[CostComponentType.CRATING]},
-          str(crating_recovery.minor), "money_minor", cost_lvl, policy, txn_id=txn_id,
+          {"customer_crating_revenue": crating_revenue, "crating_cost": crating_cost},
+          str(crating_recovery.minor), "money_minor", crating_level, policy, txn_id=txn_id,
           line_id=line_id, period_id=period_id, batch_id=batch_id, scale=4,
           supersede_of=sup(snapshots.CALC_CRATING_RECOVERY)); n += 1
 

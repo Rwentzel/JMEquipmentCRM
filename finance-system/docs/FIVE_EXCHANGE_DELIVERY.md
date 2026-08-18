@@ -11,7 +11,7 @@ of the real repository and environment.
 | 1 | Discovery, architecture, executable foundation | ✅ Conditionally accepted |
 | 2 | Intake, classification, reconciliation, reporting | ✅ Conditionally accepted |
 | 2.1 | Reporting-integrity gate (scope, bridges, lifecycle) | ✅ Delivered (awaiting review) |
-| 3 | Operational application (local UI) | ⛔ Gated on 2.1 acceptance |
+| 3 | Operational application (local UI + business breadth) | ✅ Delivered (awaiting review) |
 | 4 | Business intelligence & adversarial hardening | ⛔ Not started |
 | 5 | Release candidate, acceptance, handoff | ⛔ Not started |
 
@@ -125,10 +125,16 @@ _Pending ChatGPT review._
 - `selfcheck` command + `python -m finance_system` entry; console script entry points.
 - `docs/RUNBOOK.md` (controlled real-data activation) and `docs/AUDIT.md` (governance audit).
 
-Still pending for full Exchange 3 (unchanged from the review brief): multi-line documents,
-payment/credit cash application, vendor-evidence policy, crating revenue/recovery, master-data
-lookup and richer transaction/reconciliation workspaces, period/backup-restore/config
-workflows, and role-based access. See `docs/KNOWN_LIMITATIONS.md` and `docs/AUDIT.md`.
+**Now delivered as well:** multi-line documents (document vs line identity, three-level
+duplicate detection), payment/credit cash application (balances, partial/over payment,
+unapplied cash, reversals, AR status, cash bridge), configurable vendor-cost evidence,
+crating revenue/recovery, and validated backup / restore preview / safe restore. Console gains
+a Receivables page and per-document line counts; CLI gains `receivables`, `verify-backup`,
+`restore-preview`, `restore`.
+
+Still pending (honest): master-data lookup and richer transaction/reconciliation workspaces,
+policy/configuration editing UI, role-based access, and automatic payment-to-invoice matching.
+See `docs/KNOWN_LIMITATIONS.md`.
 
 ## Exchange 4 — Business intelligence & adversarial hardening
 _Not started._

@@ -27,7 +27,7 @@ from .verification import CalculationType
 
 # normalized field -> (normalizer, kind)
 _MONEY_FIELDS = ("unit_sales_price", "discount", "credit", "return", "customer_shipping",
-                 "other_charges", "tax", "header_total")
+                 "customer_crating", "other_charges", "tax", "header_total")
 _COST_FIELDS = {
     "product_cost": CostComponentType.PRODUCT_COST,
     "freight_in": CostComponentType.FREIGHT_IN,
@@ -142,74 +142,105 @@ def _resolve_named(conn, table, kind, name) -> Optional[str]:
     return ent_id
 
 
-def stage_row(ctx: StageContext, row_number: int, raw: dict, mapping: MappingResult) -> StagedRow:
-    conn = ctx.conn
+# ---------------------------------------------------------------------------
+# Multi-line documents (Exchange 3)
+#
+# Source rows that belong to the same business document (same type + same external
+# document number + same customer) are grouped into ONE transaction carrying MANY lines.
+# Document identity and line identity stay separate, so a legitimate multi-line invoice is
+# never mistaken for a duplicated document. Rows with no document number remain
+# single-line documents of their own.
+# ---------------------------------------------------------------------------
+
+# The external id that identifies the DOCUMENT, in priority order per transaction type.
+_DOC_ID_PRIORITY = {
+    "invoice": ("external_invoice_number", "external_so_number"),
+    "credit_memo": ("external_invoice_number",),
+    "return": ("external_invoice_number",),
+    "sales_order": ("external_so_number",),
+    "quote": ("external_so_number",),
+    "shipment": ("external_so_number", "external_invoice_number"),
+    "payment": ("external_invoice_number",),
+    "purchase_order": ("external_po_number",),
+    "vendor_bill": ("external_po_number", "vendor_bill_number"),
+    "item_receipt": ("external_po_number",),
+    "vendor_payment": ("external_po_number", "vendor_bill_number"),
+}
+
+
+@dataclass
+class PreparedRow:
+    row_number: int
+    raw: dict
+    mapped: dict
+    norm: dict
+    notes: list
+    row_hash: str
+    source_record_id: str = ""
+
+
+@dataclass
+class StagedDocument:
+    transaction_id: str
+    line_ids: list
+    document_key: tuple
+    per_calc: dict
+    row_errors: int = 0
+
+
+def document_key(norm: dict, row_number: int) -> tuple:
+    """Identity of the business document this row belongs to.
+
+    Returns ``("doc", type, id_namespace, id_value, customer)`` when the row carries a
+    document number, otherwise a row-unique key so the row stands alone. Payments are
+    deliberately NOT grouped with the invoice they reference — a payment is its own
+    document that gets *applied* to an invoice (see cash.py).
+    """
+    tt = norm.get("transaction_type", "unknown")
+    for fieldname in _DOC_ID_PRIORITY.get(tt, ()):
+        value = norm.get(fieldname)
+        if value:
+            party = normalize.canonical_key(norm.get("customer") or norm.get("vendor") or "")
+            return ("doc", tt, fieldname, str(value).strip(), party)
+    return ("row", tt, row_number)
+
+
+def prepare_row(ctx: StageContext, row_number: int, raw: dict, mapping: MappingResult) -> PreparedRow:
+    """Normalize one source row and persist its raw+normalized lineage."""
     mapped = _apply_mapping(raw, mapping)
     norm, notes = build_normalized(mapped)
     row_hash = hashlib.sha256(
         json.dumps(raw, sort_keys=True, default=str).encode("utf-8")).hexdigest()
-
-    # preserve raw + normalized (lineage)
     src_id = new_id("source_record")
-    conn.execute(
+    ctx.conn.execute(
         """INSERT INTO source_records(id, source_file_id, import_batch_id, row_number,
            raw_json, normalized_json, row_error) VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (src_id, ctx.source_file_id, ctx.batch_id, row_number,
          json.dumps(raw, sort_keys=True, default=str),
          json.dumps(norm, sort_keys=True, default=str),
          "; ".join(notes) if notes else None))
+    return PreparedRow(row_number, raw, mapped, norm, notes, row_hash, src_id)
 
-    customer_id = _resolve_named(conn, "customers", "customer", norm.get("customer"))
-    vendor_id = _resolve_named(conn, "vendors", "vendor", norm.get("vendor"))
+
+def _insert_line(ctx: StageContext, txn_id: str, line_number: int, pr: PreparedRow,
+                 vendor_id: Optional[str]) -> str:
+    conn, norm = ctx.conn, pr.norm
     product_id = _resolve_named(conn, "products", "product", norm.get("product"))
-    norm["customer_id"] = customer_id  # for evidence classification
-
-    tt_value = norm["transaction_type"]
-    try:
-        tt = TransactionType(tt_value)
-        unknown_raw = None
-    except ValueError:
-        tt = None
-        unknown_raw = str(mapped.get("transaction_type", ""))
-    rule_id = ctx.rule_lookup.get(norm.get("commission_rule_id", "")) if norm.get("commission_rule_id") else None
-
-    txn_id = new_id("transaction")
-    header_total_minor = Money.of(norm["header_total"]).minor if "header_total" in norm else None
-    conn.execute(
-        """INSERT INTO transactions(id, transaction_type, customer_id, vendor_id, import_batch_id,
-           source_record_id, reporting_period_id, currency, transaction_date, order_date,
-           invoice_date, ship_date, due_date, payment_date, period_assignment_date,
-           status, payment_status, salesperson, posted, review_status, header_total_minor,
-           source_row_hash, unknown_type_raw, commission_rule_id, mapping_profile_id, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'staged', ?, ?, ?, ?, ?, ?)""",
-        (txn_id, tt.value if tt else "unknown", customer_id, vendor_id, ctx.batch_id, src_id,
-         ctx.period_id, norm.get("transaction_date"), norm.get("order_date"),
-         norm.get("invoice_date"), norm.get("ship_date"), norm.get("due_date"),
-         norm.get("payment_date"), norm.get("period_assignment_date"),
-         norm.get("status"), norm.get("payment_status"), norm.get("salesperson"),
-         header_total_minor, row_hash, unknown_raw, rule_id, ctx.profile.id, utcnow_iso()))
-
-    for field_name, namespace in _EXTERNAL_ID_FIELDS.items():
-        if norm.get(field_name):
-            conn.execute(
-                """INSERT INTO external_identifiers(id, entity_kind, entity_id, namespace, value, created_at)
-                   VALUES (?, 'transaction', ?, ?, ?, ?)""",
-                (f"extid_{new_id('transaction')[4:]}", txn_id, namespace, norm[field_name], utcnow_iso()))
-
     line_id = new_id("transaction_line")
     conn.execute(
         """INSERT INTO transaction_lines(id, transaction_id, product_id, line_number, description,
            quantity_minor, unit_sales_price_minor, discount_minor, credit_minor, return_minor,
-           customer_shipping_minor, other_charges_minor, tax_minor, currency, created_at)
-           VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'USD', ?)""",
-        (line_id, txn_id, product_id, norm.get("product"),
+           customer_shipping_minor, customer_crating_minor, other_charges_minor, tax_minor,
+           currency, source_record_id, source_row_hash, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?)""",
+        (line_id, txn_id, product_id, line_number, norm.get("product"),
          quantity_to_stored(norm["quantity"]) if "quantity" in norm else None,
          Money.of(norm["unit_sales_price"]).minor if "unit_sales_price" in norm else None,
          Money.of(norm.get("discount", "0")).minor, Money.of(norm.get("credit", "0")).minor,
          Money.of(norm.get("return", "0")).minor, Money.of(norm.get("customer_shipping", "0")).minor,
+         Money.of(norm.get("customer_crating", "0")).minor,
          Money.of(norm.get("other_charges", "0")).minor, Money.of(norm.get("tax", "0")).minor,
-         utcnow_iso()))
-
+         pr.source_record_id, pr.row_hash, utcnow_iso()))
     for field_name, ctype in _COST_FIELDS.items():
         if field_name in norm:
             conn.execute(
@@ -219,23 +250,100 @@ def stage_row(ctx: StageContext, row_number: int, raw: dict, mapping: MappingRes
                 (new_id("cost_component"), line_id, txn_id, ctype.value,
                  Money.of(norm[field_name]).minor, vendor_id, norm.get("vendor_bill_number"),
                  utcnow_iso()))
+    return line_id
 
-    # calculation-level classification + exceptions
-    record_ver = ctx.matrix.classify_record(norm, tt.value if tt else "unknown")
-    per_calc = {}
-    for calc, cv in record_ver.by_calc.items():
-        conn.execute(
-            """INSERT INTO record_verifications(id, transaction_id, transaction_line_id,
-               calculation_type, level, missing_fields_json, note, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (new_id("calculation_snapshot"), txn_id, line_id, calc.value, cv.level.value,
-             json.dumps(cv.missing_fields), cv.note, utcnow_iso()))
-        per_calc[calc.value] = cv.level.value
-        if calc in (CalculationType.COST, CalculationType.GROSS_PROFIT, CalculationType.COMMISSION):
-            exception_register.exception_from_verification(
-                conn, cv, transaction_id=txn_id, transaction_line_id=line_id,
-                customer_ref=norm.get("customer"), priority=ExceptionPriority.HIGH,
-                import_batch_id=ctx.batch_id, reporting_period_id=ctx.period_id,
-                source_record_id=src_id)
 
-    return StagedRow(txn_id, norm, per_calc, "; ".join(notes) if notes else None, row_hash)
+def stage_document(ctx: StageContext, rows: list, key: tuple) -> StagedDocument:
+    """Create ONE transaction with one line per source row in the group."""
+    conn = ctx.conn
+    header = rows[0]                      # header fields come from the first row
+    hnorm = header.norm
+    customer_id = _resolve_named(conn, "customers", "customer", hnorm.get("customer"))
+    vendor_id = _resolve_named(conn, "vendors", "vendor", hnorm.get("vendor"))
+
+    tt_value = hnorm.get("transaction_type", "unknown")
+    try:
+        tt = TransactionType(tt_value)
+        unknown_raw = None
+    except ValueError:
+        tt = None
+        unknown_raw = str(header.mapped.get("transaction_type", ""))
+    rule_code = hnorm.get("commission_rule_id")
+    rule_id = ctx.rule_lookup.get(rule_code) if rule_code else None
+
+    # Header total: first row that supplies one. Document hash: all member rows.
+    header_total_minor = None
+    for r in rows:
+        if "header_total" in r.norm:
+            header_total_minor = Money.of(r.norm["header_total"]).minor
+            break
+    doc_hash = hashlib.sha256(
+        json.dumps(sorted(r.row_hash for r in rows)).encode("utf-8")).hexdigest()
+
+    txn_id = new_id("transaction")
+    conn.execute(
+        """INSERT INTO transactions(id, transaction_type, customer_id, vendor_id, import_batch_id,
+           source_record_id, reporting_period_id, currency, transaction_date, order_date,
+           invoice_date, ship_date, due_date, payment_date, period_assignment_date,
+           status, payment_status, salesperson, posted, review_status, header_total_minor,
+           source_row_hash, document_hash, line_count, unknown_type_raw, commission_rule_id,
+           mapping_profile_id, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 'USD', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 'staged', ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (txn_id, tt.value if tt else "unknown", customer_id, vendor_id, ctx.batch_id,
+         header.source_record_id, ctx.period_id, hnorm.get("transaction_date"),
+         hnorm.get("order_date"), hnorm.get("invoice_date"), hnorm.get("ship_date"),
+         hnorm.get("due_date"), hnorm.get("payment_date"), hnorm.get("period_assignment_date"),
+         hnorm.get("status"), hnorm.get("payment_status"), hnorm.get("salesperson"),
+         header_total_minor, header.row_hash, doc_hash, len(rows), unknown_raw, rule_id,
+         ctx.profile.id, utcnow_iso()))
+
+    for field_name, namespace in _EXTERNAL_ID_FIELDS.items():
+        if hnorm.get(field_name):
+            conn.execute(
+                """INSERT INTO external_identifiers(id, entity_kind, entity_id, namespace, value, created_at)
+                   VALUES (?, 'transaction', ?, ?, ?, ?)""",
+                (new_id("external_identifier"), txn_id, namespace, hnorm[field_name], utcnow_iso()))
+
+    line_ids, per_calc = [], {}
+    for n, pr in enumerate(rows, start=1):
+        line_id = _insert_line(ctx, txn_id, n, pr, vendor_id)
+        line_ids.append(line_id)
+        norm = dict(pr.norm)
+        norm["customer_id"] = customer_id          # for evidence classification
+        record_ver = ctx.matrix.classify_record(norm, tt.value if tt else "unknown")
+        for calc, cv in record_ver.by_calc.items():
+            conn.execute(
+                """INSERT INTO record_verifications(id, transaction_id, transaction_line_id,
+                   calculation_type, level, missing_fields_json, note, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (new_id("calculation_snapshot"), txn_id, line_id, calc.value, cv.level.value,
+                 json.dumps(cv.missing_fields), cv.note, utcnow_iso()))
+            per_calc.setdefault(calc.value, cv.level.value)
+            if calc in (CalculationType.COST, CalculationType.GROSS_PROFIT,
+                        CalculationType.COMMISSION):
+                exception_register.exception_from_verification(
+                    conn, cv, transaction_id=txn_id, transaction_line_id=line_id,
+                    customer_ref=hnorm.get("customer"), priority=ExceptionPriority.HIGH,
+                    import_batch_id=ctx.batch_id, reporting_period_id=ctx.period_id,
+                    source_record_id=pr.source_record_id)
+
+    return StagedDocument(txn_id, line_ids, key, per_calc,
+                          sum(1 for r in rows if r.notes))
+
+
+def stage_rows(ctx: StageContext, rows: list, mapping: MappingResult) -> list:
+    """Prepare every source row, group into documents, and stage each document."""
+    prepared = [prepare_row(ctx, i, raw, mapping) for i, raw in enumerate(rows, start=1)]
+    groups: dict = {}
+    for pr in prepared:
+        groups.setdefault(document_key(pr.norm, pr.row_number), []).append(pr)
+    return [stage_document(ctx, members, key) for key, members in groups.items()]
+
+
+def stage_row(ctx: StageContext, row_number: int, raw: dict, mapping: MappingResult) -> StagedRow:
+    """Stage a single row as its own one-line document (compatibility helper)."""
+    pr = prepare_row(ctx, row_number, raw, mapping)
+    key = document_key(pr.norm, pr.row_number)
+    doc = stage_document(ctx, [pr], key)
+    return StagedRow(doc.transaction_id, pr.norm, doc.per_calc,
+                     "; ".join(pr.notes) if pr.notes else None, pr.row_hash)

@@ -1,5 +1,36 @@
 # Changelog
 
+## Exchange 3 — documents, cash application, evidence, crating, restore (2026-07-27)
+Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.
+- **Multi-line documents.** Source rows sharing a document identity (type + document number
+  + party) now form ONE transaction with MANY lines. Document identity and line identity are
+  separate, so a legitimate multi-line invoice is never mistaken for a duplicated document.
+  Duplicate detection runs at three levels: document (`document_hash` / document identity),
+  line (`find_duplicate_lines` — repeated source row inside a document), and source row.
+  Header-vs-line reconciliation now sums ALL lines. Every line keeps its own source lineage.
+- **Cash application (`cash.py`).** Invoice balance, partial payment, multiple payments,
+  authorized overpayment, unapplied cash/deposits, credit and return application, and
+  append-only reversal (never a mutation). AR status per invoice (open / partially paid /
+  paid / overpaid) and a cash bridge that keeps **invoiced revenue**, **collected cash**, and
+  **outstanding receivable** strictly separate. Surfaced in the A–K report, CLI
+  (`receivables`), and the console (Receivables page).
+- **Configurable vendor-cost evidence (`cost_evidence.py`).** A vendor bill is no longer
+  universally required: purchase order, vendor quote, historical approved cost, authorized
+  manual cost, manufacturer price list, freight/crating invoice, and internal labor record
+  are all supported, each mapped to `verified`/`provisional`/`rejected` per policy and
+  reconfigurable. Expired evidence is ignored; the strongest evidence wins.
+- **Crating revenue and recovery.** New `customer_crating_minor` line field and mapping
+  aliases. Crating recovery is now `customer crating revenue − actual crating cost`, not the
+  negative-cost heuristic; when crating cost exists with no crating revenue the recovery is
+  classified **unverified** rather than reported as a loss of fact.
+- **Backup validation, restore preview, and safe restore (`backup.py`).** Backups are
+  validated (integrity check, schema version, record counts, append-only triggers still
+  present); `restore-preview` reports the deltas without touching the active database; and
+  `restore` refuses invalid backups, requires explicit confirmation, and takes an automatic
+  safety backup of the current database first. New CLI: `verify-backup`, `restore-preview`,
+  `restore`, `receivables`.
+- Migration `0004_documents_cash_evidence.sql`. Tests: 134 → 165.
+
 ## Hardening sweep — defect fixes (2026-07-24)
 Post-release code sweep; every item is a real defect found and fixed, with regression tests.
 - **Exact money in duplicate matching.** `dedup._line_amount_minor` computed extended amounts

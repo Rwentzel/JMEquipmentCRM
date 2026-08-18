@@ -36,6 +36,9 @@ ReconciliationFindingId = NewType("ReconciliationFindingId", str)
 ReportingPeriodId = NewType("ReportingPeriodId", str)
 CalculationSnapshotId = NewType("CalculationSnapshotId", str)
 AuditEventId = NewType("AuditEventId", str)
+ExternalIdentifierId = NewType("ExternalIdentifierId", str)
+PaymentApplicationId = NewType("PaymentApplicationId", str)
+CostEvidenceId = NewType("CostEvidenceId", str)
 
 # Registry of prefixes so the scanner / tooling can recognise our ids.
 PREFIXES: dict[str, str] = {
@@ -57,6 +60,10 @@ PREFIXES: dict[str, str] = {
     "reporting_period": "period",
     "calculation_snapshot": "calc",
     "audit_event": "audit",
+    "external_identifier": "extid",
+    "payment_application": "payapp",
+    "cost_evidence": "costev",
+    "report_manifest": "report",
 }
 
 

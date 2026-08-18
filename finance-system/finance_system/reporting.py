@@ -191,7 +191,10 @@ def compute_separated_totals(
             credits=Money.from_minor(l["credit_minor"], currency),
             returns=Money.from_minor(l["return_minor"], currency),
             customer_shipping=Money.from_minor(l["customer_shipping_minor"], currency),
-            other_authorized_charges=Money.from_minor(l["other_charges_minor"], currency),
+            other_authorized_charges=Money.from_minor(l["other_charges_minor"], currency)
+                                      + Money.from_minor(
+                                          l["customer_crating_minor"] if "customer_crating_minor" in l.keys() else 0,
+                                          currency),
             costs=cost_components(conn, l["id"], currency),
             policy=policy,
         )

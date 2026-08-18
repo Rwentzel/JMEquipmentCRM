@@ -16,7 +16,7 @@ from .ids import new_id
 from .mapping import MappingProfile, map_headers
 from .models import ImportBatchStatus
 from .policies import CalculationPolicy
-from .staging import StageContext, stage_row
+from .staging import StageContext, stage_rows
 
 
 @dataclass
@@ -30,6 +30,7 @@ class ImportOutcome:
     mapping: dict = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
     staged_ids: list[str] = field(default_factory=list)
+    documents_staged: int = 0
 
 
 def register_and_stage(
@@ -48,13 +49,14 @@ def register_and_stage(
     outcome = ImportOutcome(batch_id, source_file_id, is_dup,
                             rows_received=len(parsed.rows), mapping=mapping.to_dict(),
                             warnings=list(parsed.warnings))
-    for i, raw in enumerate(parsed.rows, start=1):
-        staged = stage_row(ctx, i, raw, mapping)
-        if staged.transaction_id:
-            outcome.staged_ids.append(staged.transaction_id)
-            outcome.rows_staged += 1
-        if staged.row_error:
-            outcome.row_errors += 1
+    # Group source rows into business documents: one transaction per document, one line
+    # per source row. A multi-line invoice becomes ONE staged transaction, not N.
+    documents = stage_rows(ctx, parsed.rows, mapping)
+    for doc in documents:
+        outcome.staged_ids.append(doc.transaction_id)
+        outcome.rows_staged += len(doc.line_ids)
+        outcome.row_errors += doc.row_errors
+    outcome.documents_staged = len(documents)
     imports.set_status(conn, batch_id, ImportBatchStatus.STAGED)
     return outcome
 

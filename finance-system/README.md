@@ -9,25 +9,24 @@ copies no proprietary code, branding, or interface.
 > fixtures are committed. Real prices/costs/margins/customers live only in a gitignored
 > local SQLite DB (`.data/`) and `private/` inputs. See `docs/THREAT_MODEL.md`.
 
-This is **Exchange 2** of a five-exchange build (see `docs/FIVE_EXCHANGE_DELIVERY.md`).
-Exchange 1 delivered the executable foundation (money/formula core, versioned policies,
-calculation-level evidence & verification, generic transaction schema, reversible import
-batches, append-only audit, exception register, confidential-data scanner). Exchange 2 adds
-the full monthly-close workflow: CSV/TSV/JSON/pasted intake, mapping profiles, normalization,
-staging, duplicate + conflict detection, transactional posting with **persisted calculation
-snapshots**, evidence resolution, a reconciliation engine, the A–K batch report, CSV export,
-and an operator CLI — plus the two Exchange-1 financial-integrity fixes (snapshot persistence
-and a profitability-verified margin population).
+This is **Exchange 3** of a five-exchange build (see `docs/FIVE_EXCHANGE_DELIVERY.md`).
+Exchange 1 delivered the executable foundation; Exchange 2 the full intake → posting →
+reconciliation → A–K reporting workflow; Exchange 2.1 the reporting-integrity gate (explicit
+report scope, reconciling cost/units/commission bridges, per-report integrity assertions and
+manifests). **Exchange 3** adds the operator interface and the remaining business breadth:
+a local web console, **multi-line documents**, **cash application** (invoiced vs collected vs
+outstanding), **configurable vendor-cost evidence**, **crating revenue/recovery**, and
+**validated backup / preview / safe restore**.
 
 ## Requirements
-Python 3.11+. **No third-party packages** for the Exchange 1 core (stdlib only). Optional
-extras (Excel, UI) arrive in later exchanges — see `pyproject.toml`.
+Python 3.11+. **No third-party packages** — the engine, CLI, and web console are standard
+library only. `openpyxl` is an optional extra for direct `.xlsx` intake (ADR-0007).
 
 ## Run
 From this directory (`finance-system/`):
 
 ```bash
-# Full test suite (stdlib unittest; no pytest needed) — 134 tests
+# Full test suite (stdlib unittest; no pytest needed) — 165 tests
 python -m unittest discover -s tests -t .
 # Same, with unclosed-connection warnings treated as errors (must pass)
 python -W error::ResourceWarning -m unittest discover -s tests -t .
@@ -50,6 +49,9 @@ python -m finance_system.cli initialize
 python -m finance_system.cli import fixtures/sample_month_v2.csv --period 2026-06 --post
 python -m finance_system.cli report --period 2026-06     # exit code 3 if integrity fails
 python -m finance_system.cli export --period 2026-06
+python -m finance_system.cli receivables --period 2026-06   # invoiced vs collected vs outstanding
+python -m finance_system.cli verify-backup <file.db>        # validate a backup
+python -m finance_system.cli restore-preview <file.db>      # what a restore would change
 
 # Confidential-data safety scan over git-tracked + staged files (exit != 0 on HIGH)
 python scripts/safety_scan.py
@@ -62,7 +64,7 @@ audit against the repository's data-boundary/readiness governance docs.
 The SQLite database is created on demand under `.data/finance.db` (gitignored). Override its
 location with `FINANCE_DATA_DIR`.
 
-## Architecture (Exchange 1)
+## Architecture
 | Module | Responsibility | ADR |
 |---|---|---|
 | `money.py` | Exact money/quantity as integer minor units (scale 4); ratios as decimal strings | ADR-0003 |
@@ -94,6 +96,13 @@ location with `FINANCE_DATA_DIR`.
 | `export.py` | CSV export package (private, timestamped) | — |
 | `cli.py` | Operator command-line workflow | — |
 | `demo.py` | End-to-end sanitized monthly-close demonstration | — |
+| **Exchange 2.1 →** | | |
+| `scope.py` | Explicit immutable `ReportScope` for every report/count/total | ADR-0008 |
+| **Exchange 3 →** | | |
+| `webapp.py` | Local operator web console (stdlib, loopback-only) | — |
+| `cash.py` | Cash application: balances, partial/over payment, unapplied cash, reversal | — |
+| `cost_evidence.py` | Configurable vendor-cost evidence types + acceptance policy | — |
+| `backup.py` | Backup validation, restore preview, safe restore with safety backup | — |
 
 ## Key design commitments
 - **Internal keys, not SKU**, for all joins; external identifiers preserved separately.

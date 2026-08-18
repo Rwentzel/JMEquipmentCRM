@@ -25,7 +25,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import batch_report, export as export_mod, imports, pipeline, resolution
+from . import backup as backup_mod, batch_report, cash, export as export_mod, imports, pipeline, resolution
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -53,6 +53,7 @@ _NAV = ('<header><h1>JM Equipment — Finance Console</h1>'
         '<nav style="margin-top:8px">'
         '<a href="/">Dashboard</a><a href="/import">Import</a>'
         '<a href="/exceptions">Exceptions</a><a href="/report">Reports</a>'
+        '<a href="/receivables">Receivables</a>'
         '<a href="/backup">Backup</a></nav></header>')
 
 
@@ -131,6 +132,7 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         q = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
         routes = {"/": self.page_dashboard, "/import": self.page_import,
+                  "/receivables": self.page_receivables,
                   "/exceptions": self.page_exceptions, "/report": self.page_report,
                   "/batch": self.page_batch, "/backup": self.page_backup}
         fn = routes.get(parsed.path)
@@ -210,10 +212,11 @@ class Handler(BaseHTTPRequestHandler):
         batch = q.get("id", "")
         review = pipeline.review_summary(conn, batch) if batch else {}
         rows = conn.execute(
-            """SELECT transaction_type, review_status, dedup_status FROM transactions
+            """SELECT transaction_type, review_status, dedup_status, line_count FROM transactions
                WHERE import_batch_id=? ORDER BY created_at""", (batch,)).fetchall()
         trows = "".join(
-            f"<tr><td>{html.escape(r['transaction_type'])}</td><td>{html.escape(r['review_status'])}</td>"
+            f"<tr><td>{html.escape(r['transaction_type'])}</td><td>{r['line_count']}</td>"
+            f"<td>{html.escape(r['review_status'])}</td>"
             f"<td>{html.escape(r['dedup_status'] or '')}</td></tr>" for r in rows)
         body = f"""
         {_flash(q)}
@@ -225,7 +228,7 @@ class Handler(BaseHTTPRequestHandler):
           <div>Conflicts</div><div>{review.get('conflicts','?')}</div>
           <div>Open exceptions</div><div>{review.get('open_exceptions','?')}</div>
         </div></div>
-        <div class='card'><table><tr><th>Type</th><th>Review</th><th>Dedup</th></tr>{trows}</table></div>
+        <div class='card'><table><tr><th>Type</th><th>Lines</th><th>Review</th><th>Dedup</th></tr>{trows}</table></div>
         <div class='card'>
           <form method='post' action='/post' onsubmit="return confirm('Post approved rows? This creates posted records and snapshots.');">
             <input type='hidden' name='batch' value='{html.escape(batch)}'>
@@ -302,6 +305,29 @@ class Handler(BaseHTTPRequestHandler):
               <button type='submit'>Create backup</button></form></div>""")
         return _page("Reports", "".join(body))
 
+    def page_receivables(self, conn, q):
+        periods = _periods(conn)
+        opts = "".join(f"<option value='{html.escape(p['id'])}'>{html.escape(p['label'])}</option>"
+                       for p in periods)
+        body = [f"""<div class='card'><form method='get' action='/receivables'>
+          <label>Reporting period</label><select name='period'>{opts}</select>
+          <input type='submit' value='Show receivables'></form></div>"""]
+        chosen = q.get("period")
+        if chosen:
+            b = cash.cash_bridge(conn, ReportScope.for_period(chosen, DEFAULT_POLICY))
+            counts = b["invoice_status_counts"]
+            body.append(f"""<div class='card'><h3>Cash bridge</h3><div class='kv'>
+              <div>Invoiced revenue</div><div>{html.escape(b['invoiced_revenue'])}</div>
+              <div>Collected cash (applied)</div><div>{html.escape(b['collected_cash_applied'])}</div>
+              <div>Outstanding receivable</div><div><b>{html.escape(b['outstanding_receivable'])}</b></div>
+              <div>Unapplied cash / deposits</div><div>{html.escape(b['unapplied_cash_deposits'])}</div>
+            </div><p class='muted'>{html.escape(b['note'])}</p></div>
+            <div class='card'><h3>Invoice status</h3><table>
+              <tr><th>Open</th><th>Partially paid</th><th>Paid</th><th>Overpaid</th></tr>
+              <tr><td>{counts['open']}</td><td>{counts['partially_paid']}</td>
+                  <td>{counts['paid']}</td><td>{counts['overpaid']}</td></tr></table></div>""")
+        return _page("Receivables", "".join(body))
+
     def page_backup(self, conn, q):
         return _page("Backup", """<div class='card'><h3>Backup</h3>
           <form method='post' action='/backup' onsubmit="return confirm('Create a database backup now?');">
@@ -357,13 +383,13 @@ class Handler(BaseHTTPRequestHandler):
     def act_backup(self, conn, form):
         conn.commit()
         dest = Path(self.server.db_path).parent / f"backup-{utcnow_iso().replace(':','').replace('-','')}.db"
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        bkp = sqlite3.connect(str(dest))
-        try:
-            conn.backup(bkp)
-        finally:
-            bkp.close()
-        return form.get("after", "/")
+        backup_mod.create_backup(conn, dest)
+        rep = backup_mod.validate_backup(dest)
+        after = form.get("after", "/")
+        sep = "&" if "?" in after else "?"
+        if rep.ok:
+            return f"{after}{sep}ok=" + urllib.parse.quote(f"Backup written and validated: {rep.summary()}")
+        return f"{after}{sep}err=" + urllib.parse.quote(f"Backup FAILED validation: {rep.problems}")
 
 
 def make_server(db_path: str, host: str = "127.0.0.1", port: int = 8765) -> ThreadingHTTPServer:

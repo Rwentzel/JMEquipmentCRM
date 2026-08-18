@@ -12,7 +12,7 @@ import json
 import sqlite3
 from decimal import Decimal
 
-from . import __version__, snapshots
+from . import __version__, cash, snapshots
 from .db import utcnow_iso
 from .ids import new_id
 from .money import Money, quantity_from_stored
@@ -50,6 +50,10 @@ def build_report(conn: sqlite3.Connection, scope: ReportScope, policy: Calculati
         "scope": "batch" if scope.import_batch_id else ("period" if not scope.all_time else "all_time"),
         "files": _one(conn, f"SELECT COUNT(*) FROM source_files WHERE import_batch_id IN ({bph})", batch_ids) if batch_ids else 0,
         "rows_received": _one(conn, f"SELECT COUNT(*) FROM source_records WHERE import_batch_id IN ({bph})", batch_ids) if batch_ids else 0,
+        # Documents vs lines are distinct: one multi-line invoice is ONE document.
+        "documents_staged": _one(conn, f"SELECT COUNT(*) FROM transactions WHERE import_batch_id IN ({bph})", batch_ids) if batch_ids else 0,
+        "lines_staged": _one(conn, f"SELECT COUNT(*) FROM transaction_lines l JOIN transactions t ON t.id=l.transaction_id WHERE t.import_batch_id IN ({bph})", batch_ids) if batch_ids else 0,
+        "multi_line_documents": _one(conn, f"SELECT COUNT(*) FROM transactions WHERE import_batch_id IN ({bph}) AND line_count > 1", batch_ids) if batch_ids else 0,
         "rows_staged": _one(conn, f"SELECT COUNT(*) FROM transactions WHERE import_batch_id IN ({bph})", batch_ids) if batch_ids else 0,
         "rows_posted": _one(conn, f"SELECT COUNT(*) FROM transactions WHERE import_batch_id IN ({bph}) AND posted=1", batch_ids) if batch_ids else 0,
         "rows_rejected": _one(conn, f"SELECT COUNT(*) FROM transactions WHERE import_batch_id IN ({bph}) AND review_status='rejected'", batch_ids) if batch_ids else 0,
@@ -88,6 +92,7 @@ def build_report(conn: sqlite3.Connection, scope: ReportScope, policy: Calculati
     cost_bridge = _cost_bridge(conn, scope, policy, totals)
     units_bridge = _units_bridge(conn, scope)
     commission_bridge = _commission_bridge(conn, scoped_rev_txn_ids, scope)
+    cash_bridge = cash.cash_bridge(conn, scope)
 
     e = {
         "net_revenue_verified": str(totals.net_revenue.amounts["verified"].rounded()),
@@ -100,6 +105,8 @@ def build_report(conn: sqlite3.Connection, scope: ReportScope, policy: Calculati
         "customer_count": len(set(r[0] for r in conn.execute(
             f"SELECT t.customer_id FROM transactions t WHERE {rev_sql} AND t.customer_id IS NOT NULL", rev_params))),
         "net_units_sold": units_bridge["net_units_sold"],
+        "outstanding_receivable": cash_bridge["outstanding_receivable"],
+        "collected_cash_applied": cash_bridge["collected_cash_applied"],
     }
     f = {
         "net_revenue_buckets": totals.net_revenue.to_dict(),
@@ -108,6 +115,7 @@ def build_report(conn: sqlite3.Connection, scope: ReportScope, policy: Calculati
         "cost_bridge": cost_bridge,
         "units_bridge": units_bridge,
         "commission_bridge": commission_bridge,
+        "cash_bridge": cash_bridge,
     }
 
     # ---- G. reconciliation (scoped) ----

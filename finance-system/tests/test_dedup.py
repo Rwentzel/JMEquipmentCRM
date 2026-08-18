@@ -15,14 +15,23 @@ class TestDedup(unittest.TestCase):
     def tearDown(self):
         self.conn.close()
 
-    def test_likely_duplicate_detected_not_merged(self):
+    def test_repeated_row_is_a_LINE_duplicate_not_a_document_duplicate(self):
+        """The twin INV-2011 rows form ONE 2-line invoice, flagged at line level."""
         batch_id, _ = import_fixture(self.conn, post=False)
-        likely = dedup.find_likely_duplicates(self.conn, batch_id)
-        self.assertTrue(likely)  # rows 13 & 14 are near-identical
-        # nothing merged: both transactions still exist
-        n = self.conn.execute("SELECT COUNT(*) FROM transactions WHERE import_batch_id=?",
-                              (batch_id,)).fetchone()[0]
-        self.assertEqual(n, 15)
+        # Not treated as two duplicate documents...
+        exact = dedup.find_exact_duplicates(self.conn, batch_id)
+        self.assertEqual(exact, [])
+        # ...but the repeated source row inside the document IS surfaced for review.
+        line_dupes = dedup.find_duplicate_lines(self.conn, batch_id)
+        self.assertTrue(line_dupes)
+        self.assertEqual(line_dupes[0]["occurrences"], 2)
+        # 15 source rows became 14 documents / 15 lines; nothing was merged away.
+        docs = self.conn.execute("SELECT COUNT(*) FROM transactions WHERE import_batch_id=?",
+                                 (batch_id,)).fetchone()[0]
+        lines = self.conn.execute(
+            """SELECT COUNT(*) FROM transaction_lines l JOIN transactions t ON t.id=l.transaction_id
+               WHERE t.import_batch_id=?""", (batch_id,)).fetchone()[0]
+        self.assertEqual((docs, lines), (14, 15))
 
     def test_conflicting_invoice_number(self):
         batch_id, _ = import_fixture(self.conn, post=False)

@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import batch_report, export as export_mod, imports, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, export as export_mod, imports, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -245,16 +245,52 @@ def cmd_selfcheck(args, conn) -> int:
 
 
 def cmd_backup(args, conn) -> int:
-    conn.commit()
     dest = Path(args.out or (Path(args.db or default_db_path()).parent /
                              f"backup-{utcnow_iso().replace(':','').replace('-','')}.db"))
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    bkp = sqlite3.connect(str(dest))
-    try:
-        conn.backup(bkp)
-    finally:
-        bkp.close()
+    backup_mod.create_backup(conn, dest)
+    rep = backup_mod.validate_backup(dest)
     print(f"[backup] wrote {dest} ({dest.stat().st_size} bytes)")
+    print(f"[backup] validation: {rep.summary()}")
+    if not rep.ok:
+        for prob in rep.problems:
+            print(f"[backup]   problem: {prob}", file=sys.stderr)
+        return EXIT_ERROR
+    return EXIT_OK
+
+
+def cmd_verify_backup(args, conn) -> int:
+    rep = backup_mod.validate_backup(args.path)
+    print(f"[verify-backup] {rep.summary()}")
+    for prob in rep.problems:
+        print(f"[verify-backup]   problem: {prob}", file=sys.stderr)
+    return EXIT_OK if rep.ok else EXIT_ERROR
+
+
+def cmd_restore_preview(args, conn) -> int:
+    prev = backup_mod.preview_restore(args.path, args.db or str(default_db_path()))
+    print(json.dumps(prev, indent=2))
+    return EXIT_OK if prev["safe_to_restore"] else EXIT_REFUSED
+
+
+def cmd_restore(args, conn) -> int:
+    if not args.confirm:
+        print("[restore] REFUSED: pass --confirm to overwrite the active database "
+              "(a safety backup is taken automatically first)", file=sys.stderr)
+        return EXIT_REFUSED
+    conn.close()          # release the active database before replacing it
+    try:
+        result = backup_mod.restore(args.path, args.db or str(default_db_path()), confirm=True)
+    except ValueError as e:
+        print(f"[restore] REFUSED: {e}", file=sys.stderr)
+        return EXIT_REFUSED
+    print(json.dumps(result, indent=2))
+    return EXIT_OK if result["restored_ok"] else EXIT_ERROR
+
+
+def cmd_receivables(args, conn) -> int:
+    scope = _scope(conn, args)
+    bridge = cash.cash_bridge(conn, scope)
+    print(json.dumps(bridge, indent=2))
     return EXIT_OK
 
 
@@ -283,6 +319,12 @@ def build_parser() -> argparse.ArgumentParser:
     pe.add_argument("--all-time", action="store_true"); pe.set_defaults(func=cmd_export)
     sub.add_parser("safety-scan").set_defaults(func=cmd_safety_scan)
     sub.add_parser("selfcheck").set_defaults(func=cmd_selfcheck)
+    pv = sub.add_parser("verify-backup"); pv.add_argument("path"); pv.set_defaults(func=cmd_verify_backup)
+    prv = sub.add_parser("restore-preview"); prv.add_argument("path"); prv.set_defaults(func=cmd_restore_preview)
+    prs = sub.add_parser("restore"); prs.add_argument("path")
+    prs.add_argument("--confirm", action="store_true"); prs.set_defaults(func=cmd_restore)
+    prc2 = sub.add_parser("receivables"); prc2.add_argument("--period"); prc2.add_argument("--batch")
+    prc2.add_argument("--all-time", action="store_true"); prc2.set_defaults(func=cmd_receivables)
     pbk = sub.add_parser("backup"); pbk.add_argument("--out"); pbk.set_defaults(func=cmd_backup)
     return p
 

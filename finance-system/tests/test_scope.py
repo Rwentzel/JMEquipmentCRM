@@ -32,9 +32,12 @@ class TestScope(unittest.TestCase):
         r1 = batch_report.build_report(self.conn, ReportScope.for_batch(pid, b1, DEFAULT_POLICY), DEFAULT_POLICY)
         r2 = batch_report.build_report(self.conn, ReportScope.for_batch(pid, b2, DEFAULT_POLICY), DEFAULT_POLICY)
         rp = batch_report.build_report(self.conn, ReportScope.for_period(pid, DEFAULT_POLICY), DEFAULT_POLICY)
-        self.assertEqual(r1["A_intake"]["rows_staged"], 15)
-        self.assertEqual(r2["A_intake"]["rows_staged"], 4)
-        self.assertEqual(rp["A_intake"]["rows_staged"], 19)  # period = both batches
+        # 15 source rows -> 14 documents (the twin INV-2011 rows form one 2-line invoice)
+        self.assertEqual(r1["A_intake"]["rows_received"], 15)
+        self.assertEqual(r1["A_intake"]["documents_staged"], 14)
+        self.assertEqual(r1["A_intake"]["lines_staged"], 15)
+        self.assertEqual(r2["A_intake"]["documents_staged"], 4)
+        self.assertEqual(rp["A_intake"]["documents_staged"], 18)  # period = both batches
         # batch-scoped exceptions never include the other batch's
         self.assertLessEqual(r1["A_intake"]["exceptions"], rp["A_intake"]["exceptions"])
         self.assertLess(r2["A_intake"]["exceptions"], rp["A_intake"]["exceptions"])
@@ -47,8 +50,9 @@ class TestScope(unittest.TestCase):
         import_fixture(self.conn, period_id=p2, post=True)  # seeds its own rules? uses seed_rules again
         rp1 = batch_report.build_report(self.conn, ReportScope.for_period(p1, DEFAULT_POLICY), DEFAULT_POLICY)
         rp2 = batch_report.build_report(self.conn, ReportScope.for_period(p2, DEFAULT_POLICY), DEFAULT_POLICY)
-        self.assertEqual(rp1["A_intake"]["rows_staged"], 4)
-        self.assertEqual(rp2["A_intake"]["rows_staged"], 15)
+        self.assertEqual(rp1["A_intake"]["documents_staged"], 4)
+        self.assertEqual(rp2["A_intake"]["documents_staged"], 14)
+        self.assertEqual(rp2["A_intake"]["lines_staged"], 15)
 
     def test_historical_exceptions_do_not_inflate_batch_report(self):
         rules = seed_rules(self.conn)

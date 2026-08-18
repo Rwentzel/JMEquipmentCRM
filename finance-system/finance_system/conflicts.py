@@ -43,13 +43,17 @@ def detect_conflicts(conn: sqlite3.Connection, batch_id: str) -> list[Conflict]:
                                 "transaction_identity,revenue"))
 
     for t in staged:
-        line = conn.execute(
-            "SELECT * FROM transaction_lines WHERE transaction_id=? LIMIT 1", (t["id"],)).fetchone()
-        if not line:
+        lines = conn.execute(
+            "SELECT * FROM transaction_lines WHERE transaction_id=? ORDER BY line_number",
+            (t["id"],)).fetchall()
+        if not lines:
             continue
-        qty = quantity_from_stored(line["quantity_minor"] or 0)
-        unit = Money.from_minor(line["unit_sales_price_minor"] or 0)
-        extended = unit.multiply(qty)
+        line = lines[0]
+        # Header total reconciles against the sum of ALL lines on the document.
+        extended = Money.zero()
+        for l in lines:
+            extended = extended + Money.from_minor(l["unit_sales_price_minor"] or 0).multiply(
+                quantity_from_stored(l["quantity_minor"] or 0))
         # header vs line total mismatch (tolerance 0.01)
         if t["header_total_minor"] is not None:
             header = Money.from_minor(t["header_total_minor"])

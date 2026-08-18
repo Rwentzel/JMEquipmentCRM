@@ -1,6 +1,6 @@
 # Data dictionary
 
-Schema version: migrations `0001_initial` + `0002_exchange2` + `0003_report_scope`. All monetary columns are
+Schema version: migrations `0001_initial` + `0002_exchange2` + `0003_report_scope` + `0004_documents_cash_evidence`. All monetary columns are
 INTEGER minor units at scale 4 (suffix `_minor`); rates are TEXT canonical decimals; dates
 are ISO-8601 TEXT. Internal ids are opaque (`<prefix>_<uuid4hex>`); external identifiers live
 only in `external_identifiers` and are never join keys.
@@ -26,6 +26,9 @@ only in `external_identifiers` and are never join keys.
 | reconciliation_findings | conflicts + reconciliations | finding_type, rule, expected/actual/difference/tolerance, status, severity, explanation |
 | override_authorizations | recorded duplicate-post overrides | scope, subject_ref, reason, authorized_by |
 | audit_events | append-only, PII-free events | kind, summary, detail_json, actor |
+| payment_applications | cash applied to invoices (payment/credit/return/reversal); NULL invoice = unapplied cash | payment_transaction_id, invoice_transaction_id, kind, amount_minor, reversed_application_id |
+| cost_evidence | vendor-cost evidence attached to a line | evidence_type, source_reference, amount_minor, vendor_id, expires_on |
+| cost_evidence_policy | which evidence types satisfy cost verification, per policy | policy_key, evidence_type, satisfies |
 | report_manifests | reproducibility record per generated report/export | scope_json, calculation_policy, integrity_ok, integrity_json, export_hashes_json |
 | schema_migrations | applied migrations | version, applied_at |
 
@@ -42,3 +45,8 @@ item_receipt, vendor_bill, vendor_payment, journal_entry, and `unknown` (preserv
 ## Date concepts (separate columns)
 transaction, order, invoice, ship, due, payment, cost_recognition, commission_eligibility,
 period_assignment.
+
+**Exchange 3 document/line columns:** `transactions.document_hash` and `line_count` identify
+a DOCUMENT; `transaction_lines.source_record_id`, `source_row_hash`, and
+`customer_crating_minor` identify and describe each LINE. Document identity and line identity
+are deliberately separate so a multi-line invoice is never read as a duplicated document.
