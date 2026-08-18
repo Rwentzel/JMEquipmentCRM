@@ -1,10 +1,17 @@
 /**
  * JME Quote Center — seed data, ported VERBATIM from the design handoff
- * (JME Quote Center.dc.html — _SEED_CAT, seedClients, seedQuotes, defaults,
- * TERM_TPL, DISCLOSURES, LOSS_REASONS). Photo paths remapped to /public.
+ * (JME Quote Center.dc.html — _SEED_CAT, seedClients, seedQuotes, defaults).
+ * Photo paths remapped to /public.
  *
- * INTERNAL: machine base prices and quote values are dealer pricing —
- * server/ops-gated use only.
+ * INTERNAL — SERVER ONLY. Machine base prices, crating, option amounts, and
+ * seeded quote values are dealer pricing; seedClients() carries customer
+ * contact details. None of it may reach the browser, and a static chunk is
+ * served without authentication, so "it is only on an ops page" is not
+ * protection on its own.
+ *
+ * Import this from server code only (today: ./store.ts). Client-safe display
+ * constants live in ./labels.ts. tests/qcBundle.test.ts fails the build if
+ * anything from here appears in a client bundle.
  */
 import type { QcClient, QcMachine, QcQuote, QcSettings } from "./types";
 
@@ -22,26 +29,6 @@ export const SEED_CATALOG: QcMachine[] = [
     {id:'decurler',cat:'Accessories',badge:'JME-Manufactured',sku:'JME-DCL',name:'JME Decurler',sub:'Multi-Bar Web Decurling System',desc:'Custom-width multi-bar decurler handles clay-in or clay-out wound rolls without mechanical change. Hydlar cradle rollers for maximum bar life, 6" aluminum rollers balanced to 1,200 ft/min. Remote control option available.',specs:[{k:'Roll Direction',v:'Clay-in or -out'},{k:'Roller Dia.',v:'6" aluminum'},{k:'Balance Speed',v:'1,200 ft/min'},{k:'Width',v:'Custom to 80"'},{k:'Power',v:'120V / 1PH'},{k:'Options',v:'Remote, multi-web'}],base:0,crating:0,warranty:'1 Year',lead:'4\u20136 Weeks',photo:'',payment:'50-50',isImport:false,roi:false,pkg:[]},
     {id:'track-trolley',cat:'Material Handling',badge:'JME-Manufactured',sku:'JME-TT-20',name:'Track & Trolley System',sub:'Standard 20-ft Rail System',desc:'Heavy-duty roll-handling track and trolley designed for paper mill roll transport and sheeter staging. Standard 20-ft configuration; custom lengths available. Optional scissor lift tub for inline height adjustment.',specs:[{k:'Standard Length',v:'20 ft'},{k:'Custom Lengths',v:'Available'},{k:'Scissor Lift Tub',v:'$3,500 option'},{k:'Construction',v:'Heavy-duty steel'},{k:'Payment',v:'50 / 50'},{k:'FOB',v:'Sturgis, MI'}],base:0,crating:0,warranty:'Consult',lead:'4 Weeks',photo:'',payment:'50-50',isImport:false,roi:false,pkg:[]},
   ] as unknown as QcMachine[];
-
-export const TERM_TPL: { t: string; d: string }[] = [
-    {t:'Quotation Validity',d:'This quotation is valid for {VALIDITY} calendar days from the date of issue. Prices are in USD.'},
-    {t:'Equipment Condition',d:'Equipment is sold as specified. Refurbished units per JME condition report; new units per OEM specification.'},
-    {t:'FOB Terms',d:'All shipments are FOB {FOB} unless otherwise agreed in writing.'},
-    {t:'Warranty Coverage',d:'New JME-manufactured equipment: 1 year. Goodstrong new equipment: 12 months. Martin refurbished: 6 months.'},
-    {t:'Warranty Exclusions',d:'Warranty does not cover normal wear, consumables, misuse, unauthorized repair, or modification.'},
-    {t:'Freight & Tariffs',d:'Freight and import duties are buyer responsibility unless stated. Tariff rates reflect the rate at time of quote and are subject to change.'},
-    {t:'Governing Law',d:'This agreement is governed by the laws of the State of Michigan, United States.'},
-    {t:'Acceptance',d:'Equipment ordered or PO issued constitutes acceptance of these terms and conditions.'},
-  ];
-
-export const DISCLOSURES: string[] = [
-    'Electrical installation: $500\u2013$1,500 (buyer responsibility, not included in quote).',
-    'Annual operating cost: $410\u2013$830 (electric, oil, blades, filters).',
-    'Site preparation and installation guidance available; on-site install not included.',
-    'Freight subject to change. Tariff amounts reflect rate at time of quote; final invoicing per current rate.',
-  ];
-
-export const LOSS_REASONS: string[] = ['Price','Lead time','Lost to competitor','Budget / timing','Project cancelled','No decision','Other'];
 
 export function qcDefaults(): QcSettings { return {company:'JM Equipment Inc.',addr:'405\u00bd W. Congress St., Sturgis, MI 49091',phone:'(269) 659-0093',email:'sales@jmequipment.net',fob:'Sturgis, MI',rep:'J. Miller',tariff:15,markup:18,validity:60}; }
 

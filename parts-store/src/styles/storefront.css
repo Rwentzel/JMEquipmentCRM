@@ -62,7 +62,7 @@
 .ps-comparelink {
   display: inline-block;
   margin-top: var(--s-3);
-  color: var(--jme-red-bright);
+  color: var(--jme-red-text);
   font-weight: var(--fw-semi);
   font-size: var(--t-sm);
 }
@@ -1358,7 +1358,7 @@
 }
 
 .ps-policy__body address a {
-  color: var(--jme-red-bright);
+  color: var(--jme-red-text);
 }
 
 .ps-policy__body address a:hover {
@@ -1564,7 +1564,8 @@
   font-weight: var(--fw-bold);
   letter-spacing: var(--track-tag);
   text-transform: uppercase;
-  color: var(--ink);
+  /* --ink on the maroon accent is 2.84:1; --paper is 5.41:1. */
+  color: var(--paper);
   background: var(--accent);
   border: var(--bd-edge);
   border-radius: var(--r-pill);
@@ -1751,6 +1752,28 @@
   background: var(--cat-bg);
   border-top: 3px solid var(--accent);
   border-bottom: 3px solid var(--accent);
+}
+
+/* Light-surface contrast overrides.
+   The badge and eyebrow colours in the design system are tuned for the dark
+   ink ramp; on this section's paper background (--cat-bg / white cards) they
+   fall as low as 1.8:1. These are the nearest hue-faithful values that clear
+   WCAG AA 4.5:1 on both. --jme-badge--out already passes, so it is left alone. */
+.ps-catalog .jme-eyebrow,
+.ps-catalog .jme-badge {
+  color: var(--cat-mut);
+}
+
+.ps-catalog .jme-badge--stock {
+  color: #187e4e;
+}
+
+.ps-catalog .jme-badge--lead {
+  color: #886a00;
+}
+
+.ps-catalog .jme-badge--info {
+  color: #3870b2;
 }
 
 .ps-catalog .jme-h2,

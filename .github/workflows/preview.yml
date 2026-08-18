@@ -37,8 +37,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # The preview is a PUBLIC static snapshot: it must contain no API
+      # routes, no ops desk, and no server-rendered surface. The explicit
+      # removals below are the policy; the sweep after them is the safety net,
+      # since `output: "export"` cannot render a force-dynamic page and a
+      # renamed route would otherwise break this build (it has twice).
       - name: Strip server-only routes for the static preview
-        run: rm -rf src/app/api src/app/ops src/app/quote src/app/q src/app/quotes
+        run: |
+          set -euo pipefail
+          rm -rf src/app/api src/app/ops
+          while IFS= read -r page; do
+            echo "stripping server-only route: ${page%/page.tsx}"
+            rm -rf "${page%/page.tsx}"
+          done < <(grep -rl --include=page.tsx 'dynamic = "force-dynamic"' src/app || true)
 
       - name: Build static preview
         env:
@@ -47,11 +58,10 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /JMEquipmentCRM
         run: npm run build
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
+      # Verifying the export is valuable on its own — it catches route and
+      # config regressions even when Pages itself is not set up. Everything
+      # that can fail for a code reason has already run by this point, so the
+      # build job's status is a true signal about the site.
       - name: Upload preview
         uses: actions/upload-pages-artifact@v3
         with:
@@ -64,5 +74,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # One-time repo setup: Settings -> Pages -> Build and deployment ->
+      # Source: "GitHub Actions". The workflow token cannot create the Pages
+      # site itself (that needs repo-admin rights), so this step reports the
+      # required action instead of failing with a bare 403.
+      - name: Configure GitHub Pages
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
+      - name: Explain missing Pages setup
+        if: steps.pages.outcome == 'failure'
+        run: |
+          echo "::error::GitHub Pages is not enabled for this repository, so the preview cannot publish. A repo admin must set Settings -> Pages -> Source to 'GitHub Actions'. Note that a GitHub Pages site is reachable by anyone who knows the URL (it is noindexed, but not password protected) — enable it only if a publicly-reachable preview is acceptable. The build artifact above is a complete, working copy of the site in the meantime."
+          exit 1
+
       - id: deployment
         uses: actions/deploy-pages@v4
