@@ -90,14 +90,34 @@ test("pipeline sort: status order draft→lost; value desc default direction sem
   for (let i = 1; i < vals.length; i++) assert.ok(vals[i]! <= vals[i - 1]!);
 });
 
-test("buildDoc is client-safe: no cost/margin anywhere in the payload", () => {
+test("buildDoc is client-safe: no internal figure or field reaches the customer", () => {
+  // Checked by value and by key, not by substring. The published spec copy for
+  // the core splitter legitimately reads "Annual operating cost: $410–$830", so
+  // asserting the payload never contains the word "cost" is false for real
+  // catalogue data — it passed only because this fixture's machine happens not
+  // to carry that line, and it never checked the dealer cost itself.
   const q = seedQuotes().find((x) => x.id === "q2")!;
   q.cost = 356400;
+  q.lostReason = "undercut by competitor";
+  q.notes = "INTERNAL: margin thin, vendor is Acme Supply";
+
   const doc = buildDoc(q, machineOf(q), settings)!;
-  const json = JSON.stringify(doc).toLowerCase();
-  assert.ok(!json.includes("cost"));
-  assert.ok(!json.includes("margin"));
-  assert.ok(!("cost" in (doc as unknown as Record<string, unknown>)));
+  const json = JSON.stringify(doc);
+
+  for (const secret of ["356400", "356,400", "undercut by competitor", "Acme Supply", "INTERNAL"]) {
+    assert.ok(!json.includes(secret), `client document leaks ${JSON.stringify(secret)}`);
+  }
+
+  const internal: string[] = [];
+  (function walk(o: unknown) {
+    if (o && typeof o === "object") {
+      for (const k of Object.keys(o as Record<string, unknown>)) {
+        if (/^(cost|margin|marginAmt|marginPct|lostReason|notes)$/i.test(k)) internal.push(k);
+        walk((o as Record<string, unknown>)[k]);
+      }
+    }
+  })(doc);
+  assert.deepEqual(internal, [], `client document carries internal field(s): ${internal.join(", ")}`);
 });
 
 test("buildDoc payment splits 30-60-10 and 50-50", () => {
