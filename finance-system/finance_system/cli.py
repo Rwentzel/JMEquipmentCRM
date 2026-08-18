@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, imports, periods as periods_mod, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, imports, masterdata, periods as periods_mod, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -161,6 +161,28 @@ def cmd_resolve(args, conn) -> int:
         return EXIT_ERROR
     conn.commit()
     print(f"[resolve] {json.dumps(res)}")
+    return EXIT_OK
+
+
+def cmd_master(args, conn) -> int:
+    """Look up customers / vendors / products, with history."""
+    if args.id:
+        fn = {"customer": masterdata.customer_profile, "vendor": masterdata.vendor_profile,
+              "product": masterdata.product_profile}[args.kind]
+        try:
+            print(json.dumps(fn(conn, args.id), indent=2, default=str))
+        except KeyError as e:
+            print(f"[master] {e}", file=sys.stderr)
+            return EXIT_ERROR
+        return EXIT_OK
+    hits = masterdata.search(conn, args.kind, args.query or "")
+    print(f"[master] {len(hits)} {args.kind}(s)")
+    for h in hits:
+        print(f"  {h['id']}  {h['name']}")
+    dupes = masterdata.potential_duplicate_masters(conn, args.kind)
+    if dupes:
+        print(f"[master] {len(dupes)} potential duplicate master record group(s) — review, "
+              f"merging is not automatic")
     return EXIT_OK
 
 
@@ -384,6 +406,10 @@ def build_parser() -> argparse.ArgumentParser:
     prv = sub.add_parser("restore-preview"); prv.add_argument("path"); prv.set_defaults(func=cmd_restore_preview)
     prs = sub.add_parser("restore"); prs.add_argument("path")
     prs.add_argument("--confirm", action="store_true"); prs.set_defaults(func=cmd_restore)
+    pm = sub.add_parser("master")
+    pm.add_argument("kind", choices=["customer", "vendor", "product"])
+    pm.add_argument("query", nargs="?"); pm.add_argument("--id")
+    pm.set_defaults(func=cmd_master)
     pp2 = sub.add_parser("period")
     pp2.add_argument("action", choices=["show", "under_review", "verified", "lock", "reopen", "open"])
     pp2.add_argument("--label"); pp2.add_argument("--reason"); pp2.add_argument("--authorized-by")

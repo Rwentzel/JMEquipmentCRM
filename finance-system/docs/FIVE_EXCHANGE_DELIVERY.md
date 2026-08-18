@@ -132,9 +132,12 @@ crating revenue/recovery, and validated backup / restore preview / safe restore.
 a Receivables page and per-document line counts; CLI gains `receivables`, `verify-backup`,
 `restore-preview`, `restore`.
 
-Still pending (honest): master-data lookup and richer transaction/reconciliation workspaces,
-policy/configuration editing UI, role-based access, and automatic payment-to-invoice matching.
-See `docs/KNOWN_LIMITATIONS.md`.
+**Also delivered:** reporting-period lifecycle with authorized reopen (`periods.py`),
+transaction traceability workspace (`explain.py` — why any number is what it is), and
+master-data lookup with price/cost history and duplicate-master reporting (`masterdata.py`).
+
+Still pending (honest): a policy/configuration editing UI, role-based access with real
+identity, and automatic payment-to-invoice matching. See `docs/KNOWN_LIMITATIONS.md`.
 
 ## Exchange 4 — Business intelligence & adversarial hardening
 _Not started._

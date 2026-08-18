@@ -15,7 +15,12 @@
 - **Console:** new **Find**, **Transaction** (drill-down showing why each number is what it
   is), and **Periods** (lifecycle actions, reopen with reason/authorizer) pages.
 - **CLI:** `period {show,under_review,verified,lock,reopen,open}`, `explain <txn>`, `find <q>`.
-- Tests: 171 → 182.
+- **Master-data lookup (`masterdata.py`).** Customer / vendor / product search (products also
+  by alias), customer transaction + price history, vendor cost history and recorded evidence,
+  product price range / price & cost history with aliases. Potential duplicate master records
+  are **reported** for review — merging is deliberately not automatic (it would need a
+  reversible, audited process). Console **Master data** page and `cli master <kind>`.
+- Tests: 171 → 188.
 
 ## Exchange 3 — documents, cash application, evidence, crating, restore (2026-07-27)
 Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.

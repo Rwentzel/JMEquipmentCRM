@@ -25,7 +25,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, explain, export as export_mod, imports, periods, pipeline, resolution
+from . import backup as backup_mod, batch_report, cash, explain, export as export_mod, imports, masterdata, periods, pipeline, resolution
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -54,6 +54,7 @@ _NAV = ('<header><h1>JM Equipment — Finance Console</h1>'
         '<a href="/">Dashboard</a><a href="/import">Import</a>'
         '<a href="/exceptions">Exceptions</a><a href="/report">Reports</a>'
         '<a href="/receivables">Receivables</a><a href="/find">Find</a>'
+        '<a href="/master">Master data</a>'
         '<a href="/periods">Periods</a>'
         '<a href="/backup">Backup</a></nav></header>')
 
@@ -135,6 +136,7 @@ class Handler(BaseHTTPRequestHandler):
         routes = {"/": self.page_dashboard, "/import": self.page_import,
                   "/receivables": self.page_receivables, "/find": self.page_find,
                   "/transaction": self.page_transaction, "/periods": self.page_periods,
+                  "/master": self.page_master,
                   "/exceptions": self.page_exceptions, "/report": self.page_report,
                   "/batch": self.page_batch, "/backup": self.page_backup}
         fn = routes.get(parsed.path)
@@ -407,6 +409,75 @@ class Handler(BaseHTTPRequestHandler):
             parts.append(f"<div class='card'><h3>Audit history</h3><table>"
                          f"<tr><th>Event</th><th>Summary</th><th>When</th></tr>{rows}</table></div>")
         return _page("Transaction", "".join(parts))
+
+    def page_master(self, conn, q):
+        kind = q.get("kind", "customer")
+        term = q.get("q", "")
+        detail_id = q.get("id")
+        tabs = " ".join(
+            f"<a href='/master?kind={k}'>{'<b>' if k == kind else ''}{k.title()}s"
+            f"{'</b>' if k == kind else ''}</a>" for k in ("customer", "vendor", "product"))
+        body = [f"""<div class='card'><h3>Master data</h3><p>{tabs}</p>
+          <form method='get' action='/master'>
+            <input type='hidden' name='kind' value='{html.escape(kind)}'>
+            <label>Search {html.escape(kind)}s</label>
+            <input type='text' name='q' value='{html.escape(term)}'>
+            <input type='submit' value='Search'></form></div>"""]
+        dupes = masterdata.potential_duplicate_masters(conn, kind)
+        if dupes:
+            rows = "".join(f"<tr><td>{html.escape(d['canonical_key'])}</td><td>{d['count']}</td>"
+                           f"<td class='muted'>{html.escape(d['recommended_disposition'])}</td></tr>"
+                           for d in dupes)
+            body.append(f"<div class='card'><h3>Potential duplicate master records</h3>"
+                        f"<table><tr><th>Key</th><th>Records</th><th>Disposition</th></tr>{rows}</table>"
+                        f"<p class='muted'>Reported only — merging master data is not performed "
+                        f"automatically.</p></div>")
+        hits = masterdata.search(conn, kind, term)
+        rows = "".join(
+            f"<tr><td><a href='/master?kind={kind}&id={urllib.parse.quote(h['id'])}'>{html.escape(h['name'])}</a></td></tr>"
+            for h in hits)
+        body.append(f"<div class='card'><h3>{len(hits)} {html.escape(kind)}(s)</h3><table>{rows or ''}</table></div>")
+        if detail_id:
+            try:
+                if kind == "customer":
+                    d = masterdata.customer_profile(conn, detail_id)
+                    hist = "".join(
+                        f"<tr><td>{html.escape(x['item'] or '')}</td><td>{html.escape(x['unit_price'])}</td>"
+                        f"<td>{html.escape(x['quantity'])}</td><td>{html.escape(x['date'] or '')}</td></tr>"
+                        for x in d["price_history"])
+                    body.append(f"""<div class='card'><h3>{html.escape(d['name'])}</h3>
+                      <div class='kv'><div>Transactions</div><div>{d['transaction_count']}</div>
+                      <div>Posted invoices</div><div>{d['posted_invoices']}</div></div>
+                      <h4>Price history</h4><table>
+                      <tr><th>Item</th><th>Unit price</th><th>Qty</th><th>Date</th></tr>{hist}</table></div>""")
+                elif kind == "vendor":
+                    d = masterdata.vendor_profile(conn, detail_id)
+                    hist = "".join(
+                        f"<tr><td>{html.escape(x['item'] or '')}</td><td>{html.escape(x['component'])}</td>"
+                        f"<td>{html.escape(x['amount'])}</td><td>{html.escape(x['vendor_bill'] or '')}</td></tr>"
+                        for x in d["cost_history"])
+                    body.append(f"""<div class='card'><h3>{html.escape(d['name'])}</h3>
+                      <h4>Cost history</h4><table>
+                      <tr><th>Item</th><th>Component</th><th>Amount</th><th>Vendor bill</th></tr>{hist}</table></div>""")
+                else:
+                    d = masterdata.product_profile(conn, detail_id)
+                    al = ", ".join(f"{a['alias_type']}={a['alias_value']}" for a in d["aliases"]) or "—"
+                    sales = "".join(
+                        f"<tr><td>{html.escape(x['unit_price'])}</td><td>{html.escape(x['quantity'])}</td>"
+                        f"<td>{html.escape(x['customer'] or '')}</td><td>{html.escape(x['date'] or '')}</td></tr>"
+                        for x in d["price_history"])
+                    costs = "".join(
+                        f"<tr><td>{html.escape(x['product_cost'])}</td><td>{html.escape(x['date'] or '')}</td></tr>"
+                        for x in d["cost_history"])
+                    rng = d["price_range"]
+                    body.append(f"""<div class='card'><h3>{html.escape(d['name'])}</h3>
+                      <div class='kv'><div>Aliases</div><div>{html.escape(al)}</div>
+                      <div>Price range</div><div>{html.escape(f"{rng['low']} - {rng['high']}" if rng else '—')}</div></div>
+                      <h4>Price history</h4><table><tr><th>Unit price</th><th>Qty</th><th>Customer</th><th>Date</th></tr>{sales}</table>
+                      <h4>Cost history</h4><table><tr><th>Product cost</th><th>Date</th></tr>{costs}</table></div>""")
+            except KeyError:
+                body.append("<div class='card'>Record not found.</div>")
+        return _page("Master data", "".join(body))
 
     def page_periods(self, conn, q):
         rows = []
