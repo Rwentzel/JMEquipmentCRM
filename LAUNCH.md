@@ -112,6 +112,9 @@ the variable alone does nothing until the next build. Confirm
   built copy — `npm run build && npm start &`, then
   `npm i --no-save playwright-core axe-core` and
   `OPS_TOKEN=<your token> node scripts/a11y-audit.mjs http://localhost:3000`.
+  It logs in through the real endpoint, so the token must be the one the server
+  was started with; a bad token fails the run rather than skipping the staff
+  pages quietly.
   It covers the storefront **and**, when `OPS_TOKEN` is set, `/ops` and all
   eight Quote Center screens; without the token it says how many staff routes
   it skipped rather than reporting a clean run over half the app. Add
