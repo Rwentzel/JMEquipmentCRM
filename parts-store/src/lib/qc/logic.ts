@@ -649,6 +649,7 @@ export function buildDoc(qIn: QcQuote | null, machine: QcMachine | null, setting
     hasDisclosures: !!(m && m.roi),
     disclosures: m && m.roi ? DISCLOSURES.map((t) => ({ t })) : [],
     roiDisclaimer: "* Estimates only. Not a financial guarantee. Based on industry averages at time of quote.",
+    hasEstimates: roi.show || !!(m && m.roi),
     terms: TERM_TPL.map((t) => ({ t: t.t, d: t.d.replace("{VALIDITY}", String(q.validity || s.validity)).replace("{FOB}", s.fob) })),
     accepted,
     signed: { name: q.signedName || "", date: q.signedDate || "" },

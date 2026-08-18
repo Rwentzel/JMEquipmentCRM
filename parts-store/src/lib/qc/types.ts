@@ -268,6 +268,15 @@ export interface QuoteDocModel {
   hasDisclosures: boolean;
   disclosures: { t: string }[];
   roiDisclaimer: string;
+  /**
+   * Whether the document actually carries estimated figures for the disclaimer
+   * to qualify — the ROI block, or the disclosure ranges. It was printed
+   * unconditionally, so a parts quote ended with "* Estimates only. Not a
+   * financial guarantee." directly under Lead Time and Warranty, with no
+   * asterisk anywhere for it to bind to. Those are commitments, and that is
+   * what it read as qualifying.
+   */
+  hasEstimates: boolean;
   terms: { t: string; d: string }[];
   accepted: boolean;
   signed: { name: string; date: string };
