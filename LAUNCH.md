@@ -105,7 +105,12 @@ the variable alone does nothing until the next build. Confirm
   does not survive the failure it exists for.
 - **Monthly**: run the retention sweep once JM picks a window:
   `npm run retention -- --days <N> --apply` (dry-run without `--apply`; only
-  closed RFQs older than the window are archived). `npm audit` runs in CI on
+  closed RFQs older than the window are archived). Those `rfq-archive-*.json`
+  files stay in the data directory, so every backup keeps including them —
+  correct for durability, since they hold the only copy of that customer data
+  once it leaves the live book, but it does mean the archives are the part of
+  the retention policy JM still has to close out by hand: move them to cold
+  storage or delete them per the window you choose. `npm audit` runs in CI on
   every push — zero known vulnerabilities in shipped code; the dev-tooling
   audit is advisory (see SECURITY_NOTES.md) so check its output when it flags.
 - **After any design or CSS change**: run the accessibility audit against a
