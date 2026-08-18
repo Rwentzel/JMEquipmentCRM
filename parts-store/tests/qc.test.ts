@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 // Point the store at a throwaway dir BEFORE importing it.
+process.env.QC_DEMO_SEED = "1"; // these tests exercise the demo-seed path
 process.env.RFQ_DATA_DIR = mkdtempSync(path.join(tmpdir(), "jme-qc-test-"));
 
 import {

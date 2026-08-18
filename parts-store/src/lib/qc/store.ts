@@ -48,10 +48,21 @@ function locked<T>(fn: () => Promise<T>): Promise<T> {
   return next;
 }
 
+/**
+ * Demo seeding is OPT-IN (QC_DEMO_SEED=1). The handoff's sample quote book
+ * (fictional clients, invented dollar figures) must never be a production
+ * default — a fresh deployment starts with an empty, truthful pipeline.
+ * The equipment catalog and settings always seed: that is configuration,
+ * not business data.
+ */
+function demoSeed(): boolean {
+  return process.env.QC_DEMO_SEED === "1";
+}
+
 function seeded(): QcState {
   return {
-    quotes: seedQuotes(),
-    clients: seedClients(),
+    quotes: demoSeed() ? seedQuotes() : [],
+    clients: demoSeed() ? seedClients() : [],
     settings: qcDefaults(),
     catalog: JSON.parse(JSON.stringify(SEED_CATALOG)) as QcState["catalog"],
   };

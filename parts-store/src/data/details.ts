@@ -18,8 +18,6 @@ export const details: Record<string, MachineDetail> = {
     gallery: [
       { src: "core-splitter.png", cap: "Full machine — 75″ frame", fit: "contain" },
       { src: "core-splitter-pump.png", cap: "Hydraulic power pack — 5 HP", fit: "contain" },
-      { src: "core-splitter-panel.png", cap: "AB Micro 810 control panel", fit: "contain" },
-      { src: "split-core.png", cap: "Split core — recyclable", fit: "contain" },
     ],
     options: [
       {
