@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
+import { NumberInput } from "@/components/NumberInput";
 import {
   Button,
   DataPlate,
@@ -794,13 +795,13 @@ function Request({
                     <span className="ps-line__name">{i.name}</span>
                   </div>
                   <div className="ps-line__right">
-                    <input
+                    <NumberInput
                       className="jme-input ps-qty"
-                      type="number"
+                      integer
                       min={1}
                       value={i.qty}
                       aria-label={`Quantity for ${i.sku}`}
-                      onChange={(e) => onQty(i.sku, Math.max(1, Number(e.target.value) || 1))}
+                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
                     />
                     <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
                       ×

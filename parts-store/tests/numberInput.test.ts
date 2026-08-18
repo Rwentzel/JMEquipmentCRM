@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { acceptNumericDraft } from "../src/components/qc/NumberInput";
+import { acceptNumericDraft } from "../src/components/NumberInput";
 
 /**
  * Types a string one character at a time the way the quote builder is used,
  * returning the text left in the field and the number the quote would store.
  */
-function typeInto(chars: string, opts: { allowNegative?: boolean } = {}) {
+function typeInto(chars: string, opts: { allowNegative?: boolean; integer?: boolean } = {}) {
   let draft = "";
   let value = 0;
   for (const ch of chars) {
@@ -80,4 +80,21 @@ test("a percentage over 100 is only rejected on blur, not while typing", () => {
   // make 100 impossible to reach from an empty field.
   assert.deepEqual(typeInto("100"), { draft: "100", value: 100 });
   assert.deepEqual(acceptNumericDraft("250"), { accept: true, value: 250 });
+});
+
+test("integer fields refuse a decimal point outright", () => {
+  // Quantities are counts. "2.5 belts" is not a thing the desk can ship, and
+  // silently flooring it would ship 2 when the customer asked for 3.
+  assert.deepEqual(acceptNumericDraft("2.5", { integer: true }), { accept: false });
+  assert.deepEqual(acceptNumericDraft(".", { integer: true }), { accept: false });
+  assert.deepEqual(typeInto("25", { integer: true }), { draft: "25", value: 25 });
+});
+
+test("retyping a quantity replaces it instead of appending to it", () => {
+  // With the old field, a customer with 12 in the box who selected all and
+  // typed 25 ordered 125: clearing snapped the value back to "1" and the new
+  // digits landed after it. Clearing must leave the field empty.
+  const cleared = acceptNumericDraft("", { integer: true });
+  assert.deepEqual(cleared, { accept: true, value: 0 });
+  assert.deepEqual(typeInto("25", { integer: true }).draft, "25");
 });

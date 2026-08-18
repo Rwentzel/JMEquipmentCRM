@@ -36,9 +36,15 @@ import { useState } from "react";
  */
 export function acceptNumericDraft(
   raw: string,
-  opts: { allowNegative?: boolean } = {},
+  opts: { allowNegative?: boolean; integer?: boolean } = {},
 ): { accept: false } | { accept: true; value: number } {
-  const pattern = opts.allowNegative ? /^-?\d*\.?\d*$/ : /^\d*\.?\d*$/;
+  const pattern = opts.integer
+    ? opts.allowNegative
+      ? /^-?\d*$/
+      : /^\d*$/
+    : opts.allowNegative
+      ? /^-?\d*\.?\d*$/
+      : /^\d*\.?\d*$/;
   if (!pattern.test(raw)) return { accept: false };
   const n = Number(raw);
   // "", "." and "-" are legitimate things to be in the middle of typing; they
@@ -52,6 +58,7 @@ export function NumberInput({
   min,
   max,
   allowNegative = false,
+  integer = false,
   onBlur,
   ...rest
 }: {
@@ -62,6 +69,8 @@ export function NumberInput({
   /** Clamped on blur, as with `min`. */
   max?: number;
   allowNegative?: boolean;
+  /** Whole numbers only — quantities, days, counts. */
+  integer?: boolean;
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type" | "min" | "max">) {
   const [draft, setDraft] = useState<string | null>(null);
@@ -70,11 +79,11 @@ export function NumberInput({
     <input
       {...rest}
       type="text"
-      inputMode="decimal"
+      inputMode={integer ? "numeric" : "decimal"}
       value={draft ?? String(value)}
       onChange={(e) => {
         const raw = e.target.value;
-        const next = acceptNumericDraft(raw, { allowNegative });
+        const next = acceptNumericDraft(raw, { allowNegative, integer });
         // Anything not on the way to being a number is ignored outright — the
         // previous draft stands rather than a value being substituted for it.
         if (!next.accept) return;

@@ -24,7 +24,7 @@ import {
   usd,
 } from "@/lib/qc/logic";
 import { QuoteDoc } from "@/components/qc/QuoteDoc";
-import { NumberInput } from "@/components/qc/NumberInput";
+import { NumberInput } from "@/components/NumberInput";
 
 function cfgChipStyle(active: boolean): React.CSSProperties {
   return {
@@ -497,7 +497,7 @@ export function BuilderView({ app }: { app: QcApp }) {
                 className="jme-input"
                 min={1}
                 value={p.qty}
-                onChange={(n) => app.setPartQty(i, n)}
+                onChange={(n) => app.setPartQty(i, Math.max(1, n))}
                 style={{ padding: "7px 9px", textAlign: "right" }}
               />
               <button onClick={() => app.removePart(i)} style={removeBtn}>×</button>
