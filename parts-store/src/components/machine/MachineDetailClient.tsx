@@ -63,8 +63,31 @@ export function MachineDetailClient({
     if (el) window.scrollTo({ top: el.offsetTop - 110, behavior: "smooth" });
   };
 
+  // The configurator's selected choice ids, so the desk receives the machine
+  // the customer actually configured. Sending ids rather than the rendered
+  // text keeps the server the authority on what each one means.
+  const selectedOptionSkus = useMemo(() => {
+    const ids: string[] = [];
+    detail.options.forEach((o) => {
+      if (o.type === "radio") {
+        const sel = o.choices.find((c) => c.sku === radio[o.id]);
+        if (sel) ids.push(sel.sku);
+      } else {
+        o.choices.forEach((c) => {
+          if (checks.has(o.id + ":" + c.sku)) ids.push(c.sku);
+        });
+      }
+    });
+    return ids;
+  }, [detail, radio, checks]);
+
   const addMachine = () => {
-    add({ sku: machine.sku, name: machine.name });
+    add({
+      sku: machine.sku,
+      name: machine.name,
+      options: selectedOptionSkus,
+      configLabel: selection.join(" · "),
+    });
     show("Added to request");
   };
 

@@ -45,7 +45,11 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     r.contact.shipAddress ?? "",
     r.contact.billingSameAsShipping === false ? (r.contact.billingAddress ?? "") : "same as shipping",
     r.contact.wantsAccount === false ? "no" : "yes",
-    r.items.map((it) => `${it.sku} x${it.qty}`).join("; "),
+    // Configuration rides with its own line item: a spreadsheet row that says
+    // only the base SKU would have the desk quoting the standard build.
+    r.items
+      .map((it) => `${it.sku} x${it.qty}${it.config?.length ? ` (${it.config.join("; ")})` : ""}`)
+      .join("; "),
     r.items.reduce((n, it) => n + it.qty, 0),
     r.message ?? "",
   ]);

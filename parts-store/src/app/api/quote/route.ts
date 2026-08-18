@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
+import { details } from "@/data/details";
 import { goodstrongDiagramSkus } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
 import { rateLimit } from "@/lib/rateLimit";
@@ -26,6 +27,30 @@ export const runtime = "nodejs";
 interface IncomingItem {
   sku?: unknown;
   qty?: unknown;
+  /** Configurator choice ids (DetailChoice.sku), resolved to labels server-side. */
+  options?: unknown;
+}
+
+/**
+ * Turn configurator choice ids into the labels the desk reads.
+ *
+ * Resolution happens here, against this machine's own option set, for two
+ * reasons: an id that machine does not offer is rejected rather than passed
+ * along, and nothing a customer can type reaches the desk email or the CSV
+ * export by this route — only text from our own data.
+ */
+function resolveOptions(machineSku: string, raw: unknown): string[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [];
+  const opts = details[machineSku]?.options ?? [];
+  if (opts.length === 0) return [];
+
+  const wanted = new Set(raw.slice(0, 40).map((v) => String(v)));
+  const lines: string[] = [];
+  for (const opt of opts) {
+    const picked = opt.choices.filter((c) => wanted.has(c.sku));
+    if (picked.length > 0) lines.push(`${opt.label}: ${picked.map((c) => c.v).join(", ")}`);
+  }
+  return lines;
 }
 
 const validSkus = new Set<string>([
@@ -92,10 +117,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: GENERIC_FAIL }, { status: 422 });
   }
 
-  const storedItems = items.map((it) => ({
-    sku: String(it.sku),
-    qty: Math.min(Math.max(Math.floor(Number(it.qty)), 1), 9999),
-  }));
+  const storedItems = items.map((it) => {
+    const sku = String(it.sku);
+    const config = resolveOptions(sku, it.options);
+    return {
+      sku,
+      qty: Math.min(Math.max(Math.floor(Number(it.qty)), 1), 9999),
+      ...(config.length > 0 ? { config } : {}),
+    };
+  });
 
   const contactBlock: StoredRfqContact = {
     company: clean(contact.company, 200),

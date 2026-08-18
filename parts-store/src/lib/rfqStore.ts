@@ -39,6 +39,11 @@ export interface StoredRfqContact {
 export interface StoredRfqItem {
   sku: string;
   qty: number;
+  /**
+   * Configurator selections as resolved labels ("Power: 5 HP / 460V 3Ø").
+   * Absent when the customer took the standard build, or for a plain part.
+   */
+  config?: string[];
 }
 
 export interface StoredRfq {

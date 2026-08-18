@@ -105,6 +105,10 @@ export function formatRfqEmail(rfq: StoredRfq): { subject: string; text: string 
     // desk can even tell what was asked for, on every lead.
     const name = catalogName(it.sku);
     lines.push(`  ${it.sku}  × ${it.qty}${name ? `  — ${name}` : ""}`);
+    // A configured machine is a different build and a different price; quoting
+    // the standard one because the options never travelled is the expensive
+    // mistake this line exists to prevent.
+    for (const line of it.config ?? []) lines.push(`      ${line}`);
   }
   if (rfq.message) lines.push("", "Message:", indentBlock(rfq.message));
   lines.push(

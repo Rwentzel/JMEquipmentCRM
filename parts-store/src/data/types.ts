@@ -98,6 +98,22 @@ export interface RequestItem {
   qty: number;
   /** Optional provenance, e.g. "Goodstrong 1650 · Hydraulics · p.42 · #7" — display only. */
   source?: string;
+  /**
+   * Configurator choices, as DetailChoice skus — never the display text.
+   *
+   * The desk must know a customer asked for 460V and a 90-inch frame rather
+   * than the standard build, and sending ids lets the server resolve the
+   * labels from its own data. Nothing the customer can type reaches the desk
+   * email or the CSV export by this route.
+   */
+  options?: string[];
+  /**
+   * The same choices as text, for the customer's own request list so they can
+   * check what they are about to send. DISPLAY ONLY — the server resolves the
+   * labels from `options` and never reads this, so nothing here can reach the
+   * desk email or the CSV export.
+   */
+  configLabel?: string;
 }
 
 /* ---- Goodstrong manual / exploded-view diagram data ---- */

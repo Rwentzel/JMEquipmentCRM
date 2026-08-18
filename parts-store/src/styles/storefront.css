@@ -559,6 +559,13 @@
   color: var(--jme-gold);
 }
 
+.ps-line__config {
+  display: block;
+  font-size: var(--t-xs);
+  color: var(--paper-dim);
+  margin-top: 2px;
+}
+
 .ps-line__name {
   font-size: var(--t-sm);
   color: var(--paper);

@@ -67,7 +67,10 @@ export function useRequestList() {
     const cur = read();
     const existing = cur.find((c) => c.sku === it.sku);
     if (existing) {
-      write(cur.map((c) => (c.sku === it.sku ? { ...c, qty: c.qty + 1 } : c)));
+      // Take the incoming fields: the customer is looking at the configurator
+      // as they press the button, so the configuration on screen is the one
+      // they mean. Keeping an earlier one would quietly quote the wrong build.
+      write(cur.map((c) => (c.sku === it.sku ? { ...c, ...it, qty: c.qty + 1 } : c)));
     } else {
       write([...cur, { ...it, qty: 1 }]);
     }
