@@ -30,6 +30,29 @@ export function genToken(): string {
 
 /* ---------------------------------------------------------------- money --- */
 
+/**
+ * Splits a total into instalments that actually add up to it.
+ *
+ * Rounding each share independently does not: on a $24,999.04 quote the
+ * 30/60/10 schedule printed $7,499.71 + $14,999.42 + $2,499.90 = $24,999.03,
+ * a cent short of the total printed directly above it. Half of all cent values
+ * broke the 50/50 split the same way. That is a signed document a customer
+ * pays against, so the instalments carry the remainder: every share but the
+ * last is rounded to cents, and the last is whatever is left.
+ */
+export function splitPayment(total: number, shares: number[]): number[] {
+  const cents = Math.round((+total || 0) * 100);
+  const out: number[] = [];
+  let assigned = 0;
+  for (let i = 0; i < shares.length - 1; i++) {
+    const c = Math.round(cents * shares[i]);
+    out.push(c / 100);
+    assigned += c;
+  }
+  out.push((cents - assigned) / 100);
+  return out;
+}
+
 export function usd(n: number): string {
   return "$" + Math.round(+n || 0).toLocaleString("en-US");
 }
@@ -482,18 +505,21 @@ export function buildDoc(qIn: QcQuote | null, machine: QcMachine | null, setting
   }
   let payment: { label: string; amount: string }[];
   if (consultation) payment = [{ label: "Payment terms by consultation", amount: "—" }];
-  else if (q.payment === "30-60-10")
+  else if (q.payment === "30-60-10") {
+    const [a, b, c] = splitPayment(total, [0.3, 0.6, 0.1]);
     payment = [
-      { label: "30% Due at Purchase Order", amount: usd2(total * 0.3) },
-      { label: "60% Due Before Shipment", amount: usd2(total * 0.6) },
-      { label: "10% Due at Delivery", amount: usd2(total * 0.1) },
+      { label: "30% Due at Purchase Order", amount: usd2(a) },
+      { label: "60% Due Before Shipment", amount: usd2(b) },
+      { label: "10% Due at Delivery", amount: usd2(c) },
     ];
-  else if (q.payment === "net30") payment = [{ label: "Net 30 from Invoice Date", amount: usd2(total) }];
-  else
+  } else if (q.payment === "net30") payment = [{ label: "Net 30 from Invoice Date", amount: usd2(total) }];
+  else {
+    const [a, b] = splitPayment(total, [0.5, 0.5]);
     payment = [
-      { label: "50% Due at Purchase Order", amount: usd2(total / 2) },
-      { label: "50% Due at Shipment", amount: usd2(total / 2) },
+      { label: "50% Due at Purchase Order", amount: usd2(a) },
+      { label: "50% Due at Shipment", amount: usd2(b) },
     ];
+  }
   let roi: QuoteDocModel["roi"] = { show: false };
   if (q.roiOn && m && m.roi) {
     const cores = +q.roiCores || 0;
