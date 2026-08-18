@@ -109,7 +109,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Privacy-respecting analytics (none today); 🔒 choose vendor + consent posture
 
 ### 20. Backups
-- ⬜ Source data versioned in git (✅ for demo data); ⬜ backup plan for real catalog + submissions store
+- ⬜ Source data versioned in git (✅ for demo data)
+- ✅ Backup/restore for the submissions store: `npm run backup` / `npm run restore`
+  (verified archives, atomic writes, dry-run restore, pre-restore safety copy,
+  14 unit tests incl. a full disaster drill). Runbook in LAUNCH.md §5.
+- ⬜ JM to schedule the daily backup, copy archives **off-box**, and do the
+  quarterly restore drill — tooling cannot do these three things for you
 - ✅ PII retention tooling: `npm run retention -- --days N [--apply]` archives + purges old **closed** RFQs (open work never touched; dry-run default; tested) — JM picks the window (§25)
 
 ### 21. Admin workflow

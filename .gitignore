@@ -16,3 +16,7 @@ parts-store/.data/
 # next build output
 parts-store/.next/
 *.tsbuildinfo
+
+# Operational backups of .data/ — contain customer PII and quote pricing.
+# Store these encrypted and off-box; never commit one.
+.backups/

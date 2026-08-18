@@ -14,7 +14,9 @@
     "agent:security": "tsx scripts/run-agent.ts security",
     "agent:triage": "tsx scripts/run-agent.ts triage",
     "retention": "tsx scripts/retention.ts",
-    "verify:bundles": "tsx scripts/verifyBundles.ts"
+    "verify:bundles": "tsx scripts/verifyBundles.ts",
+    "backup": "tsx scripts/backup.ts",
+    "restore": "tsx scripts/restore.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",

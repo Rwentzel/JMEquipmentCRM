@@ -61,11 +61,21 @@ the variable alone does nothing until the next build. Confirm
 - **Weekly**: `npm run agent:security` (or the ops panel) — non-zero exit = act.
 - **On catalog updates**: regenerate via `scripts/generate-public-catalog.py`,
   then `npm test` — the boundary tests hard-fail on any price/vendor leak.
-- **Monthly**: back up `RFQ_DATA_DIR` and run the retention sweep once JM picks
-  a window: `npm run retention -- --days <N> --apply` (dry-run without `--apply`;
-  only closed RFQs older than the window are archived). `npm audit` runs in CI
-  on every push — zero known vulnerabilities in shipped code; the dev-tooling
+- **Daily (automate this)**: `npm run backup`. It snapshots the whole data
+  directory to `.backups/`, parses every store first so a corrupt file is never
+  archived, re-reads the finished archive to confirm it is restorable, and keeps
+  the 14 most recent (`--keep N` to change). It exits non-zero on failure, so a
+  cron entry that fails silently is not possible — alert on that exit code.
+  Copy the archives **off the box**; a backup on the same volume as the data
+  does not survive the failure it exists for.
+- **Monthly**: run the retention sweep once JM picks a window:
+  `npm run retention -- --days <N> --apply` (dry-run without `--apply`; only
+  closed RFQs older than the window are archived). `npm audit` runs in CI on
+  every push — zero known vulnerabilities in shipped code; the dev-tooling
   audit is advisory (see SECURITY_NOTES.md) so check its output when it flags.
+- **Quarterly**: actually restore a backup into a scratch directory and look at
+  it — `RFQ_DATA_DIR=/tmp/drill npm run restore -- --latest --apply`. An
+  untested backup is a guess; this is the only step that turns it into a fact.
 - **PII**: the RFQ store contains customer contact data. Keep the volume
   access-restricted; enforce the retention window with `npm run retention`
   (e.g. `--days 730` ≈ 24 months). Never commit `.data/`.
@@ -73,6 +83,24 @@ the variable alone does nothing until the next build. Confirm
   pricing/cost. It lives on the same volume — back it up with the RFQ store. The
   retention sweep deliberately does **not** touch it: accepted quotes are signed
   business records, so purging them is a JM decision, not an automated one.
+### Recovering from data loss
+
+1. **Stop the app.** Restoring under a running server races with its own writes.
+2. `npm run restore -- --list` — see what is available.
+3. `npm run restore -- --latest` — a dry run prints exactly what would be
+   created, overwritten, and left alone. Nothing is written without `--apply`.
+4. `npm run restore -- --latest --apply`. The archive is fully verified before
+   anything is touched, so a bad archive fails while the current data is still
+   intact, and the current data directory is snapshotted to
+   `.backups/pre-restore/` first — restoring the wrong archive is itself
+   recoverable. Each file is replaced atomically.
+5. Restart, then confirm in `/ops` that the RFQ inbox and Quote Center pipeline
+   look right before telling anyone the incident is over.
+
+To restore a specific point in time, pass `--from <archive>` instead of
+`--latest`. `npm run backup -- --verify <archive>` re-checks one archive on
+demand without touching anything.
+
 - **Quote links** stay valid until the quote is deleted. To cut off a link that
   was sent to the wrong address, duplicate the quote (the copy gets a fresh
   token) and delete the original.
