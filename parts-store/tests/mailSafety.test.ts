@@ -141,3 +141,28 @@ test("the acceptance notice still carries no cost or margin", () => {
   assert.match(text, /Equipment: Guillotine Cutter \(JME-GC-52\)/);
   assert.ok(!/margin|Your Cost|\bcost\b/i.test(text), "the desk notice is quoted back in follow-ups");
 });
+
+/* ---- a message is not a quote request ---- */
+
+test('a "Send a Message" enquiry is described to the desk as one', () => {
+  // The storefront has a separate button for it and it submits with no line
+  // items. The desk was told "New quote request", under an empty "Items:"
+  // heading, for a customer who had asked a question.
+  const enquiry = rfq({ company: "Message Co", name: "Sal", email: "sal@msg.example" }, "Do you rebuild Martin rollstands?");
+  enquiry.items = [];
+  const { subject, text } = formatRfqEmail(enquiry);
+
+  assert.match(subject, /^\[MESSAGE\]/);
+  assert.match(text, /^New message .* no line items, question only/m);
+  assert.ok(!text.includes("Items:"), "an empty heading buries the one thing that is in it");
+  assert.match(text, /Do you rebuild Martin rollstands\?/);
+  assert.match(text, /Work this message in the ops desk/);
+});
+
+test("a request with line items is still a quote request", () => {
+  const { subject, text } = formatRfqEmail(rfq({ company: "Parts Co", name: "Pat", email: "pat@parts.example" }));
+  assert.match(subject, /^\[RFQ\]/);
+  assert.match(text, /^New quote request/m);
+  assert.match(text, /Items:/);
+  assert.match(text, /Work this request in the ops desk/);
+});
