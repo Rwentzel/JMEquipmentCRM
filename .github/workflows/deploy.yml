@@ -1,0 +1,91 @@
+# Production deploy to Fly.io — runs on every push to main once the repo has
+# a FLY_API_TOKEN secret. Without the token the job explains what to do and
+# exits green, so this workflow never blocks unrelated merges.
+#
+# One-time owner setup (about 10 minutes, see LAUNCH.md "One-token deploy"):
+#   1. Create a Fly.io account (fly.io — sign up with GitHub).
+#   2. Dashboard → Tokens → create an org deploy token.
+#   3. Repo Settings → Secrets and variables → Actions → new secret
+#      FLY_API_TOKEN with that value.
+#   4. (Recommended) Add secrets OPS_TOKEN, SMTP_HOST, SMTP_PORT, SMTP_USER,
+#      SMTP_PASS, RFQ_NOTIFY_TO — they are forwarded to the app when present.
+#   5. Re-run this workflow (Actions → Deploy → Run workflow).
+
+name: Deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  fly:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: parts-store
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for deploy token
+        id: token
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No FLY_API_TOKEN secret — skipping deploy. To go live: create a Fly.io account, make an org deploy token, save it as the FLY_API_TOKEN repo secret, then re-run this workflow. Full steps in LAUNCH.md."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.token.outputs.present == 'true'
+
+      - name: Create app and volume if missing
+        if: steps.token.outputs.present == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl apps create jme-parts-store --org personal || true
+          flyctl volumes create jme_data --app jme-parts-store --region ord --size 1 --yes || true
+
+      - name: Forward app secrets when configured
+        if: steps.token.outputs.present == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          OPS_TOKEN: ${{ secrets.OPS_TOKEN }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          RFQ_NOTIFY_TO: ${{ secrets.RFQ_NOTIFY_TO }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          args=""
+          for var in OPS_TOKEN SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS RFQ_NOTIFY_TO ANTHROPIC_API_KEY; do
+            val="${!var}"
+            if [ -n "$val" ]; then args="$args $var=$val"; fi
+          done
+          if [ -n "$args" ]; then
+            # shellcheck disable=SC2086
+            flyctl secrets set --app jme-parts-store --stage $args
+          else
+            echo "::notice::No app secrets configured yet — the site deploys gated (ops desk disabled, no email). Add OPS_TOKEN and SMTP_* repo secrets when ready; see LAUNCH.md."
+          fi
+
+      - name: Deploy
+        if: steps.token.outputs.present == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only --ha=false
+
+      - name: Smoke check
+        if: steps.token.outputs.present == 'true'
+        run: |
+          sleep 10
+          curl -fsS https://jme-parts-store.fly.dev/api/health
+          echo "::notice::Deployed — https://jme-parts-store.fly.dev (custom domain: see LAUNCH.md DNS section)"
