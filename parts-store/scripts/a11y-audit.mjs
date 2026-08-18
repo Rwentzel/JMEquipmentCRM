@@ -100,6 +100,19 @@ for (const route of ROUTES) await audit(`route ${route}`, route);
 await audit("route / (mobile)", "/", null, MOBILE);
 
 // Interactive states.
+/**
+ * Refuse to audit a staff route that is really the login form.
+ *
+ * Without this, an auth change that this script has not kept up with turns
+ * every staff route into a two-field login page — which passes cleanly, and
+ * reports that eight screens nobody looked at are fine.
+ */
+const assertAuthed = async (page) => {
+  if (await page.$("#ops-token")) {
+    throw new Error("not authenticated — OPS_TOKEN is wrong, or the session cookie format in this script has drifted from issueSession() in src/lib/opsAuth.ts");
+  }
+};
+
 const click = (selector) => async (page) => {
   const el = await page.$(selector);
   if (!el) throw new Error(`no element for ${selector}`);
@@ -121,13 +134,17 @@ await audit("request list populated", "/", async (page) => {
   await page.waitForTimeout(300);
 });
 
-// Staff surfaces. The session cookie stores a SHA-256 digest of OPS_TOKEN —
-// see src/lib/opsAuth.ts, which this mirrors rather than imports (the script is
-// plain ESM and deliberately outside the app's module graph).
+// Staff surfaces. The session cookie is `<expiry>.<nonce>.<HMAC>` signed with
+// OPS_TOKEN — see issueSession() in src/lib/opsAuth.ts, which this mirrors
+// rather than imports (the script is plain ESM and deliberately outside the
+// app's module graph). Keep the two in step: a cookie the app rejects does not
+// fail the audit, it quietly redirects every staff route to the login form,
+// and a login form passes. assertAuthed below is the backstop for exactly that.
 if (process.env.OPS_TOKEN) {
-  const { createHash } = await import("node:crypto");
-  const cookie = createHash("sha256").update(process.env.OPS_TOKEN).digest("hex");
-  for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, null, DESKTOP, cookie);
+  const { createHmac, randomBytes } = await import("node:crypto");
+  const payload = `${Math.floor(Date.now() / 1000) + 3600}.${randomBytes(9).toString("base64url")}`;
+  const cookie = `${payload}.${createHmac("sha256", process.env.OPS_TOKEN).update(payload).digest("hex")}`;
+  for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, assertAuthed, DESKTOP, cookie);
 } else {
   console.log(`\nSKIP  ${STAFF_ROUTES.length} staff routes — set OPS_TOKEN to audit /ops and the Quote Center.`);
 }
