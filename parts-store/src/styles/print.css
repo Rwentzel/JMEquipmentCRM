@@ -31,6 +31,9 @@
   .ps-tweaksbtn,
   .ps-tweaks,
   .ps-toastwrap,
+  .ps-ask,
+  .ps-askbtn,
+  .ps-totop,
   .jme-cutline,
   #machines,
   #industries,
@@ -97,13 +100,41 @@
     font-size: 8pt;
   }
 
-  .jme-input {
+  /* Form controls carry the storefront's dark styling. Printed, a textarea
+     becomes a solid black rectangle with the customer's own text lost inside
+     it — so every control is flattened to plain text on white, not just the
+     single-line inputs. */
+  .jme-input,
+  .jme-textarea,
+  .ps-field textarea,
+  #request textarea,
+  #request input,
+  #request select {
     border: none !important;
     background: transparent !important;
     color: #1a1a1a !important;
     padding: 0 !important;
     height: auto !important;
+    min-height: 0 !important;
+    resize: none !important;
     font-size: 11pt;
+  }
+
+  /* A checked box has to stay legible in one ink. */
+  #request input[type="checkbox"] {
+    appearance: none !important;
+    width: 9pt !important;
+    height: 9pt !important;
+    border: 1px solid #1a1a1a !important;
+    background: #fff !important;
+  }
+  #request input[type="checkbox"]:checked::after {
+    content: "✓";
+    display: block;
+    font-size: 8pt;
+    line-height: 9pt;
+    text-align: center;
+    color: #1a1a1a;
   }
 
   /* ---- Line items ---- */
