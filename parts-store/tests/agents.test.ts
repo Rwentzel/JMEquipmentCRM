@@ -213,3 +213,40 @@ test("the broadened cost guard does not swallow ordinary questions", async () =>
     assert.doesNotMatch(res.answer, /Pricing isn't published/i, `over-refused: ${q}`);
   }
 });
+
+/* ---- the stock guard has to survive how people actually ask ---- */
+
+test("a stock-count question is refused however the sentence is ordered", async () => {
+  // The pattern needed do/are/have immediately after "how many", so the normal
+  // phrasing — the thing being counted sits in between — went straight past it
+  // and the customer got a part card in place of an answer. That matters more
+  // than it looks: this screen runs before the LLM engine, so a miss is a
+  // question reaching the model with only the system prompt holding the line.
+  for (const q of [
+    "how many splitter blades do you have in stock",
+    "how many are available",
+    "how many can you ship this week",
+    "what is your stock level",
+  ]) {
+    const res = await answerSupportQuestion(q);
+    assert.match(res.answer, /don't publish exact stock counts/i, `not refused: "${q}"`);
+    assert.doesNotMatch(res.answer, /\b\d+\s+(units|in stock|on hand)\b/i);
+  }
+});
+
+test("counting something that is not stock is still a question worth answering", async () => {
+  // Guarding on "how many" alone would refuse a spec question, and refusing to
+  // say how many teeth a blade has is not a data boundary — it is a bot that
+  // cannot answer anything.
+  for (const q of ["how many teeth does the blade have", "how many blades come with the core splitter"]) {
+    const res = await answerSupportQuestion(q);
+    assert.doesNotMatch(res.answer, /don't publish exact stock counts/i, `over-refused: "${q}"`);
+  }
+});
+
+test("asking whether an item is in stock still gets its availability band", async () => {
+  // The band is public and is the answer to that question; only counts are not.
+  const res = await answerSupportQuestion("Is JME-VCS-BLD-001 in stock?");
+  assert.doesNotMatch(res.answer, /don't publish exact stock counts/i);
+  assert.match(res.answer, /availability/i);
+});
