@@ -29,6 +29,31 @@ is lost; you just don't get the email ping.
 
 ## 2. Deploy
 
+### One-token deploy (Fly.io — recommended path)
+
+The repo carries everything for a single-instance Fly.io deployment with a
+persistent disk (`parts-store/Dockerfile`, `parts-store/fly.toml`,
+`.github/workflows/deploy.yml`). The owner does this once, ~10 minutes:
+
+1. Create a Fly.io account at fly.io (sign up with GitHub; a payment card is
+   required by Fly, and this app fits their smallest paid tier — roughly a few
+   dollars a month for one shared-CPU machine + 1 GB volume).
+2. Fly dashboard → **Tokens** → create an org deploy token.
+3. GitHub repo → **Settings → Secrets and variables → Actions** → new secret
+   **`FLY_API_TOKEN`** with that value.
+4. Add the app secrets from the table above the same way (at minimum
+   `OPS_TOKEN`; add `SMTP_*` and `RFQ_NOTIFY_TO` for email) — the workflow
+   forwards them to the app.
+5. GitHub → **Actions → Deploy → Run workflow**. Every later push to `main`
+   redeploys automatically.
+
+The site comes up at `https://jme-parts-store.fly.dev` — gated (noindex, ops
+locked) until the smoke test passes and `JME_LAUNCH=live` is set. For the
+custom domain: `flyctl certs add parts.jmequipment.net`, then add the CNAME
+Fly prints to the jmequipment.net DNS.
+
+### Any other Docker host
+
 - `npm ci && npm run build && npm start` (Node 22 LTS — Node 20 is past end-of-life and no longer receives security patches), behind your host's TLS.
 - Give `RFQ_DATA_DIR` a persistent disk (RFQs and the audit log live there).
   Single instance only — the store and rate limiter are per-process by design.

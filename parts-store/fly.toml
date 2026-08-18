@@ -1,0 +1,38 @@
+# Fly.io configuration for the JM Equipment parts store + Quote Center.
+# See LAUNCH.md for the go-live runbook and .github/workflows/deploy.yml for
+# how deploys run. Single instance by design (file-backed stores + per-process
+# rate limiting); do not scale out without the database swap in SECURITY_NOTES.
+
+app = "jme-parts-store"
+primary_region = "ord"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  RFQ_DATA_DIR = "/app/.data"
+
+[[mounts]]
+  source = "jme_data"
+  destination = "/app/.data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # The parts desk must answer when a machine-down customer clicks Submit:
+  # keep one machine always running rather than scaling to zero.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[http_service.checks]]
+  interval = "30s"
+  timeout = "5s"
+  grace_period = "20s"
+  method = "GET"
+  path = "/api/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "1gb"
