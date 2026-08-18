@@ -49,3 +49,18 @@ test("no route segment mixes a loading.tsx with a page that calls notFound()", (
     }
   }
 });
+
+/* --------------------------------------------------------------- print --- */
+
+test("the customer quote prints on white paper, not the dark viewing stage", () => {
+  // The quote page shows the document on a dark stage with a drop shadow.
+  // That is screen furniture: printed with background graphics enabled it
+  // frames every page in grey and burns toner. This is the sheet a customer
+  // forwards to their purchasing department, so it must be plain white.
+  const css = readFileSync(path.join(process.cwd(), "src", "styles", "qc.css"), "utf8");
+  const print = css.slice(css.indexOf("@media print"));
+  assert.match(print, /\[data-screen-label="Client Quote View"\]\s*\{[^}]*background:\s*#fff/);
+  assert.match(print, /#jme-print-doc\s*\{[^}]*box-shadow:\s*none/);
+  assert.match(print, /\[data-print-hide\]\s*\{\s*display:\s*none/);
+  assert.match(print, /@page\s*\{\s*size:\s*Letter/);
+});

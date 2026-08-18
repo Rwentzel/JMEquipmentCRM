@@ -50,6 +50,18 @@
   #builderPreviewStage { zoom: 1 !important; width: auto !important; }
   #clientPreviewCol,
   #clientPreviewCol > div { padding: 0 !important; display: block !important; }
+  /* The dark viewing stage and the document's drop shadow are screen
+     furniture. Printed with background graphics on, they frame every page in
+     grey and burn toner; the sheet should be plain white paper. */
+  [data-screen-label="Client Quote View"] {
+    background: #fff !important;
+    min-height: 0 !important;
+  }
+  #jme-print-doc {
+    box-shadow: none !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
   @page { size: Letter; margin: 0.45in; }
 }
 
