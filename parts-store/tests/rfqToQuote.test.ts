@@ -220,6 +220,14 @@ test("the SKU on the document is the one the customer ordered from", () => {
   assert.equal(buildDoc(q, VCS(), settings)!.sku, "JME-VCS12-75");
 });
 
+test("the requested build survives in the notes, for when the desk restates it", () => {
+  // Choosing a machine in the builder clears rfqBuild — the desk is restating
+  // the order — so the customer's own words have to be recorded somewhere the
+  // rep can still read them.
+  const q = convert([{ sku: "JME-GC-52", qty: 1, config: ["Backgauge: AC servo"] }]);
+  assert.match(q.notes, /Requested build: Backgauge: AC servo/);
+});
+
 test("a machine request never renders as replacement parts", () => {
   for (const config of [undefined, NON_STANDARD]) {
     const q = convert([{ sku: "JME-VCS12-75", qty: 1, ...(config ? { config } : {}) }]);

@@ -151,6 +151,10 @@ export function quoteFromRfq(
       ? `More than one machine requested (${machineLines.map((it) => it.sku).join(", ")}) — a quotation covers one machine, so the rest need their own.`
       : "",
     `Created from ${rfq.ref} (submitted ${rfq.createdAt.slice(0, 10)}).`,
+    // Kept here as well as on the document: choosing a machine in the builder
+    // replaces the customer's account of the build with the catalogue's, and
+    // what they actually asked for must survive that.
+    lead?.config?.length ? `Requested build: ${lead.config.join(" · ")}` : "",
     c.phone ? `Phone: ${c.phone}${c.phoneExt ? ` ext. ${c.phoneExt}` : ""}` : "",
     c.serial ? `Machine serial: ${c.serial}` : "",
     c.billingSameAsShipping === false && c.billingAddress ? `Bill to: ${c.billingAddress}` : "",
