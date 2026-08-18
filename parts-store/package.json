@@ -14,6 +14,7 @@
     "agent:security": "tsx scripts/run-agent.ts security",
     "agent:triage": "tsx scripts/run-agent.ts triage",
     "retention": "tsx scripts/retention.ts",
+    "dev:demo": "QC_DEMO_SEED=1 next dev",
     "verify:bundles": "tsx scripts/verifyBundles.ts"
   },
   "dependencies": {

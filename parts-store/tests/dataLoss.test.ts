@@ -19,6 +19,7 @@ import path from "node:path";
 // Point both stores at a throwaway dir BEFORE anything reads the env.
 // dataDir() resolves it per call, so static imports below are safe.
 const DIR = mkdtempSync(path.join(tmpdir(), "jme-dataloss-"));
+process.env.QC_DEMO_SEED = "1"; // these tests exercise the demo-seed path
 process.env.RFQ_DATA_DIR = DIR;
 
 import { mutateQuote, patchQcState, readQcState, resetQcState } from "../src/lib/qc/store";

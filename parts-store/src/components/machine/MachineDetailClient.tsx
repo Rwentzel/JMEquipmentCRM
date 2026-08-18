@@ -155,7 +155,9 @@ export function MachineDetailClient({
                 <SmartImg src={asset(hero.src)} alt={hero.cap} className={hero.fit === "cover" ? "is-cover" : undefined} />
               ) : (
                 <div className="md-hero__ph">
-                  <Diamond size={64} />
+                  <Diamond size={72} />
+                  <span className="md-hero__ph-fam">{machine.family ?? "JM Equipment"}</span>
+                  <span className="md-hero__ph-note">Photo on request — call (269) 659-0093</span>
                 </div>
               )}
               {hero && <span className="md-hero__cap">{hero.cap}</span>}
