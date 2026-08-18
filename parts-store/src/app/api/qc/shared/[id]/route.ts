@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { sendQuoteAcceptedNotification } from "@/lib/mail";
-import { rateLimit } from "@/lib/rateLimit";
+import { clientKey, rateLimit } from "@/lib/rateLimit";
 import { buildDoc, deriveActivity, nowISO } from "@/lib/qc/logic";
 import { mutateQuote, readQcState } from "@/lib/qc/store";
 
@@ -19,11 +19,6 @@ import { mutateQuote, readQcState } from "@/lib/qc/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function clientKey(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  return (xff ? xff.split(",")[0]!.trim() : "") || req.headers.get("x-real-ip") || "local";
-}
 
 function tokenMatches(expected: string | undefined, given: string): boolean {
   if (!expected || !given) return false;
