@@ -44,6 +44,11 @@ export interface StoredRfqItem {
    * Absent when the customer took the standard build, or for a plain part.
    */
   config?: string[];
+  /**
+   * Where the part was picked off a manual drawing, verified against the
+   * diagram data at intake. Absent for anything not chosen from a drawing.
+   */
+  source?: string;
 }
 
 export interface StoredRfq {

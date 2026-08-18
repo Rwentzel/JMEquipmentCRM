@@ -152,3 +152,77 @@ test("a model with its own digitized drawings claims no borrowed index", () => {
     );
   }
 });
+
+/* ---- a part picked off a drawing must reach the desk with its location ---- */
+
+/** Mirrors resolveOrigin() in the quote route, which cannot export helpers. */
+function resolveOriginForTest(sku: string, raw: unknown): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as { model?: unknown; section?: unknown; page?: unknown; bubble?: unknown };
+  const modelId = String(o.model ?? "");
+  const sectionId = String(o.section ?? "");
+  const pageLabel = String(o.page ?? "");
+  const bubble = Number(o.bubble);
+  const model = goodstrongModels.find((m) => m.id === modelId);
+  const section = model?.sections.find((s) => s.id === sectionId);
+  const page = model?.diagrams[sectionId]?.find((pg) => pg.pageLabel === pageLabel);
+  if (!model || !section || !page) return null;
+  if (!page.parts.some((part) => part.sku === sku && part.bubble === bubble)) return null;
+  return `${model.label} · ${section.label} · p.${page.pageLabel} · #${bubble}`;
+}
+
+/** The first real diagram part in the data, whatever it happens to be. */
+function anyDiagramPart() {
+  for (const model of goodstrongModels) {
+    for (const [sectionId, pages] of Object.entries(model.diagrams)) {
+      for (const page of pages) {
+        const part = page.parts[0];
+        if (part) return { model, sectionId, page, part };
+      }
+    }
+  }
+  throw new Error("no diagram parts in the dataset");
+}
+
+test("a part picked off a drawing keeps its page and bubble number", () => {
+  // Without this the desk received a bare manufacturer part number. The same
+  // number appears on more than one drawing, and the page plus bubble is how
+  // fit gets confirmed — so losing it costs a phone call on every such order.
+  const { model, sectionId, page, part } = anyDiagramPart();
+  const resolved = resolveOriginForTest(part.sku, {
+    model: model.id, section: sectionId, page: page.pageLabel, bubble: part.bubble,
+  });
+  assert.ok(resolved, "a genuine location must resolve");
+  assert.ok(resolved!.includes(`p.${page.pageLabel}`) && resolved!.includes(`#${part.bubble}`));
+});
+
+test("a location the part is not actually at is refused", () => {
+  const { model, sectionId, page, part } = anyDiagramPart();
+  // Right drawing, wrong bubble.
+  assert.equal(
+    resolveOriginForTest(part.sku, { model: model.id, section: sectionId, page: page.pageLabel, bubble: 9999 }),
+    null,
+  );
+  // Right bubble, a drawing that does not exist.
+  assert.equal(
+    resolveOriginForTest(part.sku, { model: model.id, section: sectionId, page: "no-such-page", bubble: part.bubble }),
+    null,
+  );
+  // A different part claiming this spot.
+  assert.equal(
+    resolveOriginForTest("NOT-A-PART", { model: model.id, section: sectionId, page: page.pageLabel, bubble: part.bubble }),
+    null,
+  );
+});
+
+test("provenance text comes from our data, never from the browser", () => {
+  // The client sends ids; a crafted string must not reach the desk email or
+  // the CSV export by this route.
+  const { model, sectionId, page, part } = anyDiagramPart();
+  const resolved = resolveOriginForTest(part.sku, {
+    model: model.id, section: sectionId, page: page.pageLabel, bubble: part.bubble,
+  });
+  assert.ok(!resolved!.includes("="), "no formula-leading text can arrive this way");
+  assert.ok(resolved!.startsWith(model.label), "the label is rebuilt from the dataset");
+  assert.equal(resolveOriginForTest(part.sku, { model: "=cmd()", section: sectionId, page: page.pageLabel, bubble: 1 }), null);
+});

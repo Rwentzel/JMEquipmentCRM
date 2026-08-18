@@ -109,6 +109,9 @@ export function formatRfqEmail(rfq: StoredRfq): { subject: string; text: string 
     // the standard one because the options never travelled is the expensive
     // mistake this line exists to prevent.
     for (const line of it.config ?? []) lines.push(`      ${line}`);
+    // Where it was picked off the drawing: the desk confirms fit from the page
+    // and bubble number, and the same part number sits on several drawings.
+    if (it.source) lines.push(`      from ${it.source}`);
   }
   if (rfq.message) lines.push("", "Message:", indentBlock(rfq.message));
   lines.push(

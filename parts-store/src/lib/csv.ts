@@ -48,7 +48,12 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     // Configuration rides with its own line item: a spreadsheet row that says
     // only the base SKU would have the desk quoting the standard build.
     r.items
-      .map((it) => `${it.sku} x${it.qty}${it.config?.length ? ` (${it.config.join("; ")})` : ""}`)
+      .map(
+        (it) =>
+          `${it.sku} x${it.qty}` +
+          (it.config?.length ? ` (${it.config.join("; ")})` : "") +
+          (it.source ? ` [from ${it.source}]` : ""),
+      )
       .join("; "),
     r.items.reduce((n, it) => n + it.qty, 0),
     r.message ?? "",

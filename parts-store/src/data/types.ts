@@ -99,6 +99,14 @@ export interface RequestItem {
   /** Optional provenance, e.g. "Goodstrong 1650 · Hydraulics · p.42 · #7" — display only. */
   source?: string;
   /**
+   * Where on a manual drawing this part was picked, as ids the server can
+   * check against its own diagram data. The desk confirms fit from the page
+   * and bubble number — the same part number appears on more than one
+   * drawing — so this has to survive submission, and it travels as ids so a
+   * crafted `source` string cannot reach the desk email or the CSV export.
+   */
+  origin?: { model: string; section: string; page: string; bubble: number };
+  /**
    * Configurator choices, as DetailChoice skus — never the display text.
    *
    * The desk must know a customer asked for 460V and a 90-inch frame rather

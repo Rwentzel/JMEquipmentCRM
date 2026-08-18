@@ -794,6 +794,7 @@ function Request({
                     <span className="jme-mono ps-line__sku">{i.sku}</span>
                     <span className="ps-line__name">{i.name}</span>
                     {i.configLabel && <span className="ps-line__config">{i.configLabel}</span>}
+                    {i.source && <span className="ps-line__config">{i.source}</span>}
                   </div>
                   <div className="ps-line__right">
                     <NumberInput
