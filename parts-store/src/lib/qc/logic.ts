@@ -287,6 +287,23 @@ export function cashTotal(q: QcQuote, machine: QcMachine | null): number {
   return priceBreak(q, machine).total;
 }
 
+/**
+ * Quotes still waiting on a follow-up.
+ *
+ * Closing a quote does not clear its reminder, so a deal the rep marked lost —
+ * with a reason — went on appearing in the desk's task list as overdue, for
+ * ever. The list only ever grew. The note stays on the record either way; this
+ * is about what is still owed, and nothing is owed on a closed deal.
+ *
+ * An accepted quote is deliberately still open: the PO and deposit are exactly
+ * what a rep chases.
+ */
+export function pendingFollowUps(quotes: QcQuote[]): QcQuote[] {
+  return quotes
+    .filter((q) => q.followUpDate && !q.followUpDone && q.status !== "won" && q.status !== "lost")
+    .sort((a, b) => (a.followUpDate || "").localeCompare(b.followUpDate || ""));
+}
+
 /** Stage probabilities for the weighted pipeline. */
 export function stageProb(st: QcStatus): number {
   const M: Record<string, number> = { draft: 0.25, sent: 0.55, accepted: 0.9, won: 1, lost: 0 };

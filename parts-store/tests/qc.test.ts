@@ -16,6 +16,7 @@ import {
   expiryInfo,
   genNumber,
   genToken,
+  pendingFollowUps,
   priceBreak,
   sortQuotes,
   stageProb,
@@ -23,7 +24,7 @@ import {
 } from "../src/lib/qc/logic";
 import { SEED_CATALOG, qcDefaults, seedQuotes } from "../src/lib/qc/data";
 import { mutateQuote, patchQcState, readQcState, resetQcState } from "../src/lib/qc/store";
-import type { QcQuote } from "../src/lib/qc/types";
+import type { QcQuote, QcStatus } from "../src/lib/qc/types";
 
 const settings = qcDefaults();
 const machineOf = (q: QcQuote) => SEED_CATALOG.find((m) => m.id === q.machineId) || null;
@@ -280,4 +281,40 @@ test("the PUT body contract carries every field the merge depends on", async () 
       `PUT /api/qc/state must forward ${field}; dropping it silently disables concurrent-save protection`,
     );
   }
+});
+
+/* ---- the desk's task list must not nag about closed deals ---- */
+
+test("a closed quote stops asking to be followed up", () => {
+  // Closing a quote left its reminder in place, so a deal the rep had just
+  // marked lost — with a reason — went on appearing in the dashboard's
+  // follow-up list as overdue, for ever. The list only ever grew.
+  const base = { followUpDate: "2026-06-01", followUpNote: "Call Jo", followUpDone: false };
+  const quotes = [
+    { ...blankQuote(null, SEED_CATALOG, qcDefaults(), 0), ...base, id: "q-sent", status: "sent" as QcStatus },
+    { ...blankQuote(null, SEED_CATALOG, qcDefaults(), 1), ...base, id: "q-accepted", status: "accepted" as QcStatus },
+    { ...blankQuote(null, SEED_CATALOG, qcDefaults(), 2), ...base, id: "q-won", status: "won" as QcStatus },
+    { ...blankQuote(null, SEED_CATALOG, qcDefaults(), 3), ...base, id: "q-lost", status: "lost" as QcStatus },
+  ];
+  const pending = pendingFollowUps(quotes).map((q) => q.id);
+  assert.deepEqual(pending, ["q-sent", "q-accepted"]);
+  // Accepted stays open on purpose: the PO and the deposit are what a rep chases.
+  assert.ok(pending.includes("q-accepted"));
+});
+
+test("a follow-up already marked done stays out of the list", () => {
+  const q = { ...blankQuote(null, SEED_CATALOG, qcDefaults(), 0), followUpDate: "2026-06-01", followUpDone: true };
+  assert.deepEqual(pendingFollowUps([q]), []);
+});
+
+test("follow-ups come back in due order", () => {
+  const mk = (id: string, followUpDate: string) => ({
+    ...blankQuote(null, SEED_CATALOG, qcDefaults(), 0),
+    id,
+    followUpDate,
+    followUpDone: false,
+    status: "sent" as QcStatus,
+  });
+  const out = pendingFollowUps([mk("late", "2026-09-01"), mk("early", "2026-06-01")]).map((q) => q.id);
+  assert.deepEqual(out, ["early", "late"]);
 });
