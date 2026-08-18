@@ -63,6 +63,7 @@ export const catalog: Catalog = {
         "Goodstrong's high-end dual rotary sheeter, factory-direct through JME — new cutter-head design for a faster speed curve, with upgraded overlap and stacker sections standard.",
       bestFor: "High-volume paperboard converters who need cut-size accuracy at production speed.",
       outcomes: [
+        "Cut-length accuracy ±0.015 in (single web)",
         "Cutting curve to 350 m/min (1,150 ft/min)",
         "Web widths 400–1,650 mm (16–65 in)",
         "Coated & uncoated board to 1,000 gsm (C1S / C2S)",
@@ -114,15 +115,16 @@ export const catalog: Catalog = {
         "JME's own shaftless rollstand — dependable unwinding ahead of slitters, sheeters, bag machines, forming presses, and laminators.",
       bestFor: "Lines that need dependable shaftless unwinding without wrestling core shafts.",
       outcomes: [
-        "Shaftless loading — no core shafts to handle",
-        "Core sizes 4 / 3–6 / 10–12 / 16 in, custom chucks available",
+        "Rolls to 7,000 lbs and 83 in diameter — no core shafts to handle",
+        "E-Z Load side-shifting trolley and hydraulic lift arms standard",
+        "Closed-loop automatic tension control with pneumatic brake",
         "Built new in Sturgis with parts on the shelf",
       ],
       specs: [
-        { k: "Core Sizes", v: "4 / 3–6 / 10–12 / 16 in" },
-        { k: "Chucks", v: "Custom available" },
-        { k: "Style", v: "Shaftless" },
-        { k: "Duty", v: "Slitters · sheeters · laminators" },
+        { k: "Roll Weight", v: "to 7,000 lbs" },
+        { k: "Roll Diameter", v: "12–83 in" },
+        { k: "Web Width", v: "to 63 in" },
+        { k: "Chucks", v: "3–6 / 10–12 in · 8 / 16 adaptors" },
       ],
     },
     {
@@ -172,6 +174,31 @@ export const catalog: Catalog = {
         { k: "Backgauge", v: "Programmable" },
         { k: "Clamp", v: "Hydraulic" },
         { k: "Safety", v: "Two-hand + light curtain" },
+      ],
+    },
+    {
+      sku: "JME-LD-12",
+      name: "Linear Dancer System",
+      family: "Tension Control",
+      tag: "consult",
+      tagLabel: "JME Build · Custom",
+      statusBand: "Quote Required",
+      action: "request-quote",
+      photo: null,
+      blurb:
+        "Accumulator-style dancer that absorbs the tension spikes out-of-round rolls throw into your web — custom-designed for your line, with a 12 in precision-balanced aluminum dancer roll and pneumatic load system.",
+      bestFor: "Sheeting and converting lines fighting short sheets and length variation from out-of-round rolls.",
+      outcomes: [
+        "Cuts short-sheet waste 40–60% on affected lines",
+        "Sheet-length consistency to ±0.010 in",
+        "Dynamic response under 0.3 seconds",
+        "Softer shock loads extend sheeter knife life",
+      ],
+      specs: [
+        { k: "Web Speed", v: "to 1,500 FPM" },
+        { k: "Tension Range", v: "0.5–50 PLI" },
+        { k: "Dancer Roll", v: "12 in dead-shaft" },
+        { k: "Response", v: "< 0.3 s" },
       ],
     },
     {
