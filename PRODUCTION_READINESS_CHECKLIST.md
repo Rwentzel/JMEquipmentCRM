@@ -79,7 +79,14 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 15. Terms / disclaimers
 - 🟡 Terms of Sale, Freight & Shipping policy pages (sandbox drafts; `/terms`, `/freight`)
-- ⬜ Compatibility disclaimer page
+- 🟡 Compatibility disclaimer — the substance is already in place in three
+  spots rather than one page: Terms §8 ("compatibility information … is
+  advisory; the buyer is responsible for verifying fit"), the FAQ entry on
+  cross-referencing ("send the serial number … we verify fit before quoting
+  rather than guessing"), and the optional machine-serial field on the RFQ
+  form. A separate page would duplicate rather than add; the open question for
+  legal review is whether the Terms wording is strong enough, not whether a
+  page exists.
 - 🔒 Legal review of all policy pages before launch
 
 ### 16. Privacy policy
