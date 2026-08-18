@@ -242,3 +242,23 @@ test("the client document's ROI row reflows on a phone but not in print", () => 
     "the ROI reflow is no longer screen-only; print needs all three columns",
   );
 });
+
+test("the ops flag badge is legible on the accent red", () => {
+  // FREIGHT and NO ACCT sit on --accent at 10px. They were --ink: 2.83:1,
+  // roughly half the AA floor. The browser sweep never caught it because
+  // neither trigger could fire — nothing in the catalogue was banded for
+  // freight — so the badge simply never rendered to be measured.
+  const ops = readFileSync(path.join(STYLES, "ops.css"), "utf8");
+  const rule = /\.ops__flag\s*\{([^}]*)\}/.exec(ops);
+  assert.ok(rule, ".ops__flag rule not found (renamed? update this test with it)");
+  const fgToken = /color:\s*var\(--([a-z0-9-]+)\)/.exec(rule![1]!)?.[1];
+  const bgToken = /background:\s*var\(--([a-z0-9-]+)\)/.exec(rule![1]!)?.[1];
+  assert.ok(fgToken && bgToken, ".ops__flag must set both colour and background from tokens");
+
+  const accent = /--accent\s*:\s*var\(--([a-z0-9-]+)\)\s*;/.exec(tokens)?.[1] ?? bgToken!;
+  const ratio = contrast(token(tokens, fgToken!), token(tokens, accent));
+  assert.ok(
+    ratio >= AA_NORMAL,
+    `.ops__flag --${fgToken} on --${accent} is ${ratio.toFixed(2)}:1, below the ${AA_NORMAL}:1 AA floor`,
+  );
+});

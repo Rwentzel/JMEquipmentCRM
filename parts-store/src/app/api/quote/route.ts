@@ -81,8 +81,21 @@ const validSkus = new Set<string>([
   ...goodstrongDiagramSkus(),
 ]);
 
+/**
+ * Items whose request has to reach the desk marked for freight quoting.
+ *
+ * The band is the flag. /freight, /terms and the FAQ all tell the customer
+ * that freight-heavy items are "flagged 'Freight Quote Required' in the parts
+ * catalog", and the storefront prints exactly that badge — so the desk signal
+ * has to follow the same fact, not a second one kept in step by hand. It was
+ * keyed on the CTA action instead, which nothing in the catalogue carried:
+ * the flag was wired through the notification subject, the email body, the ops
+ * list and the quote notes, and had no producer at all.
+ */
 const freightSkus = new Set<string>(
-  [...catalog.machines, ...catalog.parts].filter((x) => x.action === "freight-quote").map((x) => x.sku),
+  [...catalog.machines, ...catalog.parts]
+    .filter((x) => x.statusBand === "Freight Quote Required" || x.action === "freight-quote")
+    .map((x) => x.sku),
 );
 
 const GENERIC_FAIL = "Please check the form and try again.";
