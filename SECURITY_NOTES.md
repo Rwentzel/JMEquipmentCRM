@@ -29,7 +29,7 @@ Validates input, persists the RFQ, returns a crypto-random reference, and — wh
 ## Built-in agents & AI provider
 - Support/triage/maintenance/security agents run **deterministic rules engines by default** — no key, no outbound calls, fully functional.
 - With `ANTHROPIC_API_KEY` set, agents upgrade to LLM output. **PII never enters a prompt**: the support agent is grounded on the public catalog/FAQ only (with a code-level refusal guardrail for pricing/quantity/vendor questions and an output screen for `$` amounts); triage/security agents receive PII-free projections (refs, counts, ages, hashed keys).
-- The audit log (`.data/audit.jsonl`) is PII-free by construction, so it is safe to feed to monitoring or an LLM.
+- The audit log (`.data/audit.jsonl`) is PII-free by construction, so it is safe to feed to monitoring or an LLM. It rotates at 8 MB, keeping one previous generation (`audit.jsonl.1`), so disk stays bounded at roughly 16 MB — an append-only log that grows for the life of the site eventually fills the volume, and a full volume is what stops RFQs being written. Reads take only the tail of the file, so the cost of showing recent events does not grow with the length of the history.
 
 ## Decision record: CSP `unsafe-inline`
 The CSP keeps `'unsafe-inline'` for script/style. Removing it requires per-request
