@@ -183,3 +183,33 @@ test("pricing questions still refuse, and never emit a figure", async () => {
     assert.doesNotMatch(res.answer, /\$\s?\d/, `for: ${q}`);
   }
 });
+
+test("a cost question phrased the way a buyer asks it still gets the pricing policy", async () => {
+  // "what do you pay for it" is the same question as "what does it cost", and
+  // the guard runs before the SKU lookup — so naming a real part in the
+  // question must not turn a cost question into a part card that never
+  // answers it.
+  for (const q of [
+    "what do you pay for the chuck arbors",
+    "what do you pay for JME-VCS-BLD-001",
+    "what did that run you",
+    "what did you pay for these",
+  ]) {
+    const res = await answerSupportQuestion(q);
+    assert.match(res.answer, /Pricing isn't published/i, `for: ${q}`);
+    assert.doesNotMatch(res.answer, /\$\s?\d/, `for: ${q}`);
+  }
+});
+
+test("the broadened cost guard does not swallow ordinary questions", async () => {
+  // Over-refusing is its own failure: a customer asking whether a part is in
+  // stock should get the part, not the quoting policy.
+  for (const q of [
+    "Is JME-VCS-BLD-001 in stock?",
+    "does JME-VCS-BLD-001 fit a core splitter",
+    "How long is the lead time on a rollstand?",
+  ]) {
+    const res = await answerSupportQuestion(q);
+    assert.doesNotMatch(res.answer, /Pricing isn't published/i, `over-refused: ${q}`);
+  }
+});
