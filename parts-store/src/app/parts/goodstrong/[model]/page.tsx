@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ model: st
     title: `${model.label} Parts & Manual`,
     description: `Manual sections, exploded-view diagrams, and parts ordering for the Goodstrong ${model.label} sheeter.`,
     robots: pageRobots(),
+    alternates: { canonical: `/parts/goodstrong/${model.id}` },
   };
 }
 

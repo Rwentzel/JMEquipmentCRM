@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Compare Machines — JM Equipment",
   description: "Side-by-side comparison of JM Equipment converting machinery — specs, availability, and applications.",
   robots: pageRobots(),
+  alternates: { canonical: "/compare" },
 };
 
 export default function ComparePage() {

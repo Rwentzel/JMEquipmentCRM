@@ -41,7 +41,7 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
   ];
 
   return (
-    <div>
+    <main>
       <div className="cmp-top">
         <div className="cmp-top__in">
           <Link className="brand" href="/">
@@ -91,9 +91,9 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
               <th />
               {rows.map((r) => (
                 <th key={r.sku} scope="col">
-                  <h3>
+                  <h2>
                     <a href={`/machine/${r.sku}`} className="cmp-name-link">{r.name}</a>
-                  </h3>
+                  </h2>
                   <div className="cmp-sku">{r.sku}</div>
                   <div className="cmp-tag-wrap">
                     <Tag tone={r.tag}>{r.tagLabel}</Tag>
@@ -150,6 +150,6 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
       <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
         {message && <Toast tone="green">{message}</Toast>}
       </div>
-    </div>
+    </main>
   );
 }

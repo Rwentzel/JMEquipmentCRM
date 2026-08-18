@@ -470,7 +470,7 @@
   line-height: 1;
 }
 
-.md-step h4 {
+.md-step h3, .md-step h4 {
   text-transform: uppercase;
   letter-spacing: var(--track-heading);
   color: var(--paper);
@@ -491,14 +491,14 @@
   border-radius: var(--r-2);
 }
 
-.md-appcard h4 {
+.md-appcard h3, .md-appcard h4 {
   text-transform: uppercase;
   letter-spacing: var(--track-heading);
   color: var(--paper);
   margin-bottom: var(--s-2);
 }
 
-.md-rescard h4 {
+.md-rescard h3, .md-rescard h4 {
   text-transform: uppercase;
   letter-spacing: var(--track-heading);
   color: var(--paper);
@@ -527,6 +527,12 @@
 
 .cmp-bulk-action {
   margin-top: 16px;
+}
+
+/* Comparison column headings are h2 for document order (they sit under the
+   page h1); the size stays the h3 the design drew. */
+.cmp-table th h2 {
+  font-size: 1.17em;
 }
 
 .cmp-name-link {

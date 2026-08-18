@@ -304,7 +304,7 @@ function Capabilities() {
             <div className="ps-cap" key={t}>
               <span className="ps-cap__n jme-mono">{String(i + 1).padStart(2, "0")}</span>
               <div>
-                <h4>{t}</h4>
+                <h3>{t}</h3>
                 <p>{d}</p>
               </div>
             </div>
@@ -619,7 +619,7 @@ function Services() {
         <div className="ps-svcs">
           {svc.map(([t, d]) => (
             <div className="ps-svc" key={t}>
-              <h4>{t}</h4>
+              <h3>{t}</h3>
               <p>{d}</p>
             </div>
           ))}
@@ -924,13 +924,13 @@ function Footer() {
           </p>
         </div>
         <div>
-          <h4>Parts Desk</h4>
+          <h3>Parts Desk</h3>
           <a href={`tel:${D.contact.phone}`}>{D.contact.phone}</a>
           <a href={`mailto:${D.contact.email}`}>{D.contact.email}</a>
           <span className="ps-foot__hours">Mon–Fri 7:30 AM – 5:00 PM ET</span>
         </div>
         <div>
-          <h4>Equipment</h4>
+          <h3>Equipment</h3>
           {D.machines.map((m) => (
             <a key={m.sku} href={`/machine/${m.sku}`}>
               {m.name}
@@ -939,7 +939,7 @@ function Footer() {
           <Link href="/parts/goodstrong">Goodstrong parts &amp; manuals</Link>
         </div>
         <div>
-          <h4>Information</h4>
+          <h3>Information</h3>
           <Link href="/compare">Compare machines</Link>
           <a href="/freight">Freight &amp; shipping</a>
           <a href="/terms">Terms of sale</a>
@@ -1145,7 +1145,10 @@ export default function StorefrontPage() {
     <div>
       <a href="#machines" className="ps-skip">Skip to content</a>
       <Nav count={count} onJump={jump} />
-      <Hero onJump={jump} statsOn={tw.stats === "Show"} />
+      {/* Landmark for assistive tech: the skip link above jumps into it, and
+          screen readers can move straight past the nav to the content. */}
+      <main id="main">
+        <Hero onJump={jump} statsOn={tw.stats === "Show"} />
       <div className="jme-cutline" />
       <Machines onAdd={addItem} />
       <Industries />
@@ -1165,8 +1168,9 @@ export default function StorefrontPage() {
         onSend={sendRequest}
         onPrint={() => window.print()}
       />
-      <Trust />
-      <Faq />
+        <Trust />
+        <Faq />
+      </main>
       <Footer />
       <AssistantWidget />
       <ScrollToTop />

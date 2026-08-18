@@ -38,7 +38,7 @@ export function ExplodedViewer({
   }
 
   return (
-    <div className="gs-page">
+    <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
           <div className="ps-sechd">
@@ -121,6 +121,6 @@ export function ExplodedViewer({
       <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
         {message && <Toast tone="green">{message}</Toast>}
       </div>
-    </div>
+    </main>
   );
 }

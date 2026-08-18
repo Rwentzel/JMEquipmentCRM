@@ -338,3 +338,11 @@
 .gs-keypad__key:hover {
   border-color: var(--line-lt);
 }
+
+/* Manual section cards and the model picker sit directly under the page h1,
+   so their titles are h2 for correct document order. The size stays exactly
+   where the design drew it (the h3 default) — heading level is structure,
+   not appearance. */
+.gs-page .jme-card__body h2 {
+  font-size: 1.17em;
+}
