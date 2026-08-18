@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from . import audit, posting, snapshots
+from . import audit, cost_evidence, posting, snapshots
 from .db import utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -21,12 +21,27 @@ from .policies import CalculationPolicy
 from .verification import CalculationType, VerificationLevel
 
 
-def _reclassify_line(conn, txn_id, line_id, matrix: EvidenceMatrix) -> dict:
-    """Rebuild the normalized record for a transaction, reclassify, and UPDATE the
-    calculation-level verification rows. Returns the new per-calc levels."""
+def _reclassify_line(conn, txn_id, line_id, matrix: EvidenceMatrix,
+                     policy_key: str | None = None) -> dict:
+    """Reclassify ONE line and update only that line's calculation-level verification rows.
+
+    Multi-line aware: the normalized record comes from the LINE's own source row (not the
+    document header), and the UPDATE is scoped to ``transaction_line_id`` so resolving one
+    line never silently verifies its siblings.
+
+    Recorded cost evidence (``cost_evidence``) is consulted too, so an accepted alternative
+    to a vendor bill (purchase order, quote, approved historical cost, ...) upgrades the
+    line's cost classification per policy.
+    """
     src = conn.execute(
         """SELECT sr.normalized_json FROM source_records sr
-           JOIN transactions t ON t.source_record_id = sr.id WHERE t.id=?""", (txn_id,)).fetchone()
+           JOIN transaction_lines l ON l.source_record_id = sr.id WHERE l.id=?""",
+        (line_id,)).fetchone()
+    if src is None:                      # fall back to the document header lineage
+        src = conn.execute(
+            """SELECT sr.normalized_json FROM source_records sr
+               JOIN transactions t ON t.source_record_id = sr.id WHERE t.id=?""",
+            (txn_id,)).fetchone()
     norm = json.loads(src["normalized_json"]) if src and src["normalized_json"] else {}
     # reflect current cost presence from the DB (evidence may have just been added)
     pc = conn.execute(
@@ -36,14 +51,57 @@ def _reclassify_line(conn, txn_id, line_id, matrix: EvidenceMatrix) -> dict:
         norm["product_cost"] = str(Money.from_minor(pc).as_decimal())
     txn = conn.execute("SELECT transaction_type FROM transactions WHERE id=?", (txn_id,)).fetchone()
     rv = matrix.classify_record(norm, txn["transaction_type"])
+
     levels = {}
     for calc, cv in rv.by_calc.items():
+        level = cv.level.value
+        missing, note = cv.missing_fields, cv.note
+        if calc is CalculationType.COST and policy_key:
+            verdict = cost_evidence.evaluate_line(conn, line_id, policy_key)
+            rank = {"unverified": 0, "provisional": 1, "verified": 2}
+            if rank[verdict.level] > rank[level]:
+                level, missing, note = verdict.level, [], verdict.reason
         conn.execute(
             """UPDATE record_verifications SET level=?, missing_fields_json=?, note=?
-               WHERE transaction_id=? AND calculation_type=?""",
-            (cv.level.value, json.dumps(cv.missing_fields), cv.note, txn_id, calc.value))
-        levels[calc.value] = cv.level.value
+               WHERE transaction_id=? AND transaction_line_id=? AND calculation_type=?""",
+            (level, json.dumps(missing), note, txn_id, line_id, calc.value))
+        levels[calc.value] = level
     return levels
+
+
+def apply_cost_evidence(
+    conn: sqlite3.Connection, *, transaction_line_id: str, evidence_type: str,
+    policy, matrix: EvidenceMatrix, amount: str | None = None,
+    source_reference: str | None = None, evidence_date: str | None = None,
+    approved_by: str | None = None, expires_on: str | None = None,
+    actor: str | None = None,
+) -> dict:
+    """Record alternative cost evidence on a line, then recalculate and reclassify it.
+
+    This is the non-vendor-bill path: a purchase order, vendor quote, approved historical
+    cost, and so on. The line's cost classification is re-evaluated against the configured
+    acceptance policy, new snapshots supersede the prior ones, and the transition is audited.
+    """
+    line = conn.execute(
+        "SELECT * FROM transaction_lines WHERE id=?", (transaction_line_id,)).fetchone()
+    if line is None:
+        raise KeyError(f"unknown transaction line {transaction_line_id!r}")
+    txn = conn.execute(
+        "SELECT * FROM transactions WHERE id=?", (line["transaction_id"],)).fetchone()
+    with conn:
+        cost_evidence.record_evidence(
+            conn, evidence_type=evidence_type, transaction_line_id=transaction_line_id,
+            amount=amount, source_reference=source_reference, evidence_date=evidence_date,
+            transaction_id=txn["id"], approved_by=approved_by, expires_on=expires_on)
+        levels = _reclassify_line(conn, txn["id"], transaction_line_id, matrix, policy.key())
+        new_snaps = posting.persist_line_snapshots(conn, txn, line, policy, supersede=True)
+        audit.record_event(
+            conn, "cost_evidence_applied",
+            f"{evidence_type} recorded; cost now '{levels.get('cost')}'; {new_snaps} new snapshots",
+            entity_kind="transaction_line", entity_id=transaction_line_id, actor=actor,
+            detail={"evidence_type": evidence_type, "cost_level": levels.get("cost")})
+    return {"levels": levels, "new_snapshots": new_snaps,
+            "cost_level": levels.get("cost")}
 
 
 def supply_cost_evidence(
@@ -75,7 +133,7 @@ def supply_cost_evidence(
                  vendor_bill_number, utcnow_iso()))
 
         # 2. reclassify affected calculations (UPDATE; prior state retained in audit + snapshots)
-        levels = _reclassify_line(conn, txn_id, line_id, matrix)
+        levels = _reclassify_line(conn, txn_id, line_id, matrix, policy.key())
 
         # 3. recalculate + create NEW snapshots superseding prior ones (originals preserved)
         txn = conn.execute("SELECT * FROM transactions WHERE id=?", (txn_id,)).fetchone()

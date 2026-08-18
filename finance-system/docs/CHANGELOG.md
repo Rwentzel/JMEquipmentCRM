@@ -29,7 +29,15 @@ Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.
   `restore` refuses invalid backups, requires explicit confirmation, and takes an automatic
   safety backup of the current database first. New CLI: `verify-backup`, `restore-preview`,
   `restore`, `receivables`.
-- Migration `0004_documents_cash_evidence.sql`. Tests: 134 → 165.
+- **Per-line resolution isolation (bug fix).** `_reclassify_line` read the *document's*
+  source record and updated verification rows for the WHOLE transaction — on a multi-line
+  invoice, resolving one line silently verified its siblings. It now reads the line's own
+  source row and scopes the update to `transaction_line_id`.
+- **Evidence-driven reclassification.** `resolution.apply_cost_evidence` (CLI:
+  `evidence <line_id> --type purchase_order --amount ...`) records alternative evidence,
+  re-classifies that line's cost against the acceptance policy, supersedes its snapshots, and
+  records an audit event.
+- Migration `0004_documents_cash_evidence.sql`. Tests: 134 → 171.
 
 ## Hardening sweep — defect fixes (2026-07-24)
 Post-release code sweep; every item is a real defect found and fixed, with regression tests.

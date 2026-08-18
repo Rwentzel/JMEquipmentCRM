@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, export as export_mod, imports, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, export as export_mod, imports, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -161,6 +161,23 @@ def cmd_resolve(args, conn) -> int:
         return EXIT_ERROR
     conn.commit()
     print(f"[resolve] {json.dumps(res)}")
+    return EXIT_OK
+
+
+def cmd_evidence(args, conn) -> int:
+    """Record alternative cost evidence on a line and reclassify it."""
+    ce.install_default_policy(conn, DEFAULT_POLICY.key())
+    try:
+        res = resolution.apply_cost_evidence(
+            conn, transaction_line_id=args.line_id, evidence_type=args.type,
+            policy=DEFAULT_POLICY, matrix=EvidenceMatrix(), amount=args.amount,
+            source_reference=args.ref, expires_on=args.expires)
+    except (KeyError, ValueError) as e:
+        print(f"[evidence] {e}", file=sys.stderr)
+        print(f"[evidence] valid types: {', '.join(ce.ALL_TYPES)}", file=sys.stderr)
+        return EXIT_ERROR
+    conn.commit()
+    print(f"[evidence] cost is now '{res['cost_level']}'; {res['new_snapshots']} new snapshots")
     return EXIT_OK
 
 
@@ -323,6 +340,10 @@ def build_parser() -> argparse.ArgumentParser:
     prv = sub.add_parser("restore-preview"); prv.add_argument("path"); prv.set_defaults(func=cmd_restore_preview)
     prs = sub.add_parser("restore"); prs.add_argument("path")
     prs.add_argument("--confirm", action="store_true"); prs.set_defaults(func=cmd_restore)
+    pev = sub.add_parser("evidence"); pev.add_argument("line_id")
+    pev.add_argument("--type", required=True, choices=list(ce.ALL_TYPES))
+    pev.add_argument("--amount"); pev.add_argument("--ref"); pev.add_argument("--expires")
+    pev.set_defaults(func=cmd_evidence)
     prc2 = sub.add_parser("receivables"); prc2.add_argument("--period"); prc2.add_argument("--batch")
     prc2.add_argument("--all-time", action="store_true"); prc2.set_defaults(func=cmd_receivables)
     pbk = sub.add_parser("backup"); pbk.add_argument("--out"); pbk.set_defaults(func=cmd_backup)

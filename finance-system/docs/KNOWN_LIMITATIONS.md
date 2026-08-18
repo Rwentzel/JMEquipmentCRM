@@ -32,11 +32,10 @@ Concrete, honest limitations — not aspirational gaps.
    observations (no forecasts or predictive claims).
 7. **`freight_recovery` heuristic.** Freight recovery is customer freight billed minus
    freight-out cost. (Crating recovery now uses a real crating-revenue field — resolved.)
-8. **Verified-cost substantiation.** Cost evidence types are now configurable
-   (`cost_evidence.py`); the evidence *register* is wired to the intake-time classifier only
-   for product cost supplied through resolution — attaching an alternative evidence type does
-   not yet automatically re-run the line's cost classification (call the resolution service
-   after recording evidence).
+8. ~~Verified-cost substantiation.~~ **Resolved.** `resolution.apply_cost_evidence`
+   (CLI: `evidence <line_id> --type ...`) records an alternative evidence type, re-runs that
+   line's cost classification against the configured acceptance policy, supersedes its
+   snapshots, and audits the transition.
 9. **No role-based access.** The engine is a single-operator local application; the console
    binds to loopback only and there is no login. Multi-user access with roles (mirroring the
    storefront's OPS_TOKEN -> SSO path) is not implemented.
