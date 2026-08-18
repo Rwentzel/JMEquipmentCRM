@@ -30,7 +30,12 @@ export function ExplodedViewer({
   function confirmAdd(qty: number) {
     if (!picking) return;
     addWithQty(
-      { sku: picking.sku, name: picking.name, source: `${model.label} · ${section.label} · p.${page.pageLabel} · #${picking.bubble}` },
+      {
+        sku: picking.sku,
+        name: picking.name,
+        source: `${model.label} · ${section.label} · p.${page.pageLabel} · #${picking.bubble}`,
+        origin: { model: model.id, section: section.id, page: page.pageLabel, bubble: picking.bubble },
+      },
       qty,
     );
     show(`Added ${qty} × ${picking.sku} to your request`);

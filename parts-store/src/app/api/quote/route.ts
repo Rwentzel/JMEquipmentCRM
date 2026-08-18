@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
 import { details } from "@/data/details";
-import { goodstrongDiagramSkus } from "@/data/goodstrong";
+import { goodstrongDiagramSkus, goodstrongModels } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendRfqNotification } from "@/lib/mail";
@@ -29,6 +29,34 @@ interface IncomingItem {
   qty?: unknown;
   /** Configurator choice ids (DetailChoice.sku), resolved to labels server-side. */
   options?: unknown;
+  /** Manual-drawing location, resolved and verified server-side. */
+  origin?: unknown;
+}
+
+/**
+ * Turn a manual-drawing location into the line the desk reads, but only after
+ * confirming this part really is at that spot in our own diagram data.
+ *
+ * The desk confirms fit from the drawing and bubble number, and the same part
+ * number appears on more than one drawing, so losing this costs a phone call
+ * on every diagram order. Rebuilding the text here rather than trusting the
+ * browser's means a crafted value cannot reach the desk email or the CSV.
+ */
+function resolveOrigin(sku: string, raw: unknown): string | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as { model?: unknown; section?: unknown; page?: unknown; bubble?: unknown };
+  const modelId = String(o.model ?? "");
+  const sectionId = String(o.section ?? "");
+  const pageLabel = String(o.page ?? "");
+  const bubble = Number(o.bubble);
+
+  const model = goodstrongModels.find((m) => m.id === modelId);
+  const section = model?.sections.find((sec) => sec.id === sectionId);
+  const page = model?.diagrams[sectionId]?.find((pg) => pg.pageLabel === pageLabel);
+  if (!model || !section || !page) return null;
+  if (!page.parts.some((part) => part.sku === sku && part.bubble === bubble)) return null;
+
+  return `${model.label} · ${section.label} · p.${page.pageLabel} · #${bubble}`;
 }
 
 /**
@@ -120,10 +148,12 @@ export async function POST(req: Request) {
   const storedItems = items.map((it) => {
     const sku = String(it.sku);
     const config = resolveOptions(sku, it.options);
+    const source = resolveOrigin(sku, it.origin);
     return {
       sku,
       qty: Math.min(Math.max(Math.floor(Number(it.qty)), 1), 9999),
       ...(config.length > 0 ? { config } : {}),
+      ...(source ? { source } : {}),
     };
   });
 
