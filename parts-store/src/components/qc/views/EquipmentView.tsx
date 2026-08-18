@@ -11,6 +11,7 @@
 import type { QcApp } from "@/components/qc/useQcApp";
 import type { QcMachine } from "@/lib/qc/types";
 import { cfgMinBase, usd } from "@/lib/qc/logic";
+import { NumberInput } from "@/components/qc/NumberInput";
 
 function chipStyle(active: boolean): React.CSSProperties {
   return {
@@ -268,11 +269,10 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
               </div>
               <div className="jme-field">
                 <label className="jme-field__label">Base ($)</label>
-                <input
+                <NumberInput
                   className="jme-input"
-                  type="number"
                   value={m.base}
-                  onChange={(e) => app.setMachineField(m.id, "base", +e.target.value || 0)}
+                  onChange={(n) => app.setMachineField(m.id, "base", n)}
                   style={{ padding: "7px 9px" }}
                 />
               </div>
@@ -333,12 +333,11 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
                   onChange={(e) => app.setMachineAddon(m.id, i, "label", e.target.value)}
                   style={{ padding: "6px 8px" }}
                 />
-                <input
+                <NumberInput
                   className="jme-input"
-                  type="number"
                   placeholder="$"
                   value={a.amount}
-                  onChange={(e) => app.setMachineAddon(m.id, i, "amount", +e.target.value || 0)}
+                  onChange={(n) => app.setMachineAddon(m.id, i, "amount", n)}
                   style={{ padding: "6px 8px", textAlign: "right" }}
                 />
                 <button onClick={() => app.removeMachineAddon(m.id, i)} style={removeRowBtn}>×</button>

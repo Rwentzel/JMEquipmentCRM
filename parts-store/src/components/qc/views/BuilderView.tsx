@@ -24,6 +24,7 @@ import {
   usd,
 } from "@/lib/qc/logic";
 import { QuoteDoc } from "@/components/qc/QuoteDoc";
+import { NumberInput } from "@/components/qc/NumberInput";
 
 function cfgChipStyle(active: boolean): React.CSSProperties {
   return {
@@ -136,7 +137,6 @@ export function BuilderView({ app }: { app: QcApp }) {
   const totalStr = pb.total > 0 ? usd(pb.total) : "Consult";
   const activity = deriveActivity(bq).slice().reverse();
   const doc = buildDoc(bq, bqM, app.settings);
-  const num = (v: string) => +v || 0;
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "392px 1fr", height: "100vh" }} data-screen-label="Quote Builder">
@@ -194,7 +194,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Valid (days)</label>
-              <input className="jme-input" type="number" value={bq.validity} onChange={(e) => app.setBq("validity", num(e.target.value))} />
+              <NumberInput className="jme-input" value={bq.validity} onChange={(n) => app.setBq("validity", n)} />
             </div>
           </div>
 
@@ -376,11 +376,11 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Base Equipment ($)</label>
-              <input className="jme-input" type="number" value={bq.base} onChange={(e) => app.setBq("base", num(e.target.value))} />
+              <NumberInput className="jme-input" value={bq.base} onChange={(n) => app.setBq("base", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Crating ($)</label>
-              <input className="jme-input" type="number" value={bq.crating} onChange={(e) => app.setBq("crating", num(e.target.value))} />
+              <NumberInput className="jme-input" value={bq.crating} onChange={(n) => app.setBq("crating", n)} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
@@ -414,24 +414,22 @@ export function BuilderView({ app }: { app: QcApp }) {
             {bq.discMode === "pct" ? (
               <div className="jme-field">
                 <label className="jme-field__label">Discount (%)</label>
-                <input
+                <NumberInput
                   className="jme-input"
-                  type="number"
                   min={0}
                   max={100}
                   value={bq.discPct ?? 0}
-                  onChange={(e) => app.setBq("discPct", num(e.target.value))}
+                  onChange={(n) => app.setBq("discPct", n)}
                 />
               </div>
             ) : (
               <div className="jme-field">
                 <label className="jme-field__label">Discount ($)</label>
-                <input
+                <NumberInput
                   className="jme-input"
-                  type="number"
                   min={0}
                   value={bq.discAmt ?? 0}
-                  onChange={(e) => app.setBq("discAmt", num(e.target.value))}
+                  onChange={(n) => app.setBq("discAmt", n)}
                 />
               </div>
             )}
@@ -439,21 +437,21 @@ export function BuilderView({ app }: { app: QcApp }) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Freight Estimate ($)</label>
-              <input className="jme-input" type="number" min={0} value={bq.freight ?? 0} onChange={(e) => app.setBq("freight", num(e.target.value))} />
+              <NumberInput className="jme-input" min={0} value={bq.freight ?? 0} onChange={(n) => app.setBq("freight", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label">Import Tariff (%)</label>
-              <input className="jme-input" type="number" min={0} value={bq.tariffPct ?? 0} onChange={(e) => app.setBq("tariffPct", num(e.target.value))} />
+              <NumberInput className="jme-input" min={0} value={bq.tariffPct ?? 0} onChange={(n) => app.setBq("tariffPct", n)} />
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             <div className="jme-field">
               <label className="jme-field__label">Sales Tax (%)</label>
-              <input className="jme-input" type="number" min={0} value={bq.taxPct ?? 0} onChange={(e) => app.setBq("taxPct", num(e.target.value))} />
+              <NumberInput className="jme-input" min={0} value={bq.taxPct ?? 0} onChange={(n) => app.setBq("taxPct", n)} />
             </div>
             <div className="jme-field">
               <label className="jme-field__label" style={{ color: "var(--jme-gold)" }}>Your Cost ($) · internal</label>
-              <input className="jme-input" type="number" min={0} value={bq.cost ?? 0} onChange={(e) => app.setBq("cost", num(e.target.value))} />
+              <NumberInput className="jme-input" min={0} value={bq.cost ?? 0} onChange={(n) => app.setBq("cost", n)} />
             </div>
           </div>
 
@@ -470,12 +468,11 @@ export function BuilderView({ app }: { app: QcApp }) {
                 onChange={(e) => app.setAddon(i, "label", e.target.value)}
                 style={{ padding: "7px 9px" }}
               />
-              <input
+              <NumberInput
                 className="jme-input"
-                type="number"
                 placeholder="$"
                 value={a.amount}
-                onChange={(e) => app.setAddon(i, "amount", num(e.target.value))}
+                onChange={(n) => app.setAddon(i, "amount", n)}
                 style={{ padding: "7px 9px", textAlign: "right" }}
               />
               <button onClick={() => app.removeAddon(i)} style={removeBtn}>×</button>
@@ -496,12 +493,11 @@ export function BuilderView({ app }: { app: QcApp }) {
                   {p.rfq ? "RFQ" : usd(p.price) + " ea"}
                 </div>
               </div>
-              <input
+              <NumberInput
                 className="jme-input"
-                type="number"
                 min={1}
                 value={p.qty}
-                onChange={(e) => app.setPartQty(i, Math.max(1, +e.target.value || 1))}
+                onChange={(n) => app.setPartQty(i, n)}
                 style={{ padding: "7px 9px", textAlign: "right" }}
               />
               <button onClick={() => app.removePart(i)} style={removeBtn}>×</button>
@@ -530,11 +526,11 @@ export function BuilderView({ app }: { app: QcApp }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div className="jme-field">
                   <label className="jme-field__label">Cores / day</label>
-                  <input className="jme-input" type="number" value={bq.roiCores} onChange={(e) => app.setBq("roiCores", num(e.target.value))} />
+                  <NumberInput className="jme-input" value={bq.roiCores} onChange={(n) => app.setBq("roiCores", n)} />
                 </div>
                 <div className="jme-field">
                   <label className="jme-field__label">Days / year</label>
-                  <input className="jme-input" type="number" value={bq.roiDays} onChange={(e) => app.setBq("roiDays", num(e.target.value))} />
+                  <NumberInput className="jme-input" value={bq.roiDays} onChange={(n) => app.setBq("roiDays", n)} />
                 </div>
               </div>
             </>
