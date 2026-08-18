@@ -88,8 +88,16 @@ export function validateStoreFile(name: string, buf: Buffer): void {
   }
 }
 
-/** Read every file in `dir`, validating known formats. */
-export async function collectEntries(dir: string): Promise<ArchiveEntry[]> {
+/**
+ * Read every file in `dir`, validating known formats.
+ *
+ * `validate: false` takes the bytes as they are. That is wrong for a scheduled
+ * backup — archiving a corrupt store buries the good copy — but it is the only
+ * correct behaviour for the snapshot restore takes of the data it is about to
+ * overwrite. That data is being replaced *because* it is broken, and a broken
+ * store is the one you most want a copy of before it disappears.
+ */
+export async function collectEntries(dir: string, opts: { validate?: boolean } = {}): Promise<ArchiveEntry[]> {
   let names: string[];
   try {
     names = (await readdir(dir, { withFileTypes: true })).filter((e) => e.isFile()).map((e) => e.name);
@@ -102,7 +110,7 @@ export async function collectEntries(dir: string): Promise<ArchiveEntry[]> {
   const entries: ArchiveEntry[] = [];
   for (const name of names.sort()) {
     const buf = await readFile(path.join(dir, name));
-    validateStoreFile(name, buf);
+    if (opts.validate !== false) validateStoreFile(name, buf);
     entries.push({ name, bytes: buf.toString("base64"), sha256: sha256(buf), size: buf.byteLength });
   }
   return entries;
@@ -128,7 +136,7 @@ export function serializeArchive(archive: Archive): Buffer {
  * Decompress, re-parse, re-hash, and re-validate. Throws on any inconsistency,
  * so callers can verify before touching live data.
  */
-export function parseArchive(raw: Buffer, label = "archive"): Archive {
+export function parseArchive(raw: Buffer, label = "archive", opts: { validate?: boolean } = {}): Archive {
   let archive: Archive;
   try {
     archive = JSON.parse(gunzipSync(raw).toString("utf8")) as Archive;
@@ -142,7 +150,10 @@ export function parseArchive(raw: Buffer, label = "archive"): Archive {
   for (const entry of archive.entries) {
     const buf = Buffer.from(entry.bytes, "base64");
     if (sha256(buf) !== entry.sha256) throw new Error(`${label}: checksum mismatch for ${entry.name}`);
-    validateStoreFile(entry.name, buf);
+    // Checksums are the integrity check and always run. Parse-checking the
+    // contents is a separate question, and the answer is no for an archive we
+    // deliberately took of corrupt data — see collectEntries.
+    if (opts.validate !== false) validateStoreFile(entry.name, buf);
   }
   return archive;
 }
@@ -152,15 +163,20 @@ export function archiveFileName(now = new Date()): string {
 }
 
 /** Write an archive of `source` into `outDir`, verifying it before it counts. */
-export async function writeBackup(source: string, outDir: string, now = new Date()): Promise<{ file: string; entries: ArchiveEntry[] }> {
-  const entries = await collectEntries(source);
+export async function writeBackup(
+  source: string,
+  outDir: string,
+  now = new Date(),
+  opts: { validate?: boolean } = {},
+): Promise<{ file: string; entries: ArchiveEntry[] }> {
+  const entries = await collectEntries(source, opts);
   const raw = serializeArchive(buildArchive(entries, source, now));
   await mkdir(outDir, { recursive: true });
   const file = path.join(outDir, archiveFileName(now));
   const tmp = `${file}.${randomBytes(6).toString("hex")}.tmp`;
   await writeFile(tmp, raw);
   // Read back from disk: catches truncation and bad writes, not just bad input.
-  parseArchive(await readFile(tmp), file);
+  parseArchive(await readFile(tmp), file, opts);
   await rename(tmp, file);
   return { file, entries };
 }
