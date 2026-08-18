@@ -29,7 +29,7 @@ is lost; you just don't get the email ping.
 
 ## 2. Deploy
 
-- `npm ci && npm run build && npm start` (Node 20+), behind your host's TLS.
+- `npm ci && npm run build && npm start` (Node 22 LTS — Node 20 is past end-of-life and no longer receives security patches), behind your host's TLS.
 - Give `RFQ_DATA_DIR` a persistent disk (RFQs and the audit log live there).
   Single instance only — the store and rate limiter are per-process by design.
   Scale-out later means a database + shared rate limiting (see SECURITY_NOTES).

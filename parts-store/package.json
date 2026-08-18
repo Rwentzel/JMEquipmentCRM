@@ -1,6 +1,9 @@
 {
   "name": "jme-parts-store",
   "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "private": true,
   "description": "JM Equipment Parts Store \u2014 production-candidate sandbox (industrial B2B parts storefront)",
   "scripts": {
