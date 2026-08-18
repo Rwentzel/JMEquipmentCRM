@@ -83,8 +83,18 @@ function LossModal({ app }: { app: QcApp }) {
   );
 }
 
-export function QuoteCenterApp({ initialView, initialState, parts }: { initialView: QcView; initialState: QcState; parts: QcPart[] }) {
-  const app = useQcApp(initialView, initialState, parts);
+export function QuoteCenterApp({
+  initialView,
+  initialState,
+  parts,
+  initialQuoteId = null,
+}: {
+  initialView: QcView;
+  initialState: QcState;
+  parts: QcPart[];
+  initialQuoteId?: string | null;
+}) {
+  const app = useQcApp(initialView, initialState, parts, initialQuoteId);
   return (
     <>
       <style>{SHELL_CSS}</style>

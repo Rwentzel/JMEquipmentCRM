@@ -42,7 +42,10 @@ is lost; you just don't get the email ping.
 3. Log into `/ops` with `OPS_TOKEN` → the RFQ is in the inbox; move it to `reviewing`; **Export CSV** downloads the book.
 4. Run all three agent panels — maintenance must report **all checks passing**.
 5. Ask the storefront assistant a pricing question → it must refuse with the written-quote policy.
-6. Quote Center (`/quotes`, same `OPS_TOKEN`): build a quote → **Save** → **Copy Link**.
+6. In `/ops`, hit **Create quote →** on the request from step 1: it opens the
+   Quote Center builder pre-filled with that customer and their line items,
+   and the RFQ moves to `quoted`.
+7. Quote Center (`/quotes`, same `OPS_TOKEN`): build a quote → **Save** → **Copy Link**.
    Open that link in a private window: the quote renders, **Download PDF** prints
    clean, and trimming the token from the URL must give a 404. Sign it → the
    `[ACCEPTED]` email lands at `RFQ_NOTIFY_TO` and the pipeline shows *Accepted*.

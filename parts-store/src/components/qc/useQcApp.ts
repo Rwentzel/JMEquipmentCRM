@@ -131,7 +131,12 @@ export interface QcApp {
   resetData(): void;
 }
 
-export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPart[]): QcApp {
+export function useQcApp(
+  initialView: QcView,
+  initialState: QcState,
+  parts: QcPart[],
+  initialQuoteId: string | null = null,
+): QcApp {
   const [quotes, setQuotes] = useState<QcQuote[]>(initialState.quotes);
   const [clients, setClients] = useState<QcClient[]>(initialState.clients);
   const [settings, setSettings] = useState<QcSettings>(initialState.settings);
@@ -916,6 +921,17 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       })
       .catch(() => showToast("Could not reset"));
   }, [showToast, quotes, clients.length]);
+
+  /**
+   * Deep link (?q=<id>) — open that quote in the builder once on mount. The
+   * ops desk uses it to hand over the draft it just built from an RFQ.
+   */
+  const openedDeepLink = useRef(false);
+  useEffect(() => {
+    if (openedDeepLink.current || !initialQuoteId) return;
+    openedDeepLink.current = true;
+    editQuote(initialQuoteId);
+  }, [initialQuoteId, editQuote]);
 
   /**
    * Pull the server's copy back in when the tab regains focus. The store is

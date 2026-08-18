@@ -385,3 +385,24 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+/* "Create quote →" — hands an RFQ to the Quote Center as a draft. Sits under
+   the status select in the same cell, so the row reads status-then-action. */
+.ops__quotebtn {
+  display: block;
+  margin-top: 6px;
+  width: 100%;
+  background: var(--jme-red);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-1);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ops__quotebtn:hover:not(:disabled) { background: var(--jme-red-deep); }
+.ops__quotebtn:disabled { opacity: 0.5; cursor: default; }
