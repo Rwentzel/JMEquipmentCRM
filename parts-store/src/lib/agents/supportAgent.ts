@@ -58,6 +58,21 @@ const GUARDED: Array<{ re: RegExp; refusal: string }> = [
     refusal: STOCK_REFUSAL,
   },
   {
+    // Real phrasing puts the thing between the count and the verb — "how many
+    // splitter blades do you have in stock" — so the pattern above, which
+    // needs do/are/have immediately after "how many", let it through and the
+    // customer got a part card in place of an answer. The counting word has to
+    // pair with a stock word: "how many teeth does the blade have" is a spec
+    // question and must still be answered, and "is X in stock" stays an
+    // availability question the band answers.
+    re: /\bhow many\b[^?]*\b(in stock|on hand|on the shelf|stock|inventory|available|ship)\b/i,
+    refusal: STOCK_REFUSAL,
+  },
+  {
+    re: /\b(stock|inventory) levels?\b/i,
+    refusal: STOCK_REFUSAL,
+  },
+  {
     // "what do you pay for it" and "what did that run you" are the same question
     // as "what does it cost", asked the way a buyer on the phone asks it. Without
     // them the part card answers, which never addresses what was asked.
