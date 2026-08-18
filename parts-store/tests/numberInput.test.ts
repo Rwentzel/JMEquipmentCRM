@@ -6,7 +6,7 @@ import { acceptNumericDraft } from "../src/components/NumberInput";
  * Types a string one character at a time the way the quote builder is used,
  * returning the text left in the field and the number the quote would store.
  */
-function typeInto(chars: string, opts: { allowNegative?: boolean } = {}) {
+function typeInto(chars: string, opts: { allowNegative?: boolean; integer?: boolean } = {}) {
   let draft = "";
   let value = 0;
   for (const ch of chars) {
