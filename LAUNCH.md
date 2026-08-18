@@ -108,6 +108,14 @@ the variable alone does nothing until the next build. Confirm
   closed RFQs older than the window are archived). `npm audit` runs in CI on
   every push — zero known vulnerabilities in shipped code; the dev-tooling
   audit is advisory (see SECURITY_NOTES.md) so check its output when it flags.
+- **After any design or CSS change**: run the accessibility audit against a
+  built copy — `npm run build && npm start &`, then
+  `npm i --no-save playwright-core axe-core` and
+  `OPS_TOKEN=<your token> node scripts/a11y-audit.mjs http://localhost:3000`.
+  It covers the storefront **and**, when `OPS_TOKEN` is set, `/ops` and all
+  eight Quote Center screens; without the token it says how many staff routes
+  it skipped rather than reporting a clean run over half the app. Non-zero exit
+  = something on screen is unreadable or unlabelled.
 - **Quarterly**: actually restore a backup into a scratch directory and look at
   it — `RFQ_DATA_DIR=/tmp/drill npm run restore -- --latest --apply`. An
   untested backup is a guess; this is the only step that turns it into a fact.
