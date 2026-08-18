@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { OPS_COOKIE, verifySession } from "@/lib/opsAuth";
-import { patchQcState, readQcState, resetQcState } from "@/lib/qc/store";
+import { patchQcState, readQcState, resetQcState, type QcPatch } from "@/lib/qc/store";
 import type { QcState } from "@/lib/qc/types";
 
 /**
@@ -25,7 +25,13 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   if (!(await authed())) return NextResponse.json({ ok: false }, { status: 403 });
-  let body: Partial<QcState> & { reset?: boolean };
+  let body: Partial<QcState> & {
+    reset?: boolean;
+    deleteQuoteIds?: string[];
+    deleteClientIds?: string[];
+    knownQuoteIds?: string[];
+    knownClientIds?: string[];
+  };
   try {
     body = await req.json();
   } catch {
@@ -35,7 +41,15 @@ export async function PUT(req: Request) {
     const state = await resetQcState();
     return NextResponse.json({ ok: true, state });
   }
-  const patch: Partial<QcState> = {};
+  const patch: QcPatch = {};
+  // Deletions are stated, never inferred from an omitted record; the known
+  // ids are what let the server tell a deletion from a record this client
+  // simply never loaded. Both must survive the trip or the protection is
+  // silently inert — which is exactly how it first shipped.
+  if (Array.isArray(body.deleteQuoteIds)) patch.deleteQuoteIds = body.deleteQuoteIds.map(String);
+  if (Array.isArray(body.deleteClientIds)) patch.deleteClientIds = body.deleteClientIds.map(String);
+  if (Array.isArray(body.knownQuoteIds)) patch.knownQuoteIds = body.knownQuoteIds.map(String);
+  if (Array.isArray(body.knownClientIds)) patch.knownClientIds = body.knownClientIds.map(String);
   if (Array.isArray(body.quotes)) patch.quotes = body.quotes;
   if (Array.isArray(body.clients)) patch.clients = body.clients;
   if (Array.isArray(body.catalog)) patch.catalog = body.catalog;

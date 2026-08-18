@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -162,4 +163,101 @@ test("an explicit quote config still overrides the machine defaults", () => {
   const doc = buildDoc(q, machineOf(q), settings)!;
   assert.equal(doc.sku, "JME-VCS14-45");
   assert.equal(doc.machineSubtitle, '14" Head · 45" Frame');
+});
+
+/* ---- concurrent saves: two staff tabs must not destroy each other's work ---- */
+
+test("a quote created in another tab survives this tab's save", async () => {
+  // The reproduction: both tabs load the same state, each adds its own quote
+  // and saves the whole array. Before tombstones, whoever saved last silently
+  // erased the other's quote, with no error to either person.
+  const base = await readQcState();
+  const tabA = [...base.quotes, { ...base.quotes[0]!, id: "concurrent-a", number: "Q-A" }];
+  const tabB = [...base.quotes, { ...base.quotes[0]!, id: "concurrent-b", number: "Q-B" }];
+
+  // Each tab reports the ids it loaded, exactly as the real client does.
+  const known = base.quotes.map((q) => q.id);
+  await patchQcState({ quotes: tabA, knownQuoteIds: known });
+  await patchQcState({ quotes: tabB, knownQuoteIds: known });
+
+  const after = await readQcState();
+  const ids = new Set(after.quotes.map((q) => q.id));
+  assert.ok(ids.has("concurrent-a"), "the first tab's quote must not be erased by the second tab's save");
+  assert.ok(ids.has("concurrent-b"), "the second tab's own quote is saved");
+});
+
+test("an explicit delete still deletes", async () => {
+  const base = await readQcState();
+  const victim = { ...base.quotes[0]!, id: "to-delete", number: "Q-DEL" };
+  await patchQcState({ quotes: [...base.quotes, victim] });
+  assert.ok((await readQcState()).quotes.some((q) => q.id === "to-delete"));
+
+  const withoutIt = (await readQcState()).quotes.filter((q) => q.id !== "to-delete");
+  await patchQcState({ quotes: withoutIt, deleteQuoteIds: ["to-delete"] });
+  assert.ok(!(await readQcState()).quotes.some((q) => q.id === "to-delete"), "stated deletions are honoured");
+});
+
+test("a stale tab cannot resurrect a deleted quote", async () => {
+  const base = await readQcState();
+  const doomed = { ...base.quotes[0]!, id: "ghost", number: "Q-GHOST" };
+  const staleView = [...base.quotes, doomed];
+  await patchQcState({ quotes: staleView, knownQuoteIds: base.quotes.map((q) => q.id) });
+
+  const beforeDelete = (await readQcState()).quotes.map((q) => q.id);
+  await patchQcState({ quotes: base.quotes, deleteQuoteIds: ["ghost"], knownQuoteIds: beforeDelete });
+  // The other tab still holds the deleted quote and saves its whole array.
+  await patchQcState({ quotes: staleView, knownQuoteIds: beforeDelete });
+
+  assert.ok(!(await readQcState()).quotes.some((q) => q.id === "ghost"), "a tombstone outlives a stale tab");
+});
+
+test("clients get the same protection as quotes", async () => {
+  const base = await readQcState();
+  const tabA = [...base.clients, { ...base.clients[0]!, id: "client-a", company: "A Co" }];
+  const tabB = [...base.clients, { ...base.clients[0]!, id: "client-b", company: "B Co" }];
+  const knownClients = base.clients.map((c) => c.id);
+  await patchQcState({ clients: tabA, knownClientIds: knownClients });
+  await patchQcState({ clients: tabB, knownClientIds: knownClients });
+
+  const ids = new Set((await readQcState()).clients.map((c) => c.id));
+  assert.ok(ids.has("client-a") && ids.has("client-b"), "neither client book entry is lost");
+
+  const remaining = (await readQcState()).clients.filter((c) => c.id !== "client-a");
+  await patchQcState({
+    clients: remaining,
+    deleteClientIds: ["client-a"],
+    knownClientIds: (await readQcState()).clients.map((c) => c.id),
+  });
+  assert.ok(!(await readQcState()).clients.some((c) => c.id === "client-a"), "explicit client deletion works");
+});
+
+test("rev-based content conflict handling is unchanged", async () => {
+  const base = await readQcState();
+  const target = base.quotes[0]!;
+  // Server advances the quote (a customer signs), then a stale tab saves over it.
+  await patchQcState({ quotes: base.quotes.map((q) => (q.id === target.id ? { ...q, notes: "server-newer" } : q)) });
+  const stale = { ...target, notes: "stale-tab", rev: (target.rev ?? 0) - 1 };
+  const res = await patchQcState({ quotes: base.quotes.map((q) => (q.id === target.id ? stale : q)) });
+
+  assert.ok(res.conflicts.includes(target.id), "the stale write is reported as a conflict");
+  const kept = (await readQcState()).quotes.find((q) => q.id === target.id);
+  assert.equal(kept?.notes, "server-newer", "the newer stored copy wins");
+});
+
+test("the PUT body contract carries every field the merge depends on", async () => {
+  // The protection above is inert unless the route actually forwards these.
+  // It shipped once with deleteQuoteIds parsed and knownQuoteIds dropped, so
+  // the unit tests passed while the running server still lost data. This
+  // pins the contract to the handler source rather than to a live request.
+  const route = await readFile(
+    path.join(import.meta.dirname, "..", "src", "app", "api", "qc", "state", "route.ts"),
+    "utf8",
+  );
+  for (const field of ["deleteQuoteIds", "deleteClientIds", "knownQuoteIds", "knownClientIds"]) {
+    assert.match(
+      route,
+      new RegExp(`body\\.${field}`),
+      `PUT /api/qc/state must forward ${field}; dropping it silently disables concurrent-save protection`,
+    );
+  }
 });

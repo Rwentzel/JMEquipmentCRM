@@ -177,11 +177,27 @@ export interface QcPart {
 }
 
 /** The persisted store segments — mirrors prototype localStorage['jme_qc']. */
+/**
+ * A record deliberately deleted, kept so a concurrent save cannot resurrect it
+ * and so an absent record can be told apart from a deleted one.
+ */
+export interface QcTombstone {
+  id: string;
+  /** ISO timestamp; tombstones are pruned once they are older than the window. */
+  at: string;
+}
+
 export interface QcState {
   quotes: QcQuote[];
   clients: QcClient[];
   settings: QcSettings;
   catalog: QcMachine[];
+  /**
+   * Deletions are explicit. Without this, a save can only express "delete" by
+   * omitting a record — which is indistinguishable from "created in another
+   * tab after I loaded", so a concurrent save silently destroyed it.
+   */
+  tombstones?: { quotes: QcTombstone[]; clients: QcTombstone[] };
 }
 
 export interface QcPriceBreak {

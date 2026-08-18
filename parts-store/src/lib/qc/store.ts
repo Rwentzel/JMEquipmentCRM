@@ -25,7 +25,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { audit } from "@/lib/auditLog";
 import { SEED_CATALOG, qcDefaults, seedClients, seedQuotes } from "./data";
-import type { QcQuote, QcState } from "./types";
+import type { QcClient, QcQuote, QcState, QcTombstone } from "./types";
 
 function dataDir(): string {
   return process.env.RFQ_DATA_DIR || path.join(process.cwd(), ".data");
@@ -133,6 +133,12 @@ async function loadFromDisk(): Promise<{ state: QcState; needsWrite: boolean }> 
     clients: Array.isArray(parsed.clients) ? parsed.clients : seed.clients,
     settings: Object.assign(seed.settings, parsed.settings || {}),
     catalog: Array.isArray(parsed.catalog) ? parsed.catalog : seed.catalog,
+    // Tombstones must survive a reload or a deletion is forgotten the moment
+    // the process restarts, and a stale tab can put the record back.
+    tombstones: {
+      quotes: Array.isArray(parsed.tombstones?.quotes) ? parsed.tombstones.quotes : [],
+      clients: Array.isArray(parsed.tombstones?.clients) ? parsed.tombstones.clients : [],
+    },
   };
   return { state, needsWrite: ensureTokens(state) };
 }
@@ -182,54 +188,167 @@ export interface QcPatchResult {
   conflicts: string[];
 }
 
+/** How long a deletion is remembered. Long enough to outlive any open tab. */
+const TOMBSTONE_DAYS = 90;
+
+function pruneTombstones(list: QcTombstone[], now: number): QcTombstone[] {
+  const cutoff = now - TOMBSTONE_DAYS * 86_400_000;
+  return list.filter((t) => {
+    const at = Date.parse(t.at);
+    return Number.isFinite(at) ? at >= cutoff : true;
+  });
+}
+
+function tombstonesOf(state: QcState): { quotes: QcTombstone[]; clients: QcTombstone[] } {
+  return { quotes: state.tombstones?.quotes ?? [], clients: state.tombstones?.clients ?? [] };
+}
+
+/** Union existing tombstones with ids deleted by this request. */
+function addTombstones(existing: QcTombstone[], ids: string[] | undefined, nowIso: string): QcTombstone[] {
+  if (!ids?.length) return existing;
+  const known = new Set(existing.map((t) => t.id));
+  return [...existing, ...ids.filter((id) => !known.has(id)).map((id) => ({ id, at: nowIso }))];
+}
+
 /**
  * Merge an incoming quotes array over the stored one.
  *
- * Membership follows the client (so deleting a quote works), but per-quote
- * CONTENT follows whichever side is newer by rev. A stale client copy is
- * refused and the stored copy is kept, so a staff tab that loaded before a
+ * Per-quote CONTENT follows whichever side is newer by rev, so a stale client
+ * copy is refused and the stored copy kept — a staff tab that loaded before a
  * customer signed cannot roll that signature back.
  *
- * Known limit: a quote created in another tab after this client loaded is
- * indistinguishable from one this client deleted, so it is treated as a
- * delete. Single-operator use makes that rare; the acceptance path — the
- * one that actually lost data — is fully covered because acceptances only
- * ever modify existing quotes.
+ * MEMBERSHIP is where data used to be lost. Absence alone cannot mean "delete",
+ * because it is indistinguishable from "created in another tab after I loaded"
+ * — so a second tab saving its own view silently destroyed the first tab's new
+ * quote. Absence is now read against what the client says it knew:
+ *
+ *   - absent AND the client knew it   -> the client deleted it
+ *   - absent AND the client never saw it -> created elsewhere; keep it
+ *
+ * `known` omitted keeps the original behaviour (absence deletes), so callers
+ * that legitimately clear a segment — resets, bulk deletes, the existing
+ * tests — are unaffected.
  */
-function mergeQuotes(incoming: QcQuote[], current: QcQuote[]): { quotes: QcQuote[]; conflicts: string[] } {
+function mergeQuotes(
+  incoming: QcQuote[],
+  current: QcQuote[],
+  deleted: ReadonlySet<string>,
+  known?: ReadonlySet<string>,
+): { quotes: QcQuote[]; conflicts: string[]; kept: string[] } {
   const currentById = new Map(current.map((q) => [q.id, q]));
   const conflicts: string[] = [];
-  const quotes = incoming.map((inc) => {
-    const cur = currentById.get(inc.id);
-    if (!cur) return { ...inc, rev: inc.rev ?? 1 };
-    const curRev = cur.rev ?? 0;
-    const incRev = inc.rev ?? 0;
-    if (curRev > incRev) {
-      conflicts.push(inc.id);
-      return cur;
+  const quotes = incoming
+    .filter((inc) => !deleted.has(inc.id))
+    .map((inc) => {
+      const cur = currentById.get(inc.id);
+      if (!cur) return { ...inc, rev: inc.rev ?? 1 };
+      const curRev = cur.rev ?? 0;
+      const incRev = inc.rev ?? 0;
+      if (curRev > incRev) {
+        conflicts.push(inc.id);
+        return cur;
+      }
+      return { ...inc, rev: curRev + 1 };
+    });
+
+  const sent = new Set(incoming.map((q) => q.id));
+  const kept: string[] = [];
+  if (known) {
+    for (const cur of current) {
+      if (sent.has(cur.id) || deleted.has(cur.id) || known.has(cur.id)) continue;
+      quotes.push(cur);
+      kept.push(cur.id);
     }
-    return { ...inc, rev: curRev + 1 };
-  });
-  return { quotes, conflicts };
+  }
+  return { quotes, conflicts, kept };
 }
 
-/** Replace whole segments (mirrors the prototype's commit()); quotes merge by rev. */
-export function patchQcState(patch: Partial<QcState>): Promise<QcPatchResult> {
+/** Same membership rule for the client book. */
+function mergeClients(
+  incoming: QcClient[],
+  current: QcClient[],
+  deleted: ReadonlySet<string>,
+  known?: ReadonlySet<string>,
+): { clients: QcClient[]; kept: string[] } {
+  const sent = new Set(incoming.map((c) => c.id));
+  const clients = incoming.filter((c) => !deleted.has(c.id));
+  const kept: string[] = [];
+  if (known) {
+    for (const cur of current) {
+      if (sent.has(cur.id) || deleted.has(cur.id) || known.has(cur.id)) continue;
+      clients.push(cur);
+      kept.push(cur.id);
+    }
+  }
+  return { clients, kept };
+}
+
+/** A patch may also state, explicitly, what it deleted. */
+export interface QcPatch extends Partial<QcState> {
+  deleteQuoteIds?: string[];
+  deleteClientIds?: string[];
+  /**
+   * The ids this client was working from. Supplying them lets the server tell
+   * "the client deleted this" from "the client never saw this", which is what
+   * makes a concurrent save safe. Omit them and absence deletes, as before.
+   */
+  knownQuoteIds?: string[];
+  knownClientIds?: string[];
+}
+
+/**
+ * Replace whole segments; quotes merge by rev, and membership is governed by
+ * explicit deletions rather than by omission (see mergeQuotes).
+ */
+export function patchQcState(patch: QcPatch): Promise<QcPatchResult> {
   return locked(async () => {
     const { state: cur } = await loadFromDisk();
-    let quotes = cur.quotes;
+    const nowMs = Date.now();
+    const nowIso = new Date(nowMs).toISOString();
+
+    const prior = tombstonesOf(cur);
+    const tombstones = {
+      quotes: pruneTombstones(addTombstones(prior.quotes, patch.deleteQuoteIds, nowIso), nowMs),
+      clients: pruneTombstones(addTombstones(prior.clients, patch.deleteClientIds, nowIso), nowMs),
+    };
+    const deletedQuotes = new Set(tombstones.quotes.map((t) => t.id));
+    const deletedClients = new Set(tombstones.clients.map((t) => t.id));
+
+    let quotes = cur.quotes.filter((q) => !deletedQuotes.has(q.id));
     let conflicts: string[] = [];
     if (patch.quotes) {
-      const merged = mergeQuotes(patch.quotes, cur.quotes);
+      const merged = mergeQuotes(
+        patch.quotes,
+        cur.quotes,
+        deletedQuotes,
+        patch.knownQuoteIds ? new Set(patch.knownQuoteIds) : undefined,
+      );
       quotes = merged.quotes;
       conflicts = merged.conflicts;
       if (conflicts.length) audit("qc_write_conflict", { n: conflicts.length });
+      // A record this client never saw, surviving its save, is the case that
+      // used to be silent data loss. Worth seeing in the audit trail.
+      if (merged.kept.length) audit("qc_concurrent_keep", { n: merged.kept.length });
     }
+
+    let clients = cur.clients.filter((c) => !deletedClients.has(c.id));
+    if (patch.clients) {
+      const merged = mergeClients(
+        patch.clients,
+        cur.clients,
+        deletedClients,
+        patch.knownClientIds ? new Set(patch.knownClientIds) : undefined,
+      );
+      clients = merged.clients;
+      if (merged.kept.length) audit("qc_concurrent_keep", { n: merged.kept.length });
+    }
+
     const next: QcState = {
       quotes,
-      clients: patch.clients ?? cur.clients,
+      clients,
       settings: patch.settings ?? cur.settings,
       catalog: patch.catalog ?? cur.catalog,
+      tombstones,
     };
     await writeAll(next);
     return { state: next, conflicts };

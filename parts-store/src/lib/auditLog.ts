@@ -28,6 +28,7 @@ export type AuditKind =
   | "qc_change"
   | "qc_accept"
   | "qc_write_conflict"
+  | "qc_concurrent_keep"
   | "qc_store_corrupt"
   | "rfq_store_corrupt"
   | "mail_sent"
