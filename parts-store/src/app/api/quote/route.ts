@@ -4,7 +4,8 @@ import { goodstrongDiagramSkus } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
 import { rateLimit } from "@/lib/rateLimit";
 import { sendRfqNotification } from "@/lib/mail";
-import { saveRfq } from "@/lib/rfqStore";
+import { saveRfq, type StoredRfq, type StoredRfqContact } from "@/lib/rfqStore";
+import { randomUUID } from "node:crypto";
 import { evaluateQuote } from "@/lib/validateQuote";
 
 /**
@@ -39,6 +40,10 @@ const freightSkus = new Set<string>(
 );
 
 const GENERIC_FAIL = "Please check the form and try again.";
+
+// Fallback contact details, for the case where we cannot record the request.
+const JME_PHONE = "(269) 659-0093";
+const JME_EMAIL = "parts@jmequipment.net";
 
 function clientKey(req: Request): string {
   const xff = req.headers.get("x-forwarded-for");
@@ -92,24 +97,58 @@ export async function POST(req: Request) {
     qty: Math.min(Math.max(Math.floor(Number(it.qty)), 1), 9999),
   }));
 
-  const rfq = await saveRfq({
-    contact: {
-      company: clean(contact.company, 200),
-      name: clean(contact.name, 200),
-      lastName: clean(contact.lastName, 200) || undefined,
-      email: clean(contact.email, 320),
-      phone: clean(contact.phone, 40) || undefined,
-      phoneExt: clean(contact.phoneExt, 10) || undefined,
-      serial: clean(contact.serial, 80) || undefined,
-      shipAddress: clean(contact.shipAddress, 500) || undefined,
-      billingSameAsShipping: contact.billingSameAsShipping !== false,
-      billingAddress: contact.billingSameAsShipping === false ? clean(contact.billingAddress, 500) || undefined : undefined,
-      wantsAccount: contact.wantsAccount !== false,
-    },
-    items: storedItems,
-    message: clean(contact.message, 4000) || undefined,
-    freight: storedItems.some((it) => freightSkus.has(it.sku)),
-  });
+  const contactBlock: StoredRfqContact = {
+    company: clean(contact.company, 200),
+    name: clean(contact.name, 200),
+    lastName: clean(contact.lastName, 200) || undefined,
+    email: clean(contact.email, 320),
+    phone: clean(contact.phone, 40) || undefined,
+    phoneExt: clean(contact.phoneExt, 10) || undefined,
+    serial: clean(contact.serial, 80) || undefined,
+    shipAddress: clean(contact.shipAddress, 500) || undefined,
+    billingSameAsShipping: contact.billingSameAsShipping !== false,
+    billingAddress: contact.billingSameAsShipping === false ? clean(contact.billingAddress, 500) || undefined : undefined,
+    wantsAccount: contact.wantsAccount !== false,
+  };
+  const message = clean(contact.message, 4000) || undefined;
+  const freight = storedItems.some((it) => freightSkus.has(it.sku));
+
+  let rfq: StoredRfq;
+  try {
+    rfq = await saveRfq({ contact: contactBlock, items: storedItems, message, freight });
+  } catch (err) {
+    // The store is unavailable (full volume, detached mount, bad permissions).
+    // A customer who filled the form correctly must not be told to check it,
+    // and the enquiry must not evaporate: try the desk email anyway, so JM can
+    // work the lead by hand even with no store behind it.
+    const now = new Date().toISOString();
+    const provisional: StoredRfq = {
+      ref: "RFQ-UNSAVED-" + randomUUID().slice(0, 8).toUpperCase(),
+      createdAt: now,
+      updatedAt: now,
+      status: "new",
+      contact: contactBlock,
+      items: storedItems,
+      message,
+      freight,
+    };
+    const mailed = await sendRfqNotification(provisional).catch(() => false);
+
+    audit("quote_store_failed", { n: storedItems.length });
+    // No PII, and no raw error text (it can carry filesystem paths).
+    console.error(`[quote] STORE WRITE FAILED items=${storedItems.length} desk_email=${mailed ? "sent" : "not sent"}`);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        stored: false,
+        error: mailed
+          ? `Your request reached the parts desk by email, but our system could not file it. Nothing is lost — if you do not hear back within one business day, call ${JME_PHONE}.`
+          : `We could not record your request. Please call ${JME_PHONE} or email ${JME_EMAIL} and we will pick it up right away.`,
+      },
+      { status: 503 },
+    );
+  }
 
   // Notify the parts desk (env-gated; no-op without SMTP config). Fire and
   // forget — delivery must never delay or fail the customer's response.

@@ -26,6 +26,9 @@ import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
 import { asset, actionLabel } from "@/lib/utils";
 
+/** Shown when a submission fails on our side, so the customer always has a way through. */
+const CONTACT_PHONE = catalog.contact.phone;
+
 const D = {
   contact: catalog.contact,
   machines: catalog.machines.map(toPublicMachine),
@@ -1126,11 +1129,17 @@ export default function StorefrontPage() {
         setReference(typeof data.ref === "string" ? data.ref : null);
         setSent(true);
         show(mode === "message" ? "Message sent — desk replies in writing" : "Request sent — desk replies in writing");
+      } else if (res.status >= 500) {
+        // The form was fine — our side failed. Telling them to check it would
+        // send them round a loop they cannot win, so pass on the server's own
+        // wording (it carries the phone number and whether the desk was
+        // emailed) and keep their entries so nothing has to be retyped.
+        show(data.error || `Our system is having trouble — please call ${CONTACT_PHONE}`);
       } else {
         show(data.error || "Check the form and try again");
       }
     } catch {
-      show("Could not send — try again");
+      show("Could not send — check your connection, or call " + CONTACT_PHONE);
     }
   }
 
