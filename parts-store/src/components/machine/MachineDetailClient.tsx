@@ -152,7 +152,7 @@ export function MachineDetailClient({
           <div className="md-gallery" onKeyDown={hasGallery ? onGalleryKey : undefined} tabIndex={hasGallery ? 0 : undefined} role={hasGallery ? "region" : undefined} aria-label={hasGallery ? "Product gallery" : undefined}>
             <div className="md-hero__photo">
               {hero ? (
-                <SmartImg src={asset(hero.src)} alt={hero.cap} className={hero.fit === "cover" ? "is-cover" : undefined} />
+                <SmartImg src={asset(hero.src)} alt={hero.cap} className={hero.fit === "cover" ? "is-cover" : undefined} priority />
               ) : (
                 <div className="md-hero__ph">
                   <Diamond size={72} />

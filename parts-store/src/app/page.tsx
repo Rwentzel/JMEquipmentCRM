@@ -139,7 +139,7 @@ function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: bool
           )}
         </div>
         <div className="ps-hero__photo">
-          <SmartImg src={asset("core-splitter.png")} alt="JME Hydraulic Core Splitter" />
+          <SmartImg src={asset("core-splitter.png")} alt="JME Hydraulic Core Splitter" priority />
           <span className="ps-hero__cap">JME Core Splitter · Sturgis, MI</span>
         </div>
       </div>
