@@ -40,6 +40,7 @@ Concrete, honest limitations — not aspirational gaps.
    binds to loopback only and there is no login. Period reopen records *who* authorized it,
    but that authorizer is typed in, not authenticated. Multi-user access with real identity
    (mirroring the storefront's OPS_TOKEN -> SSO path) is not implemented.
-10. **Automatic payment matching.** Cash application is exact and audited, but matching an
-   incoming payment file to open invoices automatically is not implemented — applications are
-   made through the service/CLI.
+10. **Payment matching is proposal-based by design.** `payment_matching.propose_matches`
+   scores and explains candidate payment→invoice applications, but nothing is applied until an
+   operator approves it (the approver is recorded). This is deliberate — money is never moved
+   silently — so a fully unattended auto-apply mode does not exist.

@@ -25,7 +25,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, config as config_mod, explain, export as export_mod, imports, masterdata, periods, pipeline, resolution
+from . import backup as backup_mod, batch_report, cash, config as config_mod, explain, export as export_mod, imports, masterdata, payment_matching, periods, pipeline, resolution
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -156,7 +156,7 @@ class Handler(BaseHTTPRequestHandler):
             handler = {"/import": self.act_import, "/post": self.act_post,
                        "/rollback": self.act_rollback, "/resolve": self.act_resolve,
                        "/backup": self.act_backup, "/period": self.act_period,
-                       "/config": self.act_config}.get(parsed.path)
+                       "/config": self.act_config, "/match": self.act_match}.get(parsed.path)
             if not handler:
                 return self._send(404, _page("Not found", "<div class='card'>Not found.</div>"))
             location = handler(conn, form)
@@ -627,6 +627,17 @@ class Handler(BaseHTTPRequestHandler):
             return "/periods?ok=" + urllib.parse.quote(msg)
         except periods.PeriodError as e:
             return "/periods?err=" + urllib.parse.quote(str(e))
+
+    def act_match(self, conn, form):
+        try:
+            payment_matching.apply_proposal(
+                conn, {"payment_id": form.get("payment", ""), "invoice_id": form.get("invoice", ""),
+                       "suggested_amount": form.get("amount", "0"), "score": "approved"},
+                approved_by=form.get("approver", ""))
+            msg = "Payment applied; the approver is recorded on the application."
+            return f"/receivables?period={urllib.parse.quote(form.get('period',''))}&ok=" + urllib.parse.quote(msg)
+        except cash.CashApplicationError as e:
+            return f"/receivables?period={urllib.parse.quote(form.get('period',''))}&err=" + urllib.parse.quote(str(e))
 
     def act_config(self, conn, form):
         what = form.get("what")

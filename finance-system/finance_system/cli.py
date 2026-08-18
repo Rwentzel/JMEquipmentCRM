@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, config as config_mod, imports, masterdata, periods as periods_mod, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, config as config_mod, imports, masterdata, payment_matching, periods as periods_mod, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -402,6 +402,33 @@ def cmd_restore(args, conn) -> int:
     return EXIT_OK if result["restored_ok"] else EXIT_ERROR
 
 
+def cmd_match_payments(args, conn) -> int:
+    """Propose payment -> invoice matches (nothing is applied without --approve)."""
+    scope = _scope(conn, args)
+    props = payment_matching.propose_matches(conn, scope)
+    if not props:
+        print("[match] no proposals — no unapplied cash against open invoices in scope")
+        return EXIT_OK
+    print(f"[match] {len(props)} proposal(s); nothing applied yet")
+    for i, c in enumerate(props, start=1):
+        print(f"  {i}. invoice {c.invoice_ref or c.invoice_id} balance {c.invoice_balance} "
+              f"<- {c.suggested_amount} (score {c.score})")
+        print(f"     for: {'; '.join(c.matching_signals)}")
+        if c.conflicting_signals:
+            print(f"     against: {'; '.join(c.conflicting_signals)}")
+        print(f"     disposition: {c.recommended_disposition}")
+    if args.approve:
+        applied = 0
+        for c in props:
+            if args.only_exact and "exact match" not in c.recommended_disposition:
+                continue
+            payment_matching.apply_proposal(conn, c, approved_by=args.approve)
+            applied += 1
+        conn.commit()
+        print(f"[match] applied {applied} proposal(s) approved by {args.approve}")
+    return EXIT_OK
+
+
 def cmd_receivables(args, conn) -> int:
     scope = _scope(conn, args)
     bridge = cash.cash_bridge(conn, scope)
@@ -457,6 +484,11 @@ def build_parser() -> argparse.ArgumentParser:
     pev.add_argument("--type", required=True, choices=list(ce.ALL_TYPES))
     pev.add_argument("--amount"); pev.add_argument("--ref"); pev.add_argument("--expires")
     pev.set_defaults(func=cmd_evidence)
+    pmt = sub.add_parser("match-payments"); pmt.add_argument("--period"); pmt.add_argument("--batch")
+    pmt.add_argument("--all-time", action="store_true")
+    pmt.add_argument("--approve", help="approver name; applies the proposals")
+    pmt.add_argument("--only-exact", action="store_true")
+    pmt.set_defaults(func=cmd_match_payments)
     prc2 = sub.add_parser("receivables"); prc2.add_argument("--period"); prc2.add_argument("--batch")
     prc2.add_argument("--all-time", action="store_true"); prc2.set_defaults(func=cmd_receivables)
     pbk = sub.add_parser("backup"); pbk.add_argument("--out"); pbk.set_defaults(func=cmd_backup)

@@ -140,8 +140,11 @@ master-data lookup with price/cost history and duplicate-master reporting (`mast
 policies and commission rules (history never edited; changes supersede), saved mapping
 profiles, and evidence-acceptance configuration, with a Configuration console page.
 
-Still pending (honest): role-based access with real identity, and automatic
-payment-to-invoice matching. See `docs/KNOWN_LIMITATIONS.md`.
+**Also delivered:** explainable payment→invoice match proposals (`payment_matching.py`) —
+scored, with signals for and against, and applied only on named operator approval.
+
+Still pending (honest): role-based access with real identity (the console is loopback-only
+and single-operator). See `docs/KNOWN_LIMITATIONS.md`.
 
 ## Exchange 4 — Business intelligence & adversarial hardening
 _Not started._

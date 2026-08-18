@@ -26,7 +26,7 @@ library only. `openpyxl` is an optional extra for direct `.xlsx` intake (ADR-000
 From this directory (`finance-system/`):
 
 ```bash
-# Full test suite (stdlib unittest; no pytest needed) — 197 tests
+# Full test suite (stdlib unittest; no pytest needed) — 204 tests
 python -m unittest discover -s tests -t .
 # Same, with unclosed-connection warnings treated as errors (must pass)
 python -W error::ResourceWarning -m unittest discover -s tests -t .
@@ -57,6 +57,7 @@ python -m finance_system.cli find INV-1001                  # locate a document
 python -m finance_system.cli explain <transaction_id>       # why every number is what it is
 python -m finance_system.cli master customer Northwind      # master-data lookup + history
 python -m finance_system.cli config show                    # controlled configuration
+python -m finance_system.cli match-payments --period 2026-06  # propose payment matches
 
 # Confidential-data safety scan over git-tracked + staged files (exit != 0 on HIGH)
 python scripts/safety_scan.py
@@ -112,6 +113,7 @@ location with `FINANCE_DATA_DIR`.
 | `explain.py` | Traceability: full provenance behind any reported figure | — |
 | `masterdata.py` | Customer/vendor/product lookup, aliases, price & cost history | — |
 | `config.py` | Settings, versioned policies & commission rules, mapping profiles, evidence acceptance | — |
+| `payment_matching.py` | Explainable payment→invoice match proposals (approval required) | — |
 
 ## Key design commitments
 - **Internal keys, not SKU**, for all joins; external identifiers preserved separately.

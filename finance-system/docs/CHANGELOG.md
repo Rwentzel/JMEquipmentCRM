@@ -28,7 +28,13 @@
   version), and a commission-rule change **supersedes** rather than mutates, so historical
   commission results stay explicable. Rates accept `10%` or `0.10`. Every change is audited.
   Console **Configuration** page and `cli config {show,set,rule,evidence}`.
-- Tests: 171 → 197.
+- **Payment-to-invoice matching (`payment_matching.py`).** Proposes explainable matches
+  (referenced invoice number, same customer, exact/￼within-balance amount, date proximity)
+  with a score, the signals for and against, and a recommended disposition. **Nothing is
+  applied automatically**: `apply_proposal` requires a named approver and records them on the
+  application; a different customer is disqualifying; settled invoices are not re-proposed.
+  Console proposals table on Receivables, and `cli match-payments [--approve NAME --only-exact]`.
+- Tests: 171 → 204.
 
 ## Exchange 3 — documents, cash application, evidence, crating, restore (2026-07-27)
 Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.
