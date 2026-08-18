@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { formatPhone } from "@/lib/phone";
 import {
   Button,
   DataPlate,
@@ -652,15 +653,6 @@ interface ContactForm {
 }
 
 /** Live "1-555-555-5555" formatting as the customer types. */
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "").slice(0, 11);
-  const d = digits.length === 11 && digits[0] === "1" ? digits.slice(1) : digits.slice(0, 10);
-  if (d.length === 0) return "";
-  if (d.length <= 3) return `1-${d}`;
-  if (d.length <= 6) return `1-${d.slice(0, 3)}-${d.slice(3)}`;
-  return `1-${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6, 10)}`;
-}
-
 function Request({
   items,
   contact,
