@@ -115,3 +115,130 @@ test("the light-surface badge overrides are actually present in the catalog scop
   }
   assert.match(storefront, /\.ps-catalog \.jme-eyebrow,\s*\n\.ps-catalog \.jme-badge \{/);
 });
+
+/* ------------------------------------------------------- staff surfaces ---
+ *
+ * The Quote Center, the ops desk and the client quote document were audited
+ * for the first time in #45/#47, which found 265 WCAG AA violations across
+ * them. The corrections live in qc.css and ops.css as scoped colours rather
+ * than palette edits, because these screens mix light panels with dark
+ * controls. That makes them easy to lose in a later refactor and impossible
+ * for the storefront's own guards to catch, so they get their own.
+ */
+
+const qc = readFileSync(path.join(STYLES, "qc.css"), "utf8");
+const ops = readFileSync(path.join(STYLES, "ops.css"), "utf8");
+
+/** Composite a colour drawn at `alpha` over a background, as the browser does. */
+function over(fg: string, bg: string, alpha: number): string {
+  const parse = (h: string) => {
+    const s = h.replace("#", "");
+    const full = s.length === 3 ? s.split("").map((c) => c + c).join("") : s;
+    return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+  };
+  const [f, b] = [parse(fg), parse(bg)];
+  return "#" + f.map((v, i) => Math.round(v * alpha + b[i]! * (1 - alpha)).toString(16).padStart(2, "0")).join("");
+}
+
+test("Quote Center secondary text meets AA on both light panel surfaces", () => {
+  // One grey for everything muted: on a light background there is no colour
+  // that reads as fainter than secondary and still clears AA.
+  const secondary = "#63636a";
+  for (const surface of ["canvas", "canvas-tint"]) {
+    const bg = token(tokens, surface);
+    const ratio = contrast(secondary, bg);
+    assert.ok(ratio >= AA_NORMAL, `QC secondary ${secondary} on --${surface} ${bg} is ${ratio.toFixed(2)}:1`);
+  }
+});
+
+test("Quote Center status badges meet AA on the pipeline's white rows", () => {
+  const badges: Record<string, string> = {
+    "badge--stock": "#2f7a51",
+    "badge--info": "#3470c9",
+    "badge--lead": "#806509",
+    "badge--out": "#a8353a",
+  };
+  for (const [label, fg] of Object.entries(badges)) {
+    for (const surface of ["canvas", "canvas-tint"]) {
+      const bg = token(tokens, surface);
+      const ratio = contrast(fg, bg);
+      assert.ok(ratio >= AA_NORMAL, `${label} ${fg} on --${surface} ${bg} is ${ratio.toFixed(2)}:1`);
+    }
+  }
+});
+
+test("the nav rail's 9-10px labels meet AA on the near-black rail", () => {
+  const railText = "#838389";
+  assert.ok(contrast(railText, token(tokens, "ink-2")) >= AA_NORMAL);
+  // The rail footer's phone number is set at the element; same colour, and the
+  // one line on that screen someone reads in order to dial it.
+  assert.match(qc, /\.qc-sidefoot span \{ color: #838389; \}/);
+  assert.ok(
+    readFileSync(path.join(STYLES, "..", "components", "qc", "QuoteCenterApp.tsx"), "utf8").includes("#838389"),
+    "the rail footer's contact line lost its corrected colour",
+  );
+});
+
+test("ghost buttons are visible on the light panels they sit on", () => {
+  // --paper on white is 1.2:1 — these were buttons you could only find by
+  // hovering. Light panels get dark text; the dark cards keep the light text.
+  assert.ok(contrast(token(tokens, "ink-text"), token(tokens, "canvas")) >= AA_NORMAL);
+  assert.ok(contrast(token(tokens, "paper"), token(tokens, "plate")) >= AA_NORMAL);
+  assert.match(qc, /\.qc-main \.jme-btn--ghost \{/);
+  assert.match(qc, /\.qc-main \.jme-card \.jme-btn--ghost \{/);
+  assert.match(qc, /\.qc-main \.jme-btn--on-dark \{/);
+});
+
+test("the ops desk's dimmed count chips survive their own opacity", () => {
+  // The inactive chip is drawn at opacity .55, so the declared colour has to
+  // be bright enough that what lands on screen still clears AA.
+  const declared = "#e6e1d8";
+  const chipBg = "#1c1c1b";
+  const ratio = contrast(over(declared, chipBg, 0.55), chipBg);
+  assert.ok(ratio >= AA_NORMAL, `ops count chip composites to ${ratio.toFixed(2)}:1`);
+  assert.ok(ops.includes(declared), "the ops count chip lost its corrected colour");
+});
+
+test("the client quote document is readable on the body and on its dark blocks", () => {
+  // This is the page a customer opens and prints. Its headings were 2.06:1.
+  assert.ok(contrast("#63636a", token(tokens, "canvas")) >= AA_NORMAL);
+  // The dark banner and ROI panel keep the light palette they were designed
+  // with, which must itself still clear AA on charcoal.
+  assert.ok(contrast(token(tokens, "paper-dim"), token(tokens, "jme-charcoal")) >= AA_NORMAL);
+  // The ROI stat captions were the bright brand red on charcoal at 3.19:1.
+  assert.ok(contrast("#cd6866", token(tokens, "jme-charcoal")) >= AA_NORMAL);
+});
+
+test("the document's dark blocks are matched on their background, not the variable name", () => {
+  // Matching any mention of --jme-charcoal also caught the section headers,
+  // which use it for a border-bottom, and left every heading unfixed. The
+  // browser also reserialises inline styles with a space after the colon, so
+  // both spellings have to be accepted or the rule misses on some pages.
+  assert.match(qc, /\[style\*="background:var\(--jme-charcoal\)"\]/);
+  assert.match(qc, /\[style\*="background: var\(--jme-charcoal\)"\]/);
+  assert.ok(
+    !/\[style\*="--jme-charcoal"\]/.test(qc),
+    "the bare --jme-charcoal attribute match is back; it also catches the section header borders",
+  );
+});
+
+test("the client document's ROI row reflows on a phone but not in print", () => {
+  // Three 30px figures do not fit on a 390px screen — the third ran off the
+  // edge, so the customer had to scroll sideways to finish their own quote.
+  // Print keeps three columns, so the rule must stay screen-scoped.
+  //
+  // Matched inside a single rule body ([^}]*) on purpose: a pattern allowed to
+  // run past a closing brace happily pairs this selector with some other
+  // rule's declaration and passes when the reflow has been deleted.
+  const reflow = /\[style\*="repeat\(3,1fr\)"\]\s*\{[^}]*grid-template-columns:\s*1fr 1fr/;
+  const at = qc.search(reflow);
+  assert.ok(at >= 0, "the ROI row no longer folds to two columns on a phone");
+
+  const enclosing = qc.lastIndexOf("@media", at);
+  assert.ok(enclosing >= 0, "the ROI reflow is not inside a media query — it would apply in print too");
+  assert.match(
+    qc.slice(enclosing, qc.indexOf("{", enclosing)),
+    /screen/,
+    "the ROI reflow is no longer screen-only; print needs all three columns",
+  );
+});
