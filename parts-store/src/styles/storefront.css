@@ -2347,12 +2347,14 @@
   white-space: nowrap;
 }
 .ps-down__copy {
-  color: var(--paper-dim, #b6b3ac);
+  /* Explicit mid tone: the strip sits on both dark hero-adjacent and light
+     catalog backgrounds, so theme tokens can't be trusted here. */
+  color: #6b6862;
   font-size: 14.5px;
 }
 .ps-down__copy a {
-  color: #fff;
+  color: var(--jme-red, #a8353a);
   font-weight: 700;
   text-decoration: none;
-  border-bottom: 1px solid var(--jme-red);
+  border-bottom: 1px solid var(--jme-red, #a8353a);
 }
