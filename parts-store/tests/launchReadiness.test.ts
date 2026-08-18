@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { isLive } from "../src/lib/launch";
 import { formatQuoteAcceptedEmail, formatRfqEmail, mailConfigured } from "../src/lib/mail";
 import { rfqsToCsv } from "../src/lib/csv";
+import { catalog } from "../src/data/catalog";
 import type { StoredRfq } from "../src/lib/rfqStore";
 
 afterEach(() => {
@@ -127,4 +128,50 @@ test("goodstrong diagram parts are orderable (quote allowlist regression)", asyn
   // Real belt part numbers from the GMC-TC 1600E factory catalogue.
   assert.ok(skus.includes("MC2HA041003"));
   assert.ok(skus.includes("1216-8YU-30"));
+});
+
+/* ---- desk email: actionable at a glance ---- */
+
+test("RFQ email names each part, not just its SKU", () => {
+  const sku = catalog.parts[0]!.sku;
+  const { text } = formatRfqEmail({
+    ref: "RFQ-NAMES01", createdAt: "2026-08-18T00:00:00.000Z", updatedAt: "2026-08-18T00:00:00.000Z",
+    status: "new", freight: false,
+    contact: { company: "Great Lakes Converting", name: "Dana", email: "dana@gl.com" },
+    items: [{ sku, qty: 2 }],
+  });
+  assert.ok(text.includes(sku), "SKU still present");
+  assert.ok(
+    text.includes(catalog.parts[0]!.name),
+    "the desk should not have to look up what a SKU is on every lead",
+  );
+});
+
+test("RFQ email tolerates a SKU that is not in the public catalog", () => {
+  // Goodstrong diagram parts are orderable but are not catalog.parts entries.
+  const { text } = formatRfqEmail({
+    ref: "RFQ-UNKNOWN1", createdAt: "2026-08-18T00:00:00.000Z", updatedAt: "2026-08-18T00:00:00.000Z",
+    status: "new", freight: false,
+    contact: { company: "X", name: "Y", email: "y@x.com" },
+    items: [{ sku: "NOT-IN-CATALOG-999", qty: 1 }],
+  });
+  assert.match(text, /NOT-IN-CATALOG-999\s+× 1\s*$/m, "unknown SKUs print cleanly with no dangling separator");
+});
+
+test("RFQ email links the ops desk absolutely, and honours JME_PUBLIC_URL", () => {
+  const previous = process.env.JME_PUBLIC_URL;
+  process.env.JME_PUBLIC_URL = "https://staging.example.com/";
+  try {
+    const { text } = formatRfqEmail({
+      ref: "RFQ-LINK0001", createdAt: "2026-08-18T00:00:00.000Z", updatedAt: "2026-08-18T00:00:00.000Z",
+      status: "new", freight: false,
+      contact: { company: "X", name: "Y", email: "y@x.com" },
+      items: [{ sku: catalog.parts[0]!.sku, qty: 1 }],
+    });
+    // Trailing slash trimmed, so the link is never ".../ops" doubled up.
+    assert.ok(text.includes("https://staging.example.com/ops"), text.split("\n").find((l) => l.includes("ops desk")));
+  } finally {
+    if (previous === undefined) delete process.env.JME_PUBLIC_URL;
+    else process.env.JME_PUBLIC_URL = previous;
+  }
 });
