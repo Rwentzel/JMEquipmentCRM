@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { catalog } from "@/data/catalog";
-import { details } from "@/data/details";
 import { goodstrongDiagramSkus, goodstrongModels } from "@/data/goodstrong";
 import { audit, hashKey } from "@/lib/auditLog";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
+import { configLines } from "@/lib/rfqConfig";
 import { sendRfqNotification } from "@/lib/mail";
 import { saveRfq, type StoredRfq, type StoredRfqContact } from "@/lib/rfqStore";
 import { randomUUID } from "node:crypto";
@@ -69,16 +69,9 @@ function resolveOrigin(sku: string, raw: unknown): string | null {
  */
 function resolveOptions(machineSku: string, raw: unknown): string[] {
   if (!Array.isArray(raw) || raw.length === 0) return [];
-  const opts = details[machineSku]?.options ?? [];
-  if (opts.length === 0) return [];
-
-  const wanted = new Set(raw.slice(0, 40).map((v) => String(v)));
-  const lines: string[] = [];
-  for (const opt of opts) {
-    const picked = opt.choices.filter((c) => wanted.has(c.sku));
-    if (picked.length > 0) lines.push(`${opt.label}: ${picked.map((c) => c.v).join(", ")}`);
-  }
-  return lines;
+  // Shared with the quote conversion, which has to recognise these exact lines
+  // to tell a standard build from a configured one.
+  return configLines(machineSku, raw.slice(0, 40).map((v) => String(v)));
 }
 
 const validSkus = new Set<string>([

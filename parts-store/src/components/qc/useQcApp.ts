@@ -557,8 +557,12 @@ export function useQcApp(
       const total = cashTotal(q, m);
       const totalStr = total > 0 ? usd(total) : "by consultation";
       const url = shareUrl(q);
-      const subj = `JM Equipment Quotation ${q.number} — ${m ? m.name : "Parts"}`;
-      const body = `Hello ${q.clientContact || q.clientCompany},\n\nThank you for the opportunity to quote. Please find your quotation below.\n\nQuote: ${q.number}\nEquipment: ${m ? m.name + " (" + m.sku + ")" : "Replacement parts"}\nTotal: ${totalStr}\nValid: ${q.validity} days, FOB ${settings.fob}\n\nView, download, and accept online:\n${url}\n\nRegards,\n${q.rep || settings.rep}\nJM Equipment Inc. · ${settings.phone}\n${settings.email}`;
+      // The document's own identity, not the machine dropdown's. A machine the
+      // desk has not attached to a catalogue entry yet is still a machine — the
+      // email announced "Replacement parts" for a guillotine cutter.
+      const what = m ? `${m.name} (${m.sku})` : q.rfqBuild ? `${q.rfqBuild.name} (${q.rfqBuild.sku})` : "";
+      const subj = `JM Equipment Quotation ${q.number} — ${m ? m.name : q.rfqBuild ? q.rfqBuild.name : "Parts"}`;
+      const body = `Hello ${q.clientContact || q.clientCompany},\n\nThank you for the opportunity to quote. Please find your quotation below.\n\nQuote: ${q.number}\nEquipment: ${what || "Replacement parts"}\nTotal: ${totalStr}\nValid: ${q.validity} days, FOB ${settings.fob}\n\nView, download, and accept online:\n${url}\n\nRegards,\n${q.rep || settings.rep}\nJM Equipment Inc. · ${settings.phone}\n${settings.email}`;
       window.location.href = `mailto:${encodeURIComponent(q.clientEmail || "")}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
     },
     [machine, shareUrl, settings],
@@ -597,6 +601,12 @@ export function useQcApp(
           warranty: m ? m.warranty : "",
           roiOn: !!(m && m.roi),
           tariffPct: m && m.isImport ? settings.tariff || 0 : 0,
+          // Choosing the machine is the desk restating the order, which
+          // supersedes the build carried over from the customer's request. The
+          // request itself stays in the notes. Changing a config axis
+          // deliberately does NOT clear it: a stray click would revert the
+          // document to the catalogue's default build without saying so.
+          rfqBuild: undefined,
         };
         initConfig(next, m);
         next.cost = Math.round((+next.base || 0) * 0.72);

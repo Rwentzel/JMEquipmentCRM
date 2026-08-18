@@ -2,24 +2,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { audit } from "@/lib/auditLog";
 import { OPS_COOKIE, opsMode, verifySession } from "@/lib/opsAuth";
-import { blankQuote } from "@/lib/qc/logic";
-import { PARTS_MASTER } from "@/lib/qc/partsMaster";
-import { catalog } from "@/data/catalog";
+import { quoteFromRfq } from "@/lib/qc/fromRfq";
 import { patchQcState, readQcState } from "@/lib/qc/store";
-import type { QcQuotePart } from "@/lib/qc/types";
 import { getRfq, updateRfqStatus } from "@/lib/rfqStore";
 
 /**
  * Turn a storefront RFQ into a draft quote — INTERNAL, ops-gated.
  *
- * The RFQ already carries everything a quote needs to start: who asked, how
- * to reach them, where it ships, and which SKUs at what quantity. Without
- * this the rep retypes all of it, which is both slow and how transcription
- * errors reach a customer-facing document.
- *
- * Line items resolve against the parts master for name and price; anything
- * not on the master becomes an RFQ line (priced at consult) rather than
- * being dropped, so nothing the customer asked for silently disappears.
+ * Auth, fetch, persist. The conversion itself is `quoteFromRfq`, which is a
+ * pure function so it can be tested against directly rather than mirrored in a
+ * test helper that drifts.
  */
 
 export const runtime = "nodejs";
@@ -44,53 +36,7 @@ export async function POST(req: Request) {
   if (!rfq) return NextResponse.json({ ok: false, error: "Unknown request" }, { status: 404 });
 
   const state = await readQcState();
-  const q = blankQuote(null, state.catalog, state.settings, state.quotes.length);
-
-  // A parts request is not an equipment quote — start with no machine.
-  q.machineId = null;
-  q.base = 0;
-  q.crating = 0;
-
-  const c = rfq.contact;
-  q.clientCompany = c.company || "";
-  q.clientContact = [c.name, c.lastName].filter(Boolean).join(" ");
-  q.clientEmail = c.email || "";
-  q.clientCity = c.shipAddress || "";
-
-  q.parts = rfq.items.map((it): QcQuotePart => {
-    const master = PARTS_MASTER.find((p) => p.sku === it.sku);
-    const price = master && master.price > 0 ? master.price : 0;
-    // Fall back to the catalogue before the bare SKU: a machine is not in the
-    // parts master, and a line reading "JME-VCS12-75" tells the desk nothing.
-    const base = master?.name ?? catalog.machines.find((m) => m.sku === it.sku)?.name ?? it.sku;
-    // The configuration IS what is being quoted. A line that says only
-    // "JME-VCS12-75" prices the standard 230V, 75-inch build for someone who
-    // asked for 460V and 90 inches — and the customer signs that document.
-    const name = it.config?.length ? `${base} — ${it.config.join(" · ")}` : base;
-    return {
-      sku: it.sku,
-      name,
-      qty: Math.max(1, +it.qty || 1),
-      price,
-      // Unknown SKU or consult-priced part: carry it as an RFQ line so it is
-      // visibly pending a price rather than quietly quoted at $0.
-      rfq: price === 0,
-    };
-  });
-
-  const provenance = [
-    `Created from ${rfq.ref} (submitted ${rfq.createdAt.slice(0, 10)}).`,
-    c.phone ? `Phone: ${c.phone}${c.phoneExt ? ` ext. ${c.phoneExt}` : ""}` : "",
-    c.serial ? `Machine serial: ${c.serial}` : "",
-    c.billingSameAsShipping === false && c.billingAddress ? `Bill to: ${c.billingAddress}` : "",
-    rfq.freight ? "FREIGHT QUOTE REQUESTED." : "",
-    rfq.message ? `Customer note: "${rfq.message}"` : "",
-    // Where a part was picked off a manual drawing. Kept as desk context
-    // rather than on the line, since it is how fit gets confirmed rather than
-    // part of what is being sold.
-    ...rfq.items.filter((it) => it.source).map((it) => `${it.sku} picked from ${it.source}`),
-  ].filter(Boolean);
-  q.notes = provenance.join("\n");
+  const q = quoteFromRfq(rfq, state.catalog, state.settings, state.quotes.length);
 
   await patchQcState({ quotes: [q, ...state.quotes] });
   await updateRfqStatus(ref, "quoted");
