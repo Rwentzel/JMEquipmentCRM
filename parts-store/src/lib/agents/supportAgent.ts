@@ -58,7 +58,10 @@ const GUARDED: Array<{ re: RegExp; refusal: string }> = [
     refusal: STOCK_REFUSAL,
   },
   {
-    re: /\b(price|prices|pricing|cost|costs|how much|discount|margin|markup|quote me a number)\b/i,
+    // "what do you pay for it" and "what did that run you" are the same question
+    // as "what does it cost", asked the way a buyer on the phone asks it. Without
+    // them the part card answers, which never addresses what was asked.
+    re: /\b(price|prices|pricing|cost|costs|how much|discount|margin|markup|quote me a number|what (do|did) (you|it|that) (pay|run)|do you pay)\b/i,
     refusal: PRICING_REFUSAL,
   },
 ];
