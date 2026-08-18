@@ -132,6 +132,17 @@ export interface QcQuote {
   activity?: QcActivity[];
   config?: Record<string, string>;
   cfgOpts?: string[];
+  /**
+   * The build a customer configured on the storefront, when it differs from
+   * the one the Quote Center catalogue describes.
+   *
+   * The catalogue entry states a single build — subtitle `12" Head · 75"
+   * Frame`, spec `Power: 5 HP / 230V / 1PH`. Printing it above a line item that
+   * reads 460V and 90 inches puts a document in front of the customer that
+   * contradicts itself and still looks right. When this is set it governs the
+   * SKU, the subtitle, and any spec whose key it repeats.
+   */
+  rfqBuild?: { sku: string; name: string; desc: string; specs: QcSpec[] };
   /** Capability token for the public /q/[id]/[token] link — the quote id alone is not enough to view it. */
   token?: string;
   /**

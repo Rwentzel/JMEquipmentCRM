@@ -196,13 +196,32 @@ export function fillTpl(tpl: string, q: QcQuote, machine: QcMachine | null): str
 }
 
 export function resolvedSku(q: QcQuote, machine: QcMachine | null): string {
+  // The SKU the customer actually ordered from. The cfg template would fill
+  // from q.config, which describes the Quote Center's default build, not
+  // theirs.
+  if (q.rfqBuild) return q.rfqBuild.sku;
   if (machine && machine.cfg && machine.cfg.sku) return fillTpl(machine.cfg.sku, q, machine);
   return machine ? machine.sku : "JME-PARTS";
 }
 
 export function resolvedSubtitle(q: QcQuote, machine: QcMachine | null): string {
+  if (q.rfqBuild) return q.rfqBuild.specs.map((s) => s.v).join(" · ");
   if (machine && machine.cfg && machine.cfg.subtitle) return fillTpl(machine.cfg.subtitle, q, machine);
   return machine ? machine.sub : "";
+}
+
+/**
+ * The spec block for a machine quote.
+ *
+ * A storefront build overrides any catalogue spec that names the same thing —
+ * otherwise the table lists "Power: 5 HP / 230V / 1PH" beside a request for
+ * 460V — and displaces the cfg-derived rows, which come from q.config and so
+ * describe the Quote Center's default build rather than the one requested.
+ */
+function machineSpecs(q: QcQuote, m: QcMachine): QcSpec[] {
+  if (!q.rfqBuild) return (m.cfg ? cfgDerivedSpecs(q, m) : []).concat(m.specs);
+  const named = new Set(q.rfqBuild.specs.map((s) => s.k.toLowerCase()));
+  return q.rfqBuild.specs.concat(m.specs.filter((s) => !named.has(s.k.toLowerCase())));
 }
 
 export function cfgDerivedSpecs(q: QcQuote, machine: QcMachine | null): QcSpec[] {
@@ -551,8 +570,15 @@ export function buildDoc(qIn: QcQuote | null, machine: QcMachine | null, setting
     .filter(Boolean)
     .join(" ");
   const accepted = q.status === "accepted" || q.status === "won";
+  const rfqBuild = q.rfqBuild;
+  // A machine the desk has not attached to a Quote Center entry yet. It is
+  // still equipment: heading it "Replacement Parts & Components" with a
+  // parts-desk spec block describes a different order entirely.
+  const unattached = !m && !!rfqBuild;
   const specs: QcSpec[] = m
-    ? (m.cfg ? cfgDerivedSpecs(q, m) : []).concat(m.specs)
+    ? machineSpecs(q, m)
+    : rfqBuild
+    ? rfqBuild.specs
     : [
         { k: "Order Type", v: "Replacement Parts" },
         { k: "Supplier", v: "JM Equipment Inc." },
@@ -561,25 +587,32 @@ export function buildDoc(qIn: QcQuote | null, machine: QcMachine | null, setting
       ];
   return {
     number: q.number,
-    kicker: m ? "Quotation" : "Parts Quotation",
+    kicker: m || unattached ? "Quotation" : "Parts Quotation",
     validity: q.validity || s.validity,
     validUntil: expiryInfo(q).untilStr,
     fob: s.fob,
-    machineName: m ? m.name : "Replacement Parts & Components",
-    machineSubtitle: m ? resolvedSubtitle(q, m) : (q.parts || []).length + " line items",
-    sku: m ? resolvedSku(q, m) : "JME-PARTS",
+    machineName: m ? m.name : rfqBuild ? rfqBuild.name : "Replacement Parts & Components",
+    machineSubtitle: m || rfqBuild
+      ? resolvedSubtitle(q, m)
+      : `${(q.parts || []).length} line item${(q.parts || []).length === 1 ? "" : "s"}`,
+    sku: m || rfqBuild ? resolvedSku(q, m) : "JME-PARTS",
     hasPhoto: !!photo,
     photo,
     desc: m
       ? m.desc
+      : rfqBuild
+      ? rfqBuild.desc
       : "Genuine and refurbished replacement parts supplied and supported by JM Equipment Inc. from Sturgis, Michigan — same-day shipping on stocked items.",
     client: { company: q.clientCompany || "—", line: clientLine || "—" },
     company: { name: s.company, addr: s.addr, phone: s.phone, email: s.email },
     rep: q.rep || s.rep,
     badges: [
       { b: "EST. 1989", s: "Serving Industry" },
-      { b: q.warranty || (m ? m.warranty : "Genuine"), s: "Warranty" },
-      { b: q.lead || (m ? m.lead : "Same-Day"), s: "Lead Time" },
+      // "Genuine" / "Same-Day" are the parts desk's terms. On equipment with no
+      // catalogue entry behind it yet, they promise a stock item's lead time
+      // for a machine that has not even been priced.
+      { b: q.warranty || (m ? m.warranty : unattached ? "By Consultation" : "Genuine"), s: "Warranty" },
+      { b: q.lead || (m ? m.lead : unattached ? "By Consultation" : "Same-Day"), s: "Lead Time" },
       { b: "FOB", s: s.fob },
     ],
     consultation,
@@ -592,8 +625,8 @@ export function buildDoc(qIn: QcQuote | null, machine: QcMachine | null, setting
       total: consultation ? "By Consultation" : usd2(total),
       totalLabel: "Total Quote Amount",
       payment,
-      leadTime: q.lead || (m ? m.lead : "Per line item"),
-      warranty: q.warranty || (m ? m.warranty : "Per part"),
+      leadTime: q.lead || (m ? m.lead : unattached ? "By Consultation" : "Per line item"),
+      warranty: q.warranty || (m ? m.warranty : unattached ? "By Consultation" : "Per part"),
     },
     roi,
     hasDisclosures: !!(m && m.roi),
