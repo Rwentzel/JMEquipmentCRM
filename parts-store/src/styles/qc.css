@@ -112,10 +112,11 @@
 
 @media (max-width: 640px) {
   .qc-main [style*="1fr 1fr"],
-  .qc-main [style*="360px 1fr"],
-  .qc-main [style*="repeat(5,1fr)"],
-  .qc-main [style*="repeat(4,1fr)"],
-  .qc-main [style*="repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+  .qc-main [style*="1.4fr 1fr"],
+  .qc-main [style*="1.55fr 1fr"],
+  .qc-main [style*="360px 1fr"] { grid-template-columns: 1fr !important; }
+  /* Stat strips stay 2-up even on the narrowest phone — one KPI per screenful
+     turns the dashboard into a scrolling exercise. */
 
   /* ...but the quotation document keeps its two-column blocks, so the on-screen
      preview still matches the sheet the customer prints. */

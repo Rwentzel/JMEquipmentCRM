@@ -78,7 +78,7 @@ export function DashView({ app }: { app: QcApp }) {
               <button className="jme-btn jme-btn--ghost jme-btn--sm" onClick={() => app.go("equipment")}>Browse Equipment</button>
             </div>
           </div>
-          <div style={{ display: "flex", border: "1px solid #3a3835", borderRadius: "var(--r-1)", overflow: "hidden", flex: "none" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", border: "1px solid #3a3835", borderRadius: "var(--r-1)", overflow: "hidden", flex: "0 1 auto" }}>
             <div style={{ textAlign: "center", padding: "15px 22px", borderRight: "1px solid #3a3835" }}>
               <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "#fff", lineHeight: 1 }}>
                 37<span style={{ fontSize: "15px", color: "var(--jme-red-bright)" }}> yr</span>
