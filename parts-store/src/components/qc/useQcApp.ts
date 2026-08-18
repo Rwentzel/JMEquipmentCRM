@@ -168,7 +168,23 @@ export function useQcApp(
    * A failed write is re-queued rather than dropped, and surfaces as a toast:
    * silently discarding it is how an expired ops session turned a full day of
    * quoting into nothing while the UI kept saying "Quote saved". */
-  const pending = useRef<Partial<QcState>>({});
+  /**
+   * A queued write. Deletions travel as explicit ids rather than as an absent
+   * record, so a save from this tab cannot destroy a quote another tab created
+   * while we were open.
+   */
+  type QcWritePatch = Partial<QcState> & {
+    deleteQuoteIds?: string[];
+    deleteClientIds?: string[];
+    knownQuoteIds?: string[];
+    knownClientIds?: string[];
+  };
+
+  const pending = useRef<QcWritePatch>({});
+  // Every quote/client id this tab has seen, from its initial load and from
+  // each server response. Ids only, so it stays cheap.
+  const knownQuoteIds = useRef<string[]>([]);
+  const knownClientIds = useRef<string[]>([]);
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlight = useRef(false);
   const writeFailed = useRef(false);
@@ -188,6 +204,11 @@ export function useQcApp(
       if (!Object.keys(pending.current).length) return;
       if (inFlight.current && !opts.unloading) return; // the in-flight write's tail will pick it up
       const patch = pending.current;
+      // Tell the server what this tab knew about. Without it, a record we
+      // never loaded looks like one we deleted, and the server would drop
+      // a quote another tab created while we were open.
+      if (patch.quotes) patch.knownQuoteIds = knownQuoteIds.current;
+      if (patch.clients) patch.knownClientIds = knownClientIds.current;
       pending.current = {};
       inFlight.current = true;
       // keepalive ONLY when the page is going away: it caps the body at 64 KiB,
@@ -239,13 +260,32 @@ export function useQcApp(
   }, [flush]);
 
   const persist = useCallback(
-    (patch: Partial<QcState>) => {
+    (patch: QcWritePatch) => {
+      // Segments replace, but deletions accumulate: two deletes inside one
+      // debounce window must both be stated, or the second would resurrect the
+      // first record.
+      const mergeIds = (a: string[] | undefined, b: string[] | undefined) =>
+        a || b ? [...new Set([...(a ?? []), ...(b ?? [])])] : undefined;
+      const deleteQuoteIds = mergeIds(pending.current.deleteQuoteIds, patch.deleteQuoteIds);
+      const deleteClientIds = mergeIds(pending.current.deleteClientIds, patch.deleteClientIds);
       pending.current = { ...pending.current, ...patch };
+      if (deleteQuoteIds) pending.current.deleteQuoteIds = deleteQuoteIds;
+      if (deleteClientIds) pending.current.deleteClientIds = deleteClientIds;
       if (flushTimer.current) clearTimeout(flushTimer.current);
       flushTimer.current = setTimeout(() => flush(), 400);
     },
     [flush],
   );
+
+  // What this tab knows is simply what it is holding — derived rather than
+  // accumulated at each of the several places state arrives, so it cannot
+  // drift out of step with the UI.
+  useEffect(() => {
+    knownQuoteIds.current = quotes.map((q) => q.id);
+  }, [quotes]);
+  useEffect(() => {
+    knownClientIds.current = clients.map((c) => c.id);
+  }, [clients]);
 
   useEffect(() => {
     const onHide = () => flush({ unloading: true });
@@ -373,10 +413,12 @@ export function useQcApp(
 
   const deleteQuote = useCallback(
     (id: string) => {
-      commitQuotes(quotes.filter((q) => q.id !== id));
+      const next = quotes.filter((q) => q.id !== id);
+      setQuotes(next);
+      persist({ quotes: next, deleteQuoteIds: [id] });
       showToast("Quote deleted");
     },
-    [quotes, commitQuotes, showToast],
+    [quotes, persist, showToast],
   );
 
   const saveQuote = useCallback(
@@ -707,11 +749,13 @@ export function useQcApp(
 
   const deleteClient = useCallback(
     (id: string) => {
-      commitClients(clients.filter((c) => c.id !== id));
+      const next = clients.filter((c) => c.id !== id);
+      setClients(next);
+      persist({ clients: next, deleteClientIds: [id] });
       setClientId(null);
       showToast("Client removed");
     },
-    [clients, commitClients, showToast],
+    [clients, persist, showToast],
   );
 
   const startQuoteForClient = useCallback(
