@@ -10,22 +10,8 @@ const DIR = process.env.RFQ_DATA_DIR;
 const LOG = path.join(DIR, "audit.jsonl");
 const ROLLED = `${LOG}.1`;
 
-import { audit, recentEvents } from "../src/lib/auditLog";
+import { audit, flushAudit, recentEvents } from "../src/lib/auditLog";
 
-/**
- * The append is fire-and-forget, so poll for the effect rather than sleeping a
- * fixed amount — a hard-coded wait is exactly the kind of test that passes on a
- * quiet machine and fails in CI.
- */
-async function settleUntil(check: () => Promise<boolean>, timeoutMs = 4000): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    if (await check().catch(() => false)) return;
-    if (Date.now() > deadline) return;
-    await new Promise((r) => setTimeout(r, 25));
-  }
-}
-const fileExists = (f: string) => stat(f).then(() => true, () => false);
 
 function line(i: number): string {
   return JSON.stringify({ kind: "assistant_query", ts: new Date(2026, 0, 1, 0, 0, i % 60).toISOString(), n: i }) + "\n";
@@ -34,7 +20,7 @@ function line(i: number): string {
 test("events reach the log and come back newest-last", async () => {
   audit("ops_login_ok");
   audit("quote_accepted", { n: 3 });
-  await settleUntil(async () => (await recentEvents(10)).some((e) => e.kind === "quote_accepted"));
+  await flushAudit();
   const events = await recentEvents(10);
   assert.equal(events.at(-1)?.kind, "quote_accepted");
   assert.equal(events.at(-1)?.n, 3);
@@ -43,7 +29,7 @@ test("events reach the log and come back newest-last", async () => {
 test("no user-supplied string can enter the log", async () => {
   // The whole reason this log is safe to hand to an agent or to monitoring.
   audit("quote_invalid", { keyHash: "abc123def456" });
-  await settleUntil(async () => (await readFile(LOG, "utf8")).includes("abc123def456"));
+  await flushAudit();
   const raw = await readFile(LOG, "utf8");
   for (const key of Object.keys(JSON.parse(raw.trim().split("\n").at(-1)!))) {
     assert.ok(["kind", "ts", "n", "keyHash"].includes(key), `unexpected field in an audit event: ${key}`);
@@ -79,7 +65,7 @@ test("the log rotates instead of growing without bound", async () => {
   assert.ok((await stat(LOG)).size > 8 * 1024 * 1024);
 
   audit("agent_run");
-  await settleUntil(() => fileExists(ROLLED));
+  await flushAudit();
 
   // Rotation renames the live file away; the next append recreates it, so
   // "gone or small" is the honest assertion here.
@@ -109,4 +95,20 @@ test("a truncated first line in the tail is discarded, not mis-parsed", async ()
   const events = await recentEvents(50);
   assert.equal(events.length, 50);
   assert.ok(events.every((e) => e.kind === "assistant_query"));
+});
+
+test("events land on disk in the order they happened", async () => {
+  // Each append used to be an independent promise chain, so two events raised
+  // together could be written in either order — a log that reads out of order
+  // misleads exactly when someone is reconstructing an incident from it.
+  await writeFile(LOG, "");
+  const kinds = ["ops_login_ok", "quote_accepted", "qc_change", "mail_sent", "agent_run"] as const;
+  for (const k of kinds) audit(k);
+  await flushAudit();
+
+  const written = (await readFile(LOG, "utf8"))
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => (JSON.parse(l) as { kind: string }).kind);
+  assert.deepEqual(written, [...kinds]);
 });

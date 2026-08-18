@@ -95,15 +95,32 @@ async function rotateIfLarge(): Promise<void> {
   }
 }
 
+/**
+ * Writes are chained rather than fired independently.
+ *
+ * Each call used to start its own mkdir().then(append), so two events raised in
+ * quick succession raced and could land on disk in the opposite order to which
+ * they happened — a log read back out of order is misleading precisely when
+ * someone is reconstructing an incident from it. It also let a rotation
+ * interleave between an append and the size check.
+ */
+let writeQueue: Promise<void> = Promise.resolve();
+
 /** Record an event. File append is best-effort; the in-memory ring always works. */
 export function audit(kind: AuditKind, opts: { n?: number; keyHash?: string } = {}): void {
   const event: AuditEvent = { kind, ts: new Date().toISOString(), ...opts };
   ring.push(event);
   if (ring.length > RING_MAX) ring.splice(0, ring.length - RING_MAX);
-  void mkdir(dataDir(), { recursive: true })
+  writeQueue = writeQueue
+    .then(() => mkdir(dataDir(), { recursive: true }))
     .then(() => appendFile(logPath(), JSON.stringify(event) + "\n", "utf8"))
     .then(() => rotateIfLarge())
     .catch(() => undefined);
+}
+
+/** Wait for queued writes to reach disk. For tests and orderly shutdown. */
+export function flushAudit(): Promise<void> {
+  return writeQueue;
 }
 
 /**
