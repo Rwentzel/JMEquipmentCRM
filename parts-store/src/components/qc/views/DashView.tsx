@@ -9,7 +9,7 @@
 import React from "react";
 import type { QcApp } from "../useQcApp";
 import type { QcQuote } from "@/lib/qc/types";
-import { badgeCls, cashTotal, fmtDate, statusMeta, usd, usdShort, weightedTotal } from "@/lib/qc/logic";
+import { badgeCls, cashTotal, fmtDate, pendingFollowUps, statusMeta, usd, usdShort, weightedTotal } from "@/lib/qc/logic";
 
 export function DashView({ app }: { app: QcApp }) {
   const machineOf = (q: QcQuote) => app.machine(q.machineId);
@@ -48,9 +48,7 @@ export function DashView({ app }: { app: QcApp }) {
       };
     });
 
-  const fu = app.quotes
-    .filter((q) => q.followUpDate && !q.followUpDone)
-    .sort((a, b) => (a.followUpDate || "").localeCompare(b.followUpDate || ""));
+  const fu = pendingFollowUps(app.quotes);
   const today = new Date().toISOString().slice(0, 10);
   const followUps = fu.map((q) => {
     const overdue = (q.followUpDate || "") < today;
