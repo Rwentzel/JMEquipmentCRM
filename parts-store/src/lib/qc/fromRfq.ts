@@ -102,6 +102,8 @@ export function quoteFromRfq(
   // no price on it at all.
   q.cost = 0;
 
+  q.rfqRef = rfq.ref;
+
   const c = rfq.contact;
   q.clientCompany = c.company || "";
   q.clientContact = [c.name, c.lastName].filter(Boolean).join(" ");
