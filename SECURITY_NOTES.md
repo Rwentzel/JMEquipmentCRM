@@ -22,7 +22,7 @@ Validates input, persists the RFQ, returns a crypto-random reference, and — wh
 - **Email delivery:** env-gated via `SMTP_*` + `RFQ_NOTIFY_TO` (src/lib/mail.ts); fire-and-forget, failures audited as `mail_error` with zero PII, RFQ always persisted regardless.
 
 ## Ops desk (`/ops` + `/api/ops/*`)
-- **Auth:** single shared token (`OPS_TOKEN` env). Login sets an httpOnly, sameSite=strict cookie holding a SHA-256 digest of the token; comparisons are constant-time; login endpoint is tightly rate-limited and failures are audited.
+- **Auth:** single shared token (`OPS_TOKEN` env). Login sets an httpOnly, secure, sameSite=strict cookie holding `<expiry>.<nonce>.<HMAC>` signed with the token; comparisons are constant-time; login is rate-limited per client (5 attempts, then 429) and failures are audited. The expiry is **inside the signed payload**, so it is enforced server-side rather than trusted from the browser, and the nonce makes each login a distinct credential. Rotating `OPS_TOKEN` invalidates every existing session. (Previously the cookie was a bare SHA-256 of the token: identical for every login and valid until the token was rotated, with `Max-Age` only a browser-side hint — a captured cookie never expired.)
 - **Modes:** token set → login required. Token unset → **disabled in production**, open in local dev with a visible banner (zero-secret demo).
 - **Pre-launch requirement:** replace the shared token with per-user auth (SSO) before multi-person use; the gate is isolated in `src/lib/opsAuth.ts` for that swap.
 
