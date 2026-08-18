@@ -15,7 +15,9 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import batch_report, export, pipeline, posting, resolution, scanner, snapshots
+from . import (backup as backup_mod, batch_report, cash, config as config_mod,
+               cost_evidence as ce, explain, export, masterdata, payment_matching,
+               periods, pipeline, posting, resolution, scanner, snapshots)
 from .db import data_dir, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -188,6 +190,114 @@ def run_demo(db_path: str | None = None, export_root: Path | None = None) -> dic
     finally:
         bkp.close()
     result["backup"] = {"exists": backup_path.exists(), "bytes": backup_path.stat().st_size}
+
+    # ---- Exchange 3 capabilities -----------------------------------------
+    ex3: dict = {}
+
+    # multi-line document: three rows sharing one invoice number -> one 3-line invoice
+    multi = (b"Type,Customer,Item,Invoice #,Date,Period Date,Qty,Unit Price,Total,Cost,Crating Billed,Crating\n"
+             b"Invoice,Multi Demo Co,Part A,INV-MD1,2026-06-06,2026-06-06,2,100.00,600.00,120.00,0,0\n"
+             b"Invoice,Multi Demo Co,Part B,INV-MD1,2026-06-06,2026-06-06,3,100.00,,150.00,0,0\n"
+             b"Invoice,Multi Demo Co,Part C,INV-MD1,2026-06-06,2026-06-06,1,100.00,,40.00,25.00,20.00\n"
+             b"Payment,Multi Demo Co,Part A,INV-MD1,2026-06-25,2026-06-25,1,300.00,,0,0,0\n")
+    b3 = _import(conn, "multiline.csv", multi, p1, rules)
+    md_doc = conn.execute(
+        """SELECT t.id, t.line_count FROM transactions t
+           JOIN external_identifiers e ON e.entity_id=t.id
+           WHERE e.value='INV-MD1' AND t.transaction_type='invoice'""").fetchone()
+    ex3["multi_line_document"] = {
+        "source_rows": 3, "documents": 1, "line_count": md_doc["line_count"],
+        "flagged_as_duplicate": bool(conn.execute(
+            "SELECT COUNT(*) FROM transactions WHERE id=? AND review_status='rejected'",
+            (md_doc["id"],)).fetchone()[0]),
+        "invoiced_total": str(cash.invoice_total(conn, md_doc["id"]).rounded()),
+    }
+
+    # cash application: propose a match, approve it, show the bridge move
+    scope_p1 = ReportScope.for_period(p1, DEFAULT_POLICY)
+    before = cash.cash_bridge(conn, scope_p1)
+    proposals = payment_matching.propose_matches(conn, scope_p1)
+    applied = 0
+    if proposals:
+        # An operator approves the best proposal; approval — not the score — is the control.
+        payment_matching.apply_proposal(conn, proposals[0], approved_by="demo-operator")
+        applied = 1
+    after = cash.cash_bridge(conn, scope_p1)
+    ex3["cash_application"] = {
+        "proposals": len(proposals), "auto_applied_without_approval": 0,
+        "approved_and_applied": applied,
+        "outstanding_before": before["outstanding_receivable"],
+        "outstanding_after": after["outstanding_receivable"],
+        "collected_after": after["collected_cash_applied"],
+    }
+
+    # configurable vendor evidence upgrading a cost classification
+    config_mod.bootstrap(conn, actor="demo")
+    ev_line = conn.execute(
+        """SELECT rv.transaction_line_id AS id, rv.level AS before FROM record_verifications rv
+           WHERE rv.calculation_type='cost' AND rv.level != 'verified' LIMIT 1""").fetchone()
+    if ev_line:
+        ev = resolution.apply_cost_evidence(
+            conn, transaction_line_id=ev_line["id"], evidence_type=ce.VENDOR_BILL,
+            policy=DEFAULT_POLICY, matrix=EvidenceMatrix(), amount="75.00",
+            source_reference="PO-DEMO")
+        ex3["alternative_cost_evidence"] = {
+            "evidence": "vendor_bill (an alternative to the intake cost field)",
+            "cost_level_before": ev_line["before"], "cost_level_now": ev["cost_level"],
+            "new_snapshots": ev["new_snapshots"]}
+
+    # period lifecycle with an authorized reopen
+    periods.transition(conn, p2, periods.UNDER_REVIEW, actor="demo")
+    periods.transition(conn, p2, periods.VERIFIED, actor="demo")
+    periods.lock(conn, p2, actor="demo")
+    lock_state = periods.get(conn, p2).state
+    try:
+        periods.reopen(conn, p2, reason="", authorized_by="demo")
+        refused = False
+    except periods.PeriodError:
+        refused = True
+    periods.reopen(conn, p2, reason="late vendor bill", authorized_by="demo-controller")
+    ex3["period_lifecycle"] = {
+        "locked": lock_state == "locked", "reopen_without_reason_refused": refused,
+        "state_after_authorized_reopen": periods.get(conn, p2).state,
+        "transitions_recorded": len(periods.history(conn, p2)),
+    }
+
+    # traceability
+    trace = explain.explain_transaction(conn, md_doc["id"])
+    ex3["traceability"] = {
+        "lines_explained": len(trace["lines"]),
+        "snapshot_kinds_on_line_1": len(trace["lines"][0]["current_snapshots"]),
+        "source_row_preserved": trace["lines"][0]["source_row"] is not None,
+        "gross_profit_inputs": sorted(trace["lines"][0]["current_snapshots"]["gross_profit"]["inputs"]),
+    }
+
+    # master data
+    cust = masterdata.search(conn, "customer", "Multi Demo")[0]
+    ex3["master_data"] = {
+        "customer": cust["name"],
+        "price_history_entries": len(masterdata.customer_profile(conn, cust["id"])["price_history"]),
+        "duplicate_master_groups": len(masterdata.potential_duplicate_masters(conn, "customer")),
+    }
+
+    # configuration versioning
+    config_mod.upsert_commission_rule(conn, source_code="CR-GP10", name="GP 12%",
+                                      basis="gross_profit", rate="12%", actor="demo")
+    ex3["configuration"] = {
+        "active_commission_rules": len(config_mod.commission_rules(conn)),
+        "all_rule_versions": len(config_mod.commission_rules(conn, include_inactive=True)),
+        "policy_versions": len(config_mod.policy_history(conn)),
+    }
+    result["exchange3"] = ex3
+
+    # backup validation + restore preview (non-destructive)
+    conn.commit()
+    validated = backup_mod.validate_backup(backup_path)
+    preview = backup_mod.preview_restore(backup_path, dbp)
+    result["backup"]["validated"] = validated.ok
+    result["backup"]["schema"] = validated.schema_version
+    result["restore_preview"] = {"safe_to_restore": preview["safe_to_restore"],
+                                 "active_database_exists": preview["active_database_exists"]}
 
     rep = scanner.scan_paths([FIXTURE_1, Path(__file__)])
     result["confidentiality_scan"] = {"summary": rep.summary(), "ok": rep.ok}
