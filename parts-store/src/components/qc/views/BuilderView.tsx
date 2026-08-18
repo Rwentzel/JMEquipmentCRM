@@ -22,6 +22,7 @@ import {
   resolvedSubtitle,
   statusMeta,
   usd,
+  usdAuto,
 } from "@/lib/qc/logic";
 import { QuoteDoc } from "@/components/qc/QuoteDoc";
 import { NumberInput } from "@/components/NumberInput";
@@ -121,20 +122,20 @@ export function BuilderView({ app }: { app: QcApp }) {
   const cfg = (bqM && bqM.cfg) || null;
   const hasConfig = !!cfg;
   const summaryRows: { label: string; amount: string; style: React.CSSProperties }[] = [
-    { label: "Subtotal", amount: usd(pb.subtotal), style: {} },
+    { label: "Subtotal", amount: usdAuto(pb.subtotal), style: {} },
   ];
   if (pb.discount > 0)
     summaryRows.push({
       label: bq.discMode === "pct" ? "Discount " + (+(bq.discPct || 0)) + "%" : "Discount",
-      amount: "−" + usd(pb.discount),
+      amount: "−" + usdAuto(pb.discount),
       style: { color: "var(--jme-red)" },
     });
-  if (pb.tariff > 0) summaryRows.push({ label: "Import tariff " + pb.tariffPct + "%", amount: usd(pb.tariff), style: {} });
-  if (pb.freight > 0) summaryRows.push({ label: "Freight", amount: usd(pb.freight), style: {} });
-  if (pb.tax > 0) summaryRows.push({ label: "Tax " + pb.taxPct + "%", amount: usd(pb.tax), style: {} });
+  if (pb.tariff > 0) summaryRows.push({ label: "Import tariff " + pb.tariffPct + "%", amount: usdAuto(pb.tariff), style: {} });
+  if (pb.freight > 0) summaryRows.push({ label: "Freight", amount: usdAuto(pb.freight), style: {} });
+  if (pb.tax > 0) summaryRows.push({ label: "Tax " + pb.taxPct + "%", amount: usdAuto(pb.tax), style: {} });
   const marginColor = pb.marginPct >= 25 ? "var(--jme-green)" : pb.marginPct >= 15 ? "var(--jme-gold)" : "var(--jme-red)";
   const marginStr = pb.afterDisc > 0 ? pb.marginPct + "%" : "—";
-  const totalStr = pb.total > 0 ? usd(pb.total) : "Consult";
+  const totalStr = pb.total > 0 ? usdAuto(pb.total) : "Consult";
   const activity = deriveActivity(bq).slice().reverse();
   const doc = buildDoc(bq, bqM, app.settings);
 
@@ -296,7 +297,7 @@ export function BuilderView({ app }: { app: QcApp }) {
                     >
                       <input type="checkbox" checked={(bq.cfgOpts || []).indexOf(o.key) >= 0} onChange={() => app.toggleCfgOpt(o.key)} />
                       <span style={{ flex: 1 }}>{o.label}</span>
-                      <span className="jme-mono" style={{ fontSize: "12px", color: "var(--jme-red)" }}>{"+" + usd(o.amount)}</span>
+                      <span className="jme-mono" style={{ fontSize: "12px", color: "var(--jme-red)" }}>{"+" + usdAuto(o.amount)}</span>
                     </label>
                   ))}
                 </>
@@ -490,7 +491,7 @@ export function BuilderView({ app }: { app: QcApp }) {
                   {p.name}
                 </div>
                 <div className="jme-mono" style={{ fontSize: "10px", color: "var(--jme-red)" }}>
-                  {p.rfq ? "RFQ" : usd(p.price) + " ea"}
+                  {p.rfq ? "RFQ" : usdAuto(p.price) + " ea"}
                 </div>
               </div>
               <NumberInput
@@ -600,7 +601,7 @@ export function BuilderView({ app }: { app: QcApp }) {
                 Est. Margin · internal
               </span>
               <span className="jme-mono" style={{ fontSize: "13px", color: marginColor }}>
-                {marginStr} · {usd(pb.marginAmt)}
+                {marginStr} · {usdAuto(pb.marginAmt)}
               </span>
             </div>
           </div>

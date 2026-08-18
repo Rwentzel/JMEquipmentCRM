@@ -61,6 +61,24 @@ export function usd2(n: number): string {
   return "$" + Number(+n || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/**
+ * Money for the internal builder: cents only when there are cents.
+ *
+ * The builder rounded every figure to whole dollars while the client document
+ * printed cents, so the desk read one number off the screen and the customer
+ * read another off the quote. A part priced $224.85 showed as "$225 ea" while
+ * the line on the customer's copy came to $899.40 for four — a difference the
+ * desk could not reconcile against its own screen. Fifteen catalogue parts
+ * carry cents today, and any typed amount can now.
+ *
+ * Whole dollars still print without a trailing ".00", so nothing in the
+ * builder gets noisier than it was.
+ */
+export function usdAuto(n: number): string {
+  const v = +n || 0;
+  return Math.round(v * 100) % 100 === 0 ? usd(v) : usd2(v);
+}
+
 export function usdShort(n: number): string {
   n = Math.round(+n || 0);
   const a = Math.abs(n);
