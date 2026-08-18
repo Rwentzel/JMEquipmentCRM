@@ -3,7 +3,7 @@ import type { GoodstrongModel } from "@/data/types";
 
 export function ManualIndex({ model }: { model: GoodstrongModel }) {
   return (
-    <div className="gs-page">
+    <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
           <div className="ps-sechd">
@@ -28,7 +28,7 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
               const hasDiagram = Boolean(model.diagrams[s.id]?.length);
               const body = (
                 <div className="jme-card__body">
-                  <h3>{s.label}</h3>
+                  <h2>{s.label}</h2>
                   <span className="jme-mono ps-fine">p. {s.pageLabel}</span>
                   {s.drawings && s.drawings.length > 0 && (
                     <span className="ps-fine gs-sectioncard__count">
@@ -53,6 +53,6 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "Shipping terms, freight quoting, and delivery information for JM Equipment parts and machinery.",
   robots: pageRobots(),
+  alternates: { canonical: "/freight" },
 };
 
 export default function FreightPage() {

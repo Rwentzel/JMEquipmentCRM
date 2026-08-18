@@ -12,7 +12,7 @@ export function GoodstrongPicker() {
   const [serialOpen, setSerialOpen] = useState(false);
 
   return (
-    <div className="gs-page">
+    <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
           <div className="ps-sechd">
@@ -43,7 +43,7 @@ export function GoodstrongPicker() {
                   </div>
                 )}
                 <div className="jme-card__body">
-                  <h3>{m.label}</h3>
+                  <h2>{m.label}</h2>
                   <p className="ps-fine">View manual sections, exploded-view diagrams, and order parts.</p>
                   <Button block variant="ghost">
                     View parts &amp; manual
@@ -63,6 +63,6 @@ export function GoodstrongPicker() {
           router.push(`/parts/goodstrong/${modelId}`);
         }}
       />
-    </div>
+    </main>
   );
 }

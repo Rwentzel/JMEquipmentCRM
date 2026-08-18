@@ -80,7 +80,7 @@ export function MachineDetailClient({
   }, [prev, next]);
 
   return (
-    <div>
+    <main>
       {/* Top bar */}
       <div className="md-top">
         <div className="md-top__in">
@@ -293,7 +293,7 @@ export function MachineDetailClient({
               <div className="md-step" key={s.n}>
                 <span className="md-step__n">{s.n}</span>
                 <div>
-                  <h4>{s.t}</h4>
+                  <h3>{s.t}</h3>
                   <p>{s.d}</p>
                 </div>
               </div>
@@ -308,7 +308,7 @@ export function MachineDetailClient({
           <Eyebrow>Specifications</Eyebrow>
           <h2>Specs</h2>
           <div className="md-grid-2">
-            <DataPlate title={machine.name} sku={machine.sku} rows={machine.specs} />
+            <DataPlate title={machine.name} sku={machine.sku} rows={machine.specs} headingLevel={3} />
             <Callout title="Proof">
               <div className="md-proof">
                 <StatBlock stats={[{ value: detail.proof.stat, label: detail.proof.label }]} />
@@ -327,7 +327,7 @@ export function MachineDetailClient({
           <div className="md-grid-3">
             {detail.apps.map((a) => (
               <div className="md-appcard" key={a}>
-                <h4>{a}</h4>
+                <h3>{a}</h3>
               </div>
             ))}
           </div>
@@ -387,7 +387,7 @@ export function MachineDetailClient({
             {detail.downloads.map((d) => (
               <div className="md-rescard" key={d.t}>
                 <Tag tone="consult">PDF</Tag>
-                <h4>{d.t}</h4>
+                <h3>{d.t}</h3>
                 <p>{d.m}</p>
                 <p className="md-rescard__note">
                   Available on request — sandbox build.
@@ -401,6 +401,6 @@ export function MachineDetailClient({
       <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
         {message && <Toast tone="green">{message}</Toast>}
       </div>
-    </div>
+    </main>
   );
 }

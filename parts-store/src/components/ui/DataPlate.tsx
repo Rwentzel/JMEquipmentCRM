@@ -14,18 +14,27 @@ export function DataPlate({
   sku,
   rows = [],
   children,
+  headingLevel = 4,
 }: {
   title?: string;
   sku?: string;
   rows?: Row[];
   children?: ReactNode;
+  /**
+   * Heading level for the plate title. The plate is reused under headings of
+   * different ranks (an h3 card on the home page, an h2 section on a machine
+   * page), and a fixed level would skip a rank in one of them. Styling is
+   * class-based, so the level only affects document structure.
+   */
+  headingLevel?: 3 | 4;
 }) {
+  const Title = `h${headingLevel}` as "h3" | "h4";
   return (
     <div className="jme-plate">
       <span className="jme-plate__rivets" aria-hidden />
       {(title || sku) && (
         <div className="jme-plate__hd">
-          <h4>{title}</h4>
+          <Title>{title}</Title>
           {sku && <span className="jme-plate__sku">{sku}</span>}
         </div>
       )}

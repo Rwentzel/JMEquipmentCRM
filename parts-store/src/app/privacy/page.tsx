@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "How JM Equipment Inc. collects, uses, and protects your information.",
   robots: pageRobots(),
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

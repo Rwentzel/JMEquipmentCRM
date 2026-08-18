@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description:
     "Find parts and manual sections for Goodstrong 1600, 1600-E, and 1650 sheeters. Look up your machine by serial number or model.",
   robots: pageRobots(),
+  alternates: { canonical: "/parts/goodstrong" },
 };
 
 export default function GoodstrongIndexPage() {
