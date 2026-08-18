@@ -139,6 +139,37 @@ test("sourcing questions get a sourcing refusal, not a pricing one", async () =>
   for (const leak of [/vendor is/i, /supplied by/i, /\$\s?\d/]) assert.doesNotMatch(res.answer, leak);
 });
 
+test("sourcing questions are caught however the customer phrases them", async () => {
+  // The screen keyed on the noun ("supplier") and missed the verb, so
+  // "who supplies your bearings" was answered with a bearing parts listing —
+  // harmless in itself, but it is the wrong answer to a boundary question.
+  for (const q of [
+    "who supplies your bearings",
+    "who do you buy your belts from",
+    "where are these sourced",
+    "who is supplying the blades",
+    "are these supplied by Tidland",
+  ]) {
+    const res = await answerSupportQuestion(q);
+    assert.match(res.answer, /don't discuss sourcing/i, `not guarded: "${q}"`);
+  }
+});
+
+test("the wider sourcing net does not swallow ordinary questions", async () => {
+  // Broadening the screen is only safe if real customer questions still get
+  // real answers — an over-eager guard is its own kind of broken.
+  for (const q of [
+    "What sheeters do you carry?",
+    "Do you rebuild Martin rollstands?",
+    "Does part 1216-8YU-30 fit a 1600-E?",
+    "What is your lead time on a core splitter?",
+    "How do I get a quote?",
+  ]) {
+    const res = await answerSupportQuestion(q);
+    assert.doesNotMatch(res.answer, /don't discuss sourcing/i, `over-blocked: "${q}"`);
+  }
+});
+
 test("stock-count questions get a stock refusal that explains the bands", async () => {
   const res = await answerSupportQuestion("How many do you have in stock right now?");
   assert.match(res.answer, /don't publish exact stock counts/i);
