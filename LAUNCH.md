@@ -67,10 +67,17 @@ Fly prints to the jmequipment.net DNS.
 3. Log into `/ops` with `OPS_TOKEN` → the RFQ is in the inbox; move it to `reviewing`; **Export CSV** downloads the book.
 4. Run all three agent panels — maintenance must report **all checks passing**.
 5. Ask the storefront assistant a pricing question → it must refuse with the written-quote policy.
-6. In `/ops`, hit **Create quote →** on the request from step 1: it opens the
+6. **On a phone**, walk the parts path end to end: `/parts/goodstrong` →
+   **I know my serial number** → enter a real serial (e.g. `37422`) → it lands
+   on that model's manual → open a section → tap a parts row → set a quantity
+   on the keypad → **Add to request**. The line item must reach the request
+   form carrying its provenance (model · section · page · callout number). An
+   unrecognised serial must offer the parts-desk phone number, not fail
+   silently.
+7. In `/ops`, hit **Create quote →** on the request from step 1: it opens the
    Quote Center builder pre-filled with that customer and their line items,
    and the RFQ moves to `quoted`.
-7. Quote Center (`/quotes`, same `OPS_TOKEN`): build a quote → **Save** → **Copy Link**.
+8. Quote Center (`/quotes`, same `OPS_TOKEN`): build a quote → **Save** → **Copy Link**.
    Open that link in a private window: the quote renders, **Download PDF** prints
    clean, and trimming the token from the URL must give a 404. Sign it → the
    `[ACCEPTED]` email lands at `RFQ_NOTIFY_TO` and the pipeline shows *Accepted*.
