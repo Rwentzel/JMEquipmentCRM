@@ -132,6 +132,17 @@ if (process.env.OPS_TOKEN) {
   console.log(`\nSKIP  ${STAFF_ROUTES.length} staff routes — set OPS_TOKEN to audit /ops and the Quote Center.`);
 }
 
+// The customer's quote page needs a real id and capability token, so it can
+// only be audited against a server that has one. Pass the path to include it:
+//   A11Y_QUOTE_PATH=/q/<id>/<token> node scripts/a11y-audit.mjs
+// It is the page the buyer opens and prints, so it is worth the extra step.
+if (process.env.A11Y_QUOTE_PATH) {
+  await audit("client quote link", process.env.A11Y_QUOTE_PATH);
+  await audit("client quote link (mobile)", process.env.A11Y_QUOTE_PATH, null, MOBILE);
+} else {
+  console.log("\nSKIP  client quote page — set A11Y_QUOTE_PATH=/q/<id>/<token> to audit it.");
+}
+
 await browser.close();
 
 if (failures > 0) {
@@ -139,4 +150,7 @@ if (failures > 0) {
   process.exit(1);
 }
 const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
-console.log(`\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount} page states.`);
+const quoteCount = process.env.A11Y_QUOTE_PATH ? 2 : 0;
+console.log(
+  `\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states.`,
+);

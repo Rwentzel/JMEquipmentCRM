@@ -252,3 +252,51 @@
  * someone reads because they need to dial it. Set at the element (the colour
  * is inline there), with this as the backstop for anything else in the foot. */
 .qc-sidefoot span { color: #838389; }
+
+/* --------------------------------------- Client quote document contrast ---
+ *
+ * This is the page the customer opens from the emailed link, and the one they
+ * print. Its section headings — "Quotation", "Pricing Summary", "Terms &
+ * Conditions", "Equipment Specifications" — were --paper-dim on white at
+ * 2.06:1, along with the quote number, the validity line and the signature
+ * caption. Low contrast is worse on paper than on screen, and this document
+ * gets printed.
+ *
+ * The document is a dark banner over a white body, so the light-surface text
+ * tokens are corrected for the body and restored for the banner. The ROI panel
+ * is its own dark block and keeps the light treatment too.
+ */
+#jme-print-doc {
+  --paper-dim: #63636a;
+  --paper-faint: #63636a;
+  --subtle: #63636a;
+  --jme-gold: #806509;
+}
+
+/* Matched on the background specifically, not just a mention of the variable —
+ * the section headers use it for a border-bottom. Both spellings, because the
+ * browser reserialises inline styles with a space after the colon. */
+#jme-print-doc > div:first-child,
+#jme-print-doc [style*="background:var(--jme-charcoal)"],
+#jme-print-doc [style*="background: var(--jme-charcoal)"] {
+  --paper-dim: #b9b4aa;
+  --paper-faint: #9e9990;
+  --subtle: #9a9a9f;
+  --jme-gold: #b8920a;
+}
+
+/* The ROI panel's stat captions are the bright brand red on charcoal, 3.19:1.
+ * Softened only inside that panel; the red stays the red everywhere else. */
+#jme-print-doc [style*="background:var(--jme-charcoal)"] [style*="--jme-red-bright"],
+#jme-print-doc [style*="background: var(--jme-charcoal)"] [style*="--jme-red-bright"] { color: #cd6866 !important; }
+
+/* The ROI figures are 30px mono in three fixed columns. On a 390px phone the
+ * third one ("5-Year Net") ran 13px past the edge, so the customer had to
+ * scroll sideways to read the end of their own quote. */
+@media screen and (max-width: 700px) {
+  #jme-print-doc [style*="repeat(3,1fr)"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  #jme-print-doc [style*="repeat(3,1fr)"] > div { min-width: 0; }
+  #jme-print-doc [style*="repeat(3,1fr)"] b { font-size: 24px !important; }
+}
