@@ -104,7 +104,12 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       company: updated.clientCompany,
       contact: updated.clientContact || "",
       contactEmail: updated.clientEmail || "",
-      machine: machine ? `${machine.name} (${machine.sku})` : "Parts / components",
+      // Describe what the customer signed, taken from the document they signed.
+      // Asking the catalogue entry instead reported "Parts / components" for a
+      // guillotine cutter with no Quote Center entry attached, and the
+      // catalogue's own SKU and default build for anything configured — and
+      // this is the text the rep confirms deposit terms against.
+      machine: `${doc.machineName} (${doc.sku})${doc.machineSubtitle ? ` — ${doc.machineSubtitle}` : ""}`,
       total: doc.pricing.total,
       signedName: name,
       signedDate,

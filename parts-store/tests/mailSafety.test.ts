@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatRfqEmail, notifyFrom } from "../src/lib/mail";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { formatQuoteAcceptedEmail, formatRfqEmail, notifyFrom } from "../src/lib/mail";
 import type { StoredRfq } from "../src/lib/rfqStore";
 
 function rfq(contact: Record<string, unknown>, message = ""): StoredRfq {
@@ -97,4 +99,45 @@ test("an SMTP username that is an address is still honoured, and RFQ_NOTIFY_FROM
   } finally {
     process.env = saved;
   }
+});
+
+/* ---- the acceptance notice must describe what was actually signed ---- */
+
+test("the desk's acceptance notice names the machine, not the catalogue lookup", async () => {
+  // It asked the Quote Center catalogue what was being quoted, so a signed
+  // guillotine cutter with no entry attached reported "Parts / components" —
+  // and this is the text the rep confirms deposit terms against. It must come
+  // from the document the customer signed, which already resolves the machine
+  // name, the ordered SKU and the requested build. Pinned to the handler
+  // source: the same fix shipped once before with the unit tests passing and
+  // the running server unchanged.
+  const route = await readFile(
+    path.join(import.meta.dirname, "..", "src", "app", "api", "qc", "shared", "[id]", "route.ts"),
+    "utf8",
+  );
+  const line = route.split("\n").find((l) => l.trim().startsWith("machine:"));
+  assert.ok(line, "the acceptance notice must still carry a machine line");
+  assert.match(line, /doc\.machineName/, "must describe the signed document, not the catalogue entry");
+  assert.match(line, /doc\.sku/, "the SKU the customer ordered, not the catalogue's default build");
+  assert.ok(
+    !/machine\s*\?/.test(line),
+    'reading the catalogue entry reports "Parts / components" for a machine with no entry attached',
+  );
+});
+
+test("the acceptance notice still carries no cost or margin", () => {
+  const { subject, text } = formatQuoteAcceptedEmail({
+    number: "Q-26-0818-09",
+    company: "Mail Co",
+    contact: "Sam",
+    contactEmail: "sam@mail.example",
+    machine: "Guillotine Cutter (JME-GC-52) — to 52 in · Programmable",
+    total: "By Consultation",
+    signedName: "Sam Rivera",
+    signedDate: "Aug 18, 2026",
+    rep: "J. Miller",
+  });
+  assert.match(subject, /\[ACCEPTED\] Q-26-0818-09/);
+  assert.match(text, /Equipment: Guillotine Cutter \(JME-GC-52\)/);
+  assert.ok(!/margin|Your Cost|\bcost\b/i.test(text), "the desk notice is quoted back in follow-ups");
 });
