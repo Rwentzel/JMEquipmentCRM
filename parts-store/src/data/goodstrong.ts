@@ -246,7 +246,9 @@ export const goodstrongModels: GoodstrongModel[] = [
     label: "Goodstrong 1600",
     photo: null,
     serialPattern: "Pending — no 1600 (non-E) manual in the Drive folder yet",
-    // The GMC-TC platform shares its section structure; drawings/pages pending its own catalogue.
+    // The GMC-TC platform shares its section structure, so the index is useful
+    // as a guide — but the page labels are the 1600-E book's, not this one's.
+    sectionsFrom: "1600e",
     sections: GMC_TC_1600E_SECTIONS.map(({ drawings: _d, ...s }) => s),
     diagrams: {},
   },
@@ -268,6 +270,7 @@ export const goodstrongModels: GoodstrongModel[] = [
     machineSku: "GMC-TCII-1650",
     photo: "sheeter-1650.jpg",
     serialPattern: "Pending — no 1650 catalogue in the Drive folder yet",
+    sectionsFrom: "1600e",
     sections: GMC_TC_1600E_SECTIONS.map(({ drawings: _d, ...s }) => s),
     diagrams: {},
   },

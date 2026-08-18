@@ -150,6 +150,14 @@ export interface GoodstrongModel {
   machineSku?: string;
   photo: string | null;
   serialPattern: string;
+  /**
+   * Which model's factory catalogue the section index and its page labels were
+   * transcribed from. Absent means this model's own. When it names a DIFFERENT
+   * model, those page numbers belong to another machine's book and must never
+   * be presented to the customer as their own — quoting them down the phone
+   * sends the desk to the wrong drawing.
+   */
+  sectionsFrom?: string;
   sections: ManualSection[];
   diagrams: Record<string, DiagramPage[]>;
 }
