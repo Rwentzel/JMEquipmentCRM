@@ -89,6 +89,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 ### 17. Accessibility
 - ✅ focus-visible, reduced-motion, alt text, semantic landmarks
 - ✅ Keyboard-focusable nav, mobile menu, ARIA on interactive controls
+- ✅ Contrast decisions locked by `tests/contrast.test.ts` — token-level WCAG
+  maths in the normal test run (no browser), so a palette edit that pushes body
+  text back under 4.5:1 fails CI with the exact pair and ratio named
 - ✅ **WCAG 2.1 AA audit passing** — axe-core over a real browser, 13 page states
   (8 routes + mobile + assistant widget, category rail, mobile nav, populated
   request list): **0 violations**. Reproduce with `node scripts/a11y-audit.mjs`.
