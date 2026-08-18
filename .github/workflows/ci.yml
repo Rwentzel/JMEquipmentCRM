@@ -28,19 +28,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Blocking gate: anything that ships to a customer's browser or the
-      # production server. This is the security promise that matters.
+      # Shipped code is gated hard: any moderate+ advisory in a runtime
+      # dependency fails the build.
       - name: Dependency audit — production (fail on moderate+)
-        run: npm audit --omit=dev --audit-level=moderate
+        run: npm audit --audit-level=moderate --omit=dev
 
-      # Advisory only: build-time tooling (eslint, tsx, types) never reaches
-      # production, and its advisories are frequently unfixable without
-      # breaking the toolchain — GHSA-mh99-v99m-4gvg is only patched in
-      # brace-expansion 5.x, whose export shape breaks eslint's minimatch 3.x,
-      # and eslint 10 breaks eslint-plugin-react. Surfaced here so the risk is
-      # visible and reviewed rather than silently dropped.
-      - name: Dependency audit — dev toolchain (advisory, non-blocking)
-        run: npm audit --audit-level=moderate || echo "::warning::Dev-only advisories above; see SECURITY_NOTES.md for the policy."
+      # Build-time tooling is reported but not gated: advisories there can be
+      # unfixable for months when the only patched release requires a major
+      # upgrade the toolchain does not support yet (today: brace-expansion
+      # GHSA-mh99-v99m-4gvg, fixed only in eslint 10, which eslint-config-next
+      # cannot load). Review this output — see SECURITY_NOTES.md.
+      - name: Dependency audit — dev tooling (report only)
+        run: npm audit --audit-level=moderate || true
+        continue-on-error: true
 
       - name: Type check
         run: npm run typecheck

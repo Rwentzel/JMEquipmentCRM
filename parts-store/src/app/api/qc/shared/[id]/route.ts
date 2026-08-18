@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { sendQuoteAcceptedNotification } from "@/lib/mail";
 import { rateLimit } from "@/lib/rateLimit";
 import { buildDoc, deriveActivity, nowISO } from "@/lib/qc/logic";
 import { mutateQuote, readQcState } from "@/lib/qc/store";
@@ -81,6 +82,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     return NextResponse.json({ ok: false }, { status: 404 });
   }
 
+  const alreadySigned = target.status === "accepted" || target.status === "won";
   const signedDate = new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" });
   const updated = await mutateQuote(id, (q) => {
     if (q.status === "accepted" || q.status === "won") return q;
@@ -97,5 +99,23 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   const state = await readQcState();
   const machine = updated.machineId ? state.catalog.find((m) => m.id === updated.machineId) || null : null;
   const doc = buildDoc(updated, machine, state.settings);
+
+  // Tell the desk — the client page promises this. Fire-and-forget: a mail
+  // failure must never fail an acceptance that is already persisted, and
+  // re-opening an accepted quote must not re-notify.
+  if (!alreadySigned && doc) {
+    void sendQuoteAcceptedNotification({
+      number: updated.number,
+      company: updated.clientCompany,
+      contact: updated.clientContact || "",
+      contactEmail: updated.clientEmail || "",
+      machine: machine ? `${machine.name} (${machine.sku})` : "Parts / components",
+      total: doc.pricing.total,
+      signedName: name,
+      signedDate,
+      rep: updated.rep || state.settings.rep,
+    });
+  }
+
   return NextResponse.json({ ok: true, doc, canAccept: false });
 }

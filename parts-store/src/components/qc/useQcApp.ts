@@ -9,7 +9,6 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   applyPricedAxes,
   blankQuote,
@@ -78,6 +77,8 @@ export interface QcApp {
   closeLoss(): void;
   setLossReason(reason: string): void;
   copyLink(id: string): void;
+  openClientView(id: string): void;
+  confirmDeleteQuote(id: string): void;
   emailQuote(q: QcQuote): void;
   previewClient(): void;
   sendCurrent(): void;
@@ -131,7 +132,6 @@ export interface QcApp {
 }
 
 export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPart[]): QcApp {
-  const router = useRouter();
   const [quotes, setQuotes] = useState<QcQuote[]>(initialState.quotes);
   const [clients, setClients] = useState<QcClient[]>(initialState.clients);
   const [settings, setSettings] = useState<QcSettings>(initialState.settings);
@@ -152,14 +152,103 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
   const [toast, setToast] = useState<QcToast | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* ------------------------------------------------------------ persist --- */
-  const persist = useCallback((patch: Partial<QcState>) => {
-    void fetch("/api/qc/state", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    }).catch(() => undefined);
-  }, []);
+  /* ------------------------------------------------------------ persist ---
+   * Writes replace whole segments, so a PUT-per-keystroke both floods the
+   * server and lets a slow early request land after a fast later one.
+   * Patches are merged by segment, flushed on a short trailing debounce, and
+   * strictly serialized — only one request is ever in flight, and anything
+   * queued while it runs goes in the next one.
+   *
+   * A failed write is re-queued rather than dropped, and surfaces as a toast:
+   * silently discarding it is how an expired ops session turned a full day of
+   * quoting into nothing while the UI kept saying "Quote saved". */
+  const pending = useRef<Partial<QcState>>({});
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlight = useRef(false);
+  const writeFailed = useRef(false);
+  // showToast is defined below (it owns the toast timer); the persist layer
+  // reaches it through a ref so neither has to depend on the other.
+  const showToastRef = useRef<((msg: string, tone?: "red" | "green") => void) | null>(null);
+  // flush retries itself after an in-flight write finishes; the ref keeps that
+  // self-reference legal inside its own useCallback.
+  const flushRef = useRef<((opts?: { unloading?: boolean }) => void) | null>(null);
+
+  const flush = useCallback(
+    (opts: { unloading?: boolean } = {}) => {
+      if (flushTimer.current) {
+        clearTimeout(flushTimer.current);
+        flushTimer.current = null;
+      }
+      if (!Object.keys(pending.current).length) return;
+      if (inFlight.current && !opts.unloading) return; // the in-flight write's tail will pick it up
+      const patch = pending.current;
+      pending.current = {};
+      inFlight.current = true;
+      // keepalive ONLY when the page is going away: it caps the body at 64 KiB,
+      // which a catalog carrying an embedded machine photo blows straight past.
+      void fetch("/api/qc/state", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+        ...(opts.unloading ? { keepalive: true } : {}),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error(String(res.status));
+          const data = (await res.json().catch(() => null)) as
+            | { state?: QcState; conflicts?: string[] }
+            | null;
+          if (writeFailed.current) {
+            writeFailed.current = false;
+            showToastRef.current?.("Saved — connection restored", "green");
+          }
+          // Reconcile with what the server actually stored — a quote the
+          // customer signed while this tab was open comes back as the server
+          // holds it. Skip it when newer local edits are already queued (they
+          // would be visibly stomped and then re-sent a moment later); a
+          // refused write is the exception, since the user must see the truth.
+          const conflicted = !!data?.conflicts?.length;
+          const quiet = !Object.keys(pending.current).length;
+          if (data?.state?.quotes && (quiet || conflicted)) setQuotes(data.state.quotes);
+          if (conflicted) showToastRef.current?.("Refreshed — that quote changed elsewhere");
+        })
+        .catch(() => {
+          // Put the work back at the front of the queue so the next flush retries it.
+          pending.current = { ...patch, ...pending.current };
+          if (!writeFailed.current) {
+            writeFailed.current = true;
+            showToastRef.current?.("NOT SAVED — check your connection or sign in again");
+          }
+        })
+        .finally(() => {
+          inFlight.current = false;
+          if (Object.keys(pending.current).length) {
+            flushTimer.current = setTimeout(() => flushRef.current?.(), 800);
+          }
+        });
+    },
+    [],
+  );
+  useEffect(() => {
+    flushRef.current = flush;
+  }, [flush]);
+
+  const persist = useCallback(
+    (patch: Partial<QcState>) => {
+      pending.current = { ...pending.current, ...patch };
+      if (flushTimer.current) clearTimeout(flushTimer.current);
+      flushTimer.current = setTimeout(() => flush(), 400);
+    },
+    [flush],
+  );
+
+  useEffect(() => {
+    const onHide = () => flush({ unloading: true });
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      window.removeEventListener("pagehide", onHide);
+      flush({ unloading: true });
+    };
+  }, [flush]);
 
   const commitQuotes = useCallback(
     (qs: QcQuote[]) => {
@@ -203,12 +292,14 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
+  useEffect(() => {
+    showToastRef.current = showToast;
+  }, [showToast]);
 
   /* --------------------------------------------------------- navigation --- */
   const go = useCallback(
     (v: QcView) => {
       setView(v);
-      if (v === "clients") setClientId(null);
       try {
         window.history.pushState(null, "", "/quotes/" + (v === "dash" ? "" : v));
       } catch {
@@ -360,6 +451,30 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       showToast("Client link copied", "green");
     },
     [quotes, bq, shareUrl, showToast],
+  );
+
+  /** Open the customer-facing page exactly as the customer sees it (token and all). */
+  const openClientView = useCallback(
+    (id: string) => {
+      const q = quotes.find((x) => x.id === id);
+      if (!q) return;
+      window.open("/q/" + q.id + "/" + (q.token || ""), "_blank");
+    },
+    [quotes],
+  );
+
+  const confirmDeleteQuote = useCallback(
+    (id: string) => {
+      const q = quotes.find((x) => x.id === id);
+      if (!q) return;
+      const signed = q.status === "accepted" || q.status === "won";
+      const warning = signed
+        ? `\n\nWARNING: this quote was signed by the customer. Deleting it destroys that record and breaks the link they were sent.`
+        : "";
+      if (!window.confirm(`Delete quote ${q.number} for ${q.clientCompany || "this client"}?${warning}\n\nThis cannot be undone.`)) return;
+      deleteQuote(id);
+    },
+    [quotes, deleteQuote],
   );
 
   const emailQuote = useCallback(
@@ -760,6 +875,27 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
   const saveSettings = useCallback(() => showToast("Settings saved", "green"), [showToast]);
 
   const resetData = useCallback(() => {
+    // Destroys every real quote, client and catalog entry — including signed
+    // acceptances — with no undo. Deleting ONE quote asks for confirmation;
+    // destroying all of them cannot be the cheaper click.
+    const live = quotes.length;
+    const signed = quotes.filter((q) => q.status === "accepted" || q.status === "won").length;
+    if (
+      !window.confirm(
+        `Replace ALL Quote Center data with the demo data set?\n\n` +
+          `This permanently deletes ${live} quote${live === 1 ? "" : "s"}` +
+          (signed ? ` (${signed} signed by customers)` : "") +
+          `, ${clients.length} client record${clients.length === 1 ? "" : "s"}, and your equipment catalog.\n\n` +
+          `This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    // Drop any queued segment write — it predates the reset and would
+    // otherwise land afterwards and resurrect the data we just discarded.
+    if (flushTimer.current) clearTimeout(flushTimer.current);
+    flushTimer.current = null;
+    pending.current = {};
     void fetch("/api/qc/state", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -779,9 +915,32 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
         }
       })
       .catch(() => showToast("Could not reset"));
-  }, [showToast]);
+  }, [showToast, quotes, clients.length]);
 
-  useEffect(() => () => router.prefetch("/quotes"), [router]);
+  /**
+   * Pull the server's copy back in when the tab regains focus. The store is
+   * the system of record and it changes without this tab knowing — a customer
+   * signing a quote is the case that matters — so a tab left open all day
+   * would otherwise keep showing (and re-sending) a stale snapshot.
+   */
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      if (inFlight.current || Object.keys(pending.current).length) return; // don't clobber unsaved edits
+      void fetch("/api/qc/state")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (d?.state?.quotes) setQuotes(d.state.quotes);
+        })
+        .catch(() => undefined);
+    };
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
 
   return useMemo<QcApp>(
     () => ({
@@ -821,6 +980,8 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       closeLoss: () => setLossModal(null),
       setLossReason: (reason: string) => setLossModal((lm) => (lm ? { ...lm, reason } : lm)),
       copyLink,
+      openClientView,
+      confirmDeleteQuote,
       emailQuote,
       previewClient,
       sendCurrent,
@@ -878,7 +1039,7 @@ export function useQcApp(initialView: QcView, initialState: QcState, parts: QcPa
       quotes, clients, settings, catalog, parts, view, bq, equipCat, partQuery, partFam, pipeFilter, pipeQuery,
       pipeSort, clientId, editEquip, searchOpen, searchQuery, lossModal, toast, machine, effPhoto, baseUrl,
       showToast, go, navNewQuote, startQuote, editQuote, duplicateQuote, deleteQuote, saveQuote, setStatus,
-      onPipeStatus, confirmLoss, copyLink, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
+      onPipeStatus, confirmLoss, copyLink, openClientView, confirmDeleteQuote, emailQuote, previewClient, sendCurrent, setBq, onMachineChange,
       pickConfig, toggleCfgOpt, addAddon, setAddon, removeAddon, setPartQty, removePart, addPartToQuote,
       loadClientInto, saveClientFromBq, addClient, setClientField, deleteClient, startQuoteForClient,
       addMachine, removeMachine, setMachineField, setMachinePhoto, addMachineSpec, setMachineSpec,

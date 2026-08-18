@@ -26,6 +26,9 @@ export type AuditKind =
   | "ops_export"
   | "qc_change"
   | "qc_accept"
+  | "qc_write_conflict"
+  | "qc_store_corrupt"
+  | "rfq_store_corrupt"
   | "mail_sent"
   | "mail_error"
   | "agent_run";
