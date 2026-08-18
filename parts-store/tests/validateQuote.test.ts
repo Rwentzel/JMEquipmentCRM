@@ -1,24 +1,18 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { evaluateQuote } from "../src/lib/validateQuote";
+import { configLines } from "../src/lib/rfqConfig";
 import { details } from "../src/data/details";
 
 /**
- * Mirrors resolveOptions() in src/app/api/quote/route.ts. Route modules cannot
- * export helpers under Next 16, so the behaviour is pinned here against the
- * same data the route reads.
+ * The route's resolveOptions() is a thin wrapper over configLines(), which the
+ * quote conversion also reads to tell a standard build from a configured one.
+ * This used to be a hand-written copy of the route's loop; testing the real
+ * function instead means there is no second implementation left to drift.
  */
 function resolveOptionsForTest(machineSku: string, raw: unknown): string[] {
   if (!Array.isArray(raw) || raw.length === 0) return [];
-  const opts = details[machineSku]?.options ?? [];
-  if (opts.length === 0) return [];
-  const wanted = new Set(raw.slice(0, 40).map((v) => String(v)));
-  const lines: string[] = [];
-  for (const opt of opts) {
-    const picked = opt.choices.filter((c) => wanted.has(c.sku));
-    if (picked.length > 0) lines.push(`${opt.label}: ${picked.map((c) => c.v).join(", ")}`);
-  }
-  return lines;
+  return configLines(machineSku, raw.slice(0, 40).map((v) => String(v)));
 }
 
 const skus = new Set(["JM108", "VCS-SK-12"]);
