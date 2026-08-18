@@ -121,6 +121,9 @@ the variable alone does nothing until the next build. Confirm
 - **Quarterly**: actually restore a backup into a scratch directory and look at
   it — `RFQ_DATA_DIR=/tmp/drill npm run restore -- --latest --apply`. An
   untested backup is a guess; this is the only step that turns it into a fact.
+- **Audit log**: rotates automatically at 8 MB, keeping one previous generation,
+  so it needs no cron of its own. Both files sit in the data directory and are
+  captured by `npm run backup` like everything else.
 - **PII**: the RFQ store contains customer contact data. Keep the volume
   access-restricted; enforce the retention window with `npm run retention`
   (e.g. `--days 730` ≈ 24 months). Never commit `.data/`.
