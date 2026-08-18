@@ -41,3 +41,12 @@ npm run dev    # http://localhost:3000
 
 All changes land through pull requests — propose on a branch, review, merge.
 CI must be green before merging.
+
+## Preview site
+
+Every push to `main` builds a static, forms-disabled, noindexed preview
+(`.github/workflows/preview.yml`). Publishing it to GitHub Pages requires a
+one-time owner action: **Settings → Pages → Source → "GitHub Actions"**.
+Note that a Pages site is reachable by anyone with the URL (noindexed, not
+password-protected). Until Pages is enabled, each run still uploads the
+built site as a workflow artifact.
