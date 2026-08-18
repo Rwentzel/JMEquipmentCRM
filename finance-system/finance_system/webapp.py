@@ -25,7 +25,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, export as export_mod, imports, pipeline, resolution
+from . import backup as backup_mod, batch_report, cash, explain, export as export_mod, imports, periods, pipeline, resolution
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -53,7 +53,8 @@ _NAV = ('<header><h1>JM Equipment — Finance Console</h1>'
         '<nav style="margin-top:8px">'
         '<a href="/">Dashboard</a><a href="/import">Import</a>'
         '<a href="/exceptions">Exceptions</a><a href="/report">Reports</a>'
-        '<a href="/receivables">Receivables</a>'
+        '<a href="/receivables">Receivables</a><a href="/find">Find</a>'
+        '<a href="/periods">Periods</a>'
         '<a href="/backup">Backup</a></nav></header>')
 
 
@@ -132,7 +133,8 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         q = {k: v[0] for k, v in urllib.parse.parse_qs(parsed.query).items()}
         routes = {"/": self.page_dashboard, "/import": self.page_import,
-                  "/receivables": self.page_receivables,
+                  "/receivables": self.page_receivables, "/find": self.page_find,
+                  "/transaction": self.page_transaction, "/periods": self.page_periods,
                   "/exceptions": self.page_exceptions, "/report": self.page_report,
                   "/batch": self.page_batch, "/backup": self.page_backup}
         fn = routes.get(parsed.path)
@@ -151,7 +153,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             handler = {"/import": self.act_import, "/post": self.act_post,
                        "/rollback": self.act_rollback, "/resolve": self.act_resolve,
-                       "/backup": self.act_backup}.get(parsed.path)
+                       "/backup": self.act_backup, "/period": self.act_period}.get(parsed.path)
             if not handler:
                 return self._send(404, _page("Not found", "<div class='card'>Not found.</div>"))
             location = handler(conn, form)
@@ -328,6 +330,114 @@ class Handler(BaseHTTPRequestHandler):
                   <td>{counts['paid']}</td><td>{counts['overpaid']}</td></tr></table></div>""")
         return _page("Receivables", "".join(body))
 
+    def page_find(self, conn, q):
+        term = q.get("q", "")
+        body = [f"""<div class='card'><h3>Find a document</h3>
+          <form method='get' action='/find'>
+            <label>Invoice / SO / PO number, customer, or item</label>
+            <input type='text' name='q' value='{html.escape(term)}' required>
+            <input type='submit' value='Search'></form></div>"""]
+        if term:
+            hits = explain.find_transactions(conn, term)
+            rows = "".join(
+                f"<tr><td><a href='/transaction?id={urllib.parse.quote(h['id'])}'>open</a></td>"
+                f"<td>{html.escape(h['transaction_type'])}</td>"
+                f"<td>{html.escape(h['customer'] or '')}</td>"
+                f"<td>{html.escape(h['invoice_date'] or '')}</td>"
+                f"<td>{h['line_count']}</td></tr>" for h in hits)
+            body.append(f"""<div class='card'><h3>{len(hits)} match(es)</h3><table>
+              <tr><th></th><th>Type</th><th>Customer</th><th>Date</th><th>Lines</th></tr>
+              {rows or "<tr><td colspan=5 class='muted'>No matches.</td></tr>"}</table></div>""")
+        return _page("Find", "".join(body))
+
+    def page_transaction(self, conn, q):
+        try:
+            d = explain.explain_transaction(conn, q.get("id", ""))
+        except KeyError:
+            return _page("Transaction", "<div class='card'>Transaction not found.</div>")
+        ext = ", ".join(f"{e['namespace']}={e['value']}" for e in d["external_identifiers"])
+        parts = [f"""<div class='card'><h3>{html.escape(d['type'])} — {html.escape(ext or d['transaction_id'])}</h3>
+          <div class='kv'>
+            <div>Customer</div><div>{html.escape(d['customer'] or '—')}</div>
+            <div>Posted</div><div>{'yes' if d['posted'] else 'no'} ({html.escape(d['review_status'] or '')})</div>
+            <div>Lines</div><div>{d['line_count']}</div>
+            <div>Header total</div><div>{html.escape(str(d['header_total'] or '—'))}</div>
+            <div>Dates</div><div>{html.escape(', '.join(f'{k}={v}' for k, v in d['dates'].items()))}</div>
+          </div></div>"""]
+        if d["cash_application"]:
+            c = d["cash_application"]
+            parts.append(f"""<div class='card'><h3>Cash application</h3><div class='kv'>
+              <div>Invoiced</div><div>{html.escape(c['invoiced'])}</div>
+              <div>Applied</div><div>{html.escape(c['applied'])}</div>
+              <div>Balance</div><div><b>{html.escape(c['balance'])}</b> ({html.escape(c['status'])})</div>
+            </div></div>""")
+        for l in d["lines"]:
+            ver = "".join(
+                f"<tr><td>{html.escape(k)}</td><td>{_lvl_span(v['level'])}</td>"
+                f"<td class='muted'>{html.escape(', '.join(v['missing']) or '')}</td></tr>"
+                for k, v in sorted(l["verification_by_calculation"].items()))
+            snaps = "".join(
+                f"<tr><td>{html.escape(k)}</td><td>{html.escape(str(v['output']))}</td>"
+                f"<td>{_lvl_span(v['verification'])}</td>"
+                f"<td class='muted'>{html.escape(json.dumps(v['inputs'])[:120])}</td></tr>"
+                for k, v in sorted(l["current_snapshots"].items()))
+            costs = ", ".join(f"{c['component']}={c['amount']}" for c in l["costs"]) or "—"
+            parts.append(f"""<div class='card'><h3>Line {l['line_number']}: {html.escape(l['description'] or '')}</h3>
+              <div class='kv'>
+                <div>Quantity x unit price</div><div>{html.escape(l['quantity'])} x {html.escape(l['unit_price'])}</div>
+                <div>Freight / crating billed</div><div>{html.escape(l['freight_billed'])} / {html.escape(l['crating_billed'])}</div>
+                <div>Costs</div><div>{html.escape(costs)}</div>
+                <div>Superseded snapshots</div><div>{len(l['superseded_snapshots'])} (history retained)</div>
+              </div>
+              <h4>Verification by calculation</h4>
+              <table><tr><th>Calculation</th><th>State</th><th>Missing</th></tr>{ver}</table>
+              <h4>Current calculation snapshots (why the number is what it is)</h4>
+              <table><tr><th>Calculation</th><th>Output</th><th>State</th><th>Inputs</th></tr>{snaps}</table>
+              </div>""")
+        if d["exceptions"]:
+            rows = "".join(f"<tr><td class='exception'>{html.escape(e['calculation_type'] or '')}</td>"
+                           f"<td>{html.escape(e['missing_information'] or '')}</td>"
+                           f"<td>{html.escape(e['status'])}</td></tr>" for e in d["exceptions"])
+            parts.append(f"<div class='card'><h3>Exceptions</h3><table>"
+                         f"<tr><th>Calculation</th><th>Missing</th><th>Status</th></tr>{rows}</table></div>")
+        if d["audit_trail"]:
+            rows = "".join(f"<tr><td>{html.escape(a['kind'])}</td><td>{html.escape(a['summary'] or '')}</td>"
+                           f"<td class='muted'>{html.escape(a['created_at'])}</td></tr>"
+                           for a in d["audit_trail"])
+            parts.append(f"<div class='card'><h3>Audit history</h3><table>"
+                         f"<tr><th>Event</th><th>Summary</th><th>When</th></tr>{rows}</table></div>")
+        return _page("Transaction", "".join(parts))
+
+    def page_periods(self, conn, q):
+        rows = []
+        for p in _periods(conn):
+            per = periods.get(conn, p["id"])
+            hist = periods.history(conn, p["id"])
+            actions = []
+            nxt = {"open": "under_review", "under_review": "verified", "verified": "locked"}.get(per.state)
+            if nxt:
+                actions.append(
+                    f"<form method='post' action='/period' style='display:inline'>"
+                    f"<input type='hidden' name='period' value='{html.escape(per.id)}'>"
+                    f"<input type='hidden' name='to' value='{nxt}'>"
+                    f"<input type='hidden' name='actor' value='operator'>"
+                    f"<input type='submit' value='Move to {nxt.replace('_',' ')}'></form>")
+            if per.state == "locked":
+                actions.append(
+                    f"<form method='post' action='/period' onsubmit=\"return confirm('Reopen this locked period?');\">"
+                    f"<input type='hidden' name='period' value='{html.escape(per.id)}'>"
+                    f"<input type='hidden' name='to' value='reopen'>"
+                    f"<input type='text' name='reason' placeholder='written reason' required> "
+                    f"<input type='text' name='actor' placeholder='authorized by' required> "
+                    f"<button class='warn' type='submit'>Reopen</button></form>")
+            rows.append(f"<tr><td>{html.escape(per.label)}</td><td><b>{html.escape(per.state)}</b></td>"
+                        f"<td>{len(hist)} transition(s)</td><td>{''.join(actions)}</td></tr>")
+        table = "".join(rows) or "<tr><td colspan=4 class='muted'>No periods yet.</td></tr>"
+        return _page("Periods", f"{_flash(q)}<div class='card'><h3>Reporting periods</h3>"
+                     f"<table><tr><th>Period</th><th>State</th><th>History</th><th>Actions</th></tr>"
+                     f"{table}</table><p class='muted'>A period must be verified before locking. "
+                     f"Reopening a locked period requires an authorizer and a written reason; both are audited.</p></div>")
+
     def page_backup(self, conn, q):
         return _page("Backup", """<div class='card'><h3>Backup</h3>
           <form method='post' action='/backup' onsubmit="return confirm('Create a database backup now?');">
@@ -379,6 +489,21 @@ class Handler(BaseHTTPRequestHandler):
         except (KeyError, ValueError, ArithmeticError) as e:
             return "/exceptions?err=" + urllib.parse.quote(
                 f"Could not record evidence: {e}. Check the cost value (e.g. 90.00).")
+
+    def act_period(self, conn, form):
+        pid, to = form.get("period", ""), form.get("to", "")
+        try:
+            if to == "reopen":
+                periods.reopen(conn, pid, reason=form.get("reason", ""),
+                               authorized_by=form.get("actor", ""))
+                msg = "Period reopened; the authorization and reason are recorded in the audit log."
+            else:
+                periods.transition(conn, pid, to, actor=form.get("actor") or "operator",
+                                   reason=form.get("reason"))
+                msg = f"Period moved to '{to}'."
+            return "/periods?ok=" + urllib.parse.quote(msg)
+        except periods.PeriodError as e:
+            return "/periods?err=" + urllib.parse.quote(str(e))
 
     def act_backup(self, conn, form):
         conn.commit()

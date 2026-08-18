@@ -1,5 +1,22 @@
 # Changelog
 
+## Exchange 3 (cont.) — period lifecycle + traceability workspace (2026-08-18)
+- **Reporting-period lifecycle (`periods.py`, migration `0005`).**
+  `open → under_review → verified → locked`, with `locked → open` only via an explicit
+  **reopen** that requires an authorizer AND a written reason. Skipping states is refused,
+  a period cannot be locked before it is verified, and every transition is written to
+  `period_transitions` plus the append-only audit log. A locked period still refuses posting.
+- **Traceability (`explain.py`).** `explain_transaction` assembles the full provenance behind
+  any figure: header, lines, dates, external ids, costs and cost evidence, verification state
+  per calculation, **current calculation snapshots with their inputs, policy, and formula
+  version**, superseded snapshot history, exceptions, reconciliation findings, cash
+  application, audit trail, and the original source row. `find_transactions` looks documents
+  up by invoice/SO/PO number, customer, or item.
+- **Console:** new **Find**, **Transaction** (drill-down showing why each number is what it
+  is), and **Periods** (lifecycle actions, reopen with reason/authorizer) pages.
+- **CLI:** `period {show,under_review,verified,lock,reopen,open}`, `explain <txn>`, `find <q>`.
+- Tests: 171 → 182.
+
 ## Exchange 3 — documents, cash application, evidence, crating, restore (2026-07-27)
 Closes the ERP-breadth gaps recorded in `KNOWN_LIMITATIONS.md` / `AUDIT.md`.
 - **Multi-line documents.** Source rows sharing a document identity (type + document number

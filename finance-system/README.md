@@ -26,7 +26,7 @@ library only. `openpyxl` is an optional extra for direct `.xlsx` intake (ADR-000
 From this directory (`finance-system/`):
 
 ```bash
-# Full test suite (stdlib unittest; no pytest needed) — 165 tests
+# Full test suite (stdlib unittest; no pytest needed) — 182 tests
 python -m unittest discover -s tests -t .
 # Same, with unclosed-connection warnings treated as errors (must pass)
 python -W error::ResourceWarning -m unittest discover -s tests -t .
@@ -52,6 +52,9 @@ python -m finance_system.cli export --period 2026-06
 python -m finance_system.cli receivables --period 2026-06   # invoiced vs collected vs outstanding
 python -m finance_system.cli verify-backup <file.db>        # validate a backup
 python -m finance_system.cli restore-preview <file.db>      # what a restore would change
+python -m finance_system.cli period show                    # reporting-period lifecycle
+python -m finance_system.cli find INV-1001                  # locate a document
+python -m finance_system.cli explain <transaction_id>       # why every number is what it is
 
 # Confidential-data safety scan over git-tracked + staged files (exit != 0 on HIGH)
 python scripts/safety_scan.py
@@ -103,6 +106,8 @@ location with `FINANCE_DATA_DIR`.
 | `cash.py` | Cash application: balances, partial/over payment, unapplied cash, reversal | — |
 | `cost_evidence.py` | Configurable vendor-cost evidence types + acceptance policy | — |
 | `backup.py` | Backup validation, restore preview, safe restore with safety backup | — |
+| `periods.py` | Reporting-period lifecycle; authorized reopen; audited transitions | — |
+| `explain.py` | Traceability: full provenance behind any reported figure | — |
 
 ## Key design commitments
 - **Internal keys, not SKU**, for all joins; external identifiers preserved separately.

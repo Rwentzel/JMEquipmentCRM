@@ -37,8 +37,9 @@ Concrete, honest limitations — not aspirational gaps.
    line's cost classification against the configured acceptance policy, supersedes its
    snapshots, and audits the transition.
 9. **No role-based access.** The engine is a single-operator local application; the console
-   binds to loopback only and there is no login. Multi-user access with roles (mirroring the
-   storefront's OPS_TOKEN -> SSO path) is not implemented.
+   binds to loopback only and there is no login. Period reopen records *who* authorized it,
+   but that authorizer is typed in, not authenticated. Multi-user access with real identity
+   (mirroring the storefront's OPS_TOKEN -> SSO path) is not implemented.
 10. **Automatic payment matching.** Cash application is exact and audited, but matching an
    incoming payment file to open invoices automatically is not implemented — applications are
    made through the service/CLI.

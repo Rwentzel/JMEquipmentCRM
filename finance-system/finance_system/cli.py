@@ -15,7 +15,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, export as export_mod, imports, pipeline, resolution, scanner
+from . import backup as backup_mod, batch_report, cash, cost_evidence as ce, explain, export as export_mod, imports, periods as periods_mod, pipeline, resolution, scanner
 from .db import default_db_path, init_db, utcnow_iso
 from .evidence import EvidenceMatrix
 from .ids import new_id
@@ -161,6 +161,50 @@ def cmd_resolve(args, conn) -> int:
         return EXIT_ERROR
     conn.commit()
     print(f"[resolve] {json.dumps(res)}")
+    return EXIT_OK
+
+
+def cmd_period(args, conn) -> int:
+    """Show or advance the reporting-period lifecycle."""
+    try:
+        if args.action == "show":
+            for p in conn.execute("SELECT id FROM reporting_periods ORDER BY label"):
+                per = periods_mod.get(conn, p["id"])
+                print(f"  {per.label:10} {per.state:13} (locked={bool(per.locked)})")
+            return EXIT_OK
+        pid = _period_id(conn, args.label)
+        if args.action == "reopen":
+            per = periods_mod.reopen(conn, pid, reason=args.reason or "",
+                                     authorized_by=args.authorized_by or "")
+        elif args.action == "lock":
+            per = periods_mod.lock(conn, pid, actor=args.authorized_by or "operator",
+                                   reason=args.reason)
+        else:
+            per = periods_mod.transition(conn, pid, args.action,
+                                         actor=args.authorized_by or "operator", reason=args.reason)
+    except periods_mod.PeriodError as e:
+        print(f"[period] REFUSED: {e}", file=sys.stderr)
+        return EXIT_REFUSED
+    conn.commit()
+    print(f"[period] {per.label} is now '{per.state}'")
+    return EXIT_OK
+
+
+def cmd_explain(args, conn) -> int:
+    """Show full provenance for a document (why every number is what it is)."""
+    try:
+        print(json.dumps(explain.explain_transaction(conn, args.transaction_id), indent=2, default=str))
+    except KeyError as e:
+        print(f"[explain] {e}", file=sys.stderr)
+        return EXIT_ERROR
+    return EXIT_OK
+
+
+def cmd_find(args, conn) -> int:
+    hits = explain.find_transactions(conn, args.query)
+    print(f"[find] {len(hits)} match(es)")
+    for h in hits:
+        print(f"  {h['id']}  {h['transaction_type']:14} lines={h['line_count']}  {h['invoice_date'] or ''}")
     return EXIT_OK
 
 
@@ -340,6 +384,12 @@ def build_parser() -> argparse.ArgumentParser:
     prv = sub.add_parser("restore-preview"); prv.add_argument("path"); prv.set_defaults(func=cmd_restore_preview)
     prs = sub.add_parser("restore"); prs.add_argument("path")
     prs.add_argument("--confirm", action="store_true"); prs.set_defaults(func=cmd_restore)
+    pp2 = sub.add_parser("period")
+    pp2.add_argument("action", choices=["show", "under_review", "verified", "lock", "reopen", "open"])
+    pp2.add_argument("--label"); pp2.add_argument("--reason"); pp2.add_argument("--authorized-by")
+    pp2.set_defaults(func=cmd_period)
+    pex = sub.add_parser("explain"); pex.add_argument("transaction_id"); pex.set_defaults(func=cmd_explain)
+    pfd = sub.add_parser("find"); pfd.add_argument("query"); pfd.set_defaults(func=cmd_find)
     pev = sub.add_parser("evidence"); pev.add_argument("line_id")
     pev.add_argument("--type", required=True, choices=list(ce.ALL_TYPES))
     pev.add_argument("--amount"); pev.add_argument("--ref"); pev.add_argument("--expires")
