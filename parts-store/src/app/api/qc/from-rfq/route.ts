@@ -4,6 +4,7 @@ import { audit } from "@/lib/auditLog";
 import { OPS_COOKIE, opsMode, verifySession } from "@/lib/opsAuth";
 import { blankQuote } from "@/lib/qc/logic";
 import { PARTS_MASTER } from "@/lib/qc/partsMaster";
+import { catalog } from "@/data/catalog";
 import { patchQcState, readQcState } from "@/lib/qc/store";
 import type { QcQuotePart } from "@/lib/qc/types";
 import { getRfq, updateRfqStatus } from "@/lib/rfqStore";
@@ -59,9 +60,16 @@ export async function POST(req: Request) {
   q.parts = rfq.items.map((it): QcQuotePart => {
     const master = PARTS_MASTER.find((p) => p.sku === it.sku);
     const price = master && master.price > 0 ? master.price : 0;
+    // Fall back to the catalogue before the bare SKU: a machine is not in the
+    // parts master, and a line reading "JME-VCS12-75" tells the desk nothing.
+    const base = master?.name ?? catalog.machines.find((m) => m.sku === it.sku)?.name ?? it.sku;
+    // The configuration IS what is being quoted. A line that says only
+    // "JME-VCS12-75" prices the standard 230V, 75-inch build for someone who
+    // asked for 460V and 90 inches — and the customer signs that document.
+    const name = it.config?.length ? `${base} — ${it.config.join(" · ")}` : base;
     return {
       sku: it.sku,
-      name: master ? master.name : it.sku,
+      name,
       qty: Math.max(1, +it.qty || 1),
       price,
       // Unknown SKU or consult-priced part: carry it as an RFQ line so it is
@@ -77,6 +85,10 @@ export async function POST(req: Request) {
     c.billingSameAsShipping === false && c.billingAddress ? `Bill to: ${c.billingAddress}` : "",
     rfq.freight ? "FREIGHT QUOTE REQUESTED." : "",
     rfq.message ? `Customer note: "${rfq.message}"` : "",
+    // Where a part was picked off a manual drawing. Kept as desk context
+    // rather than on the line, since it is how fit gets confirmed rather than
+    // part of what is being sold.
+    ...rfq.items.filter((it) => it.source).map((it) => `${it.sku} picked from ${it.source}`),
   ].filter(Boolean);
   q.notes = provenance.join("\n");
 
