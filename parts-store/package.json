@@ -1,6 +1,9 @@
 {
   "name": "jme-parts-store",
   "version": "0.1.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "private": true,
   "description": "JM Equipment Parts Store \u2014 production-candidate sandbox (industrial B2B parts storefront)",
   "scripts": {
@@ -15,7 +18,9 @@
     "agent:triage": "tsx scripts/run-agent.ts triage",
     "retention": "tsx scripts/retention.ts",
     "dev:demo": "QC_DEMO_SEED=1 next dev",
-    "verify:bundles": "tsx scripts/verifyBundles.ts"
+    "verify:bundles": "tsx scripts/verifyBundles.ts",
+    "backup": "tsx scripts/backup.ts",
+    "restore": "tsx scripts/restore.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "Terms and conditions governing quotations, orders, and returns at JM Equipment Inc.",
   robots: pageRobots(),
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {

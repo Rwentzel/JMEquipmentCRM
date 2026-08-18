@@ -289,7 +289,7 @@
   border-bottom: 1px dotted var(--line-lt);
 }
 
-.jme-plate__hd h4 {
+.jme-plate__hd h3, .jme-plate__hd h4 {
   font-family: var(--font-display);
   font-size: var(--t-md);
   font-weight: var(--fw-bold);

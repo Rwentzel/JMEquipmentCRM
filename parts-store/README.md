@@ -87,6 +87,11 @@ the environment — never in the repo.
 - `src/styles/` — tokens + base + component + page CSS
 - `tests/` — node:test suite (`npm test`)
 - `scripts/run-agent.ts` — agent CLI for cron/CI; `npm run retention` — PII retention sweep
+- `npm run backup` / `npm run restore` — verified snapshot and recovery of the
+  data directory (RFQ inbox, Quote Center store, audit log). Backups parse every
+  store before archiving and are re-read to confirm they are restorable; restores
+  are dry-run by default and snapshot the current data first. Runbook in
+  LAUNCH.md; archives hold customer PII, so keep them encrypted and off-box.
 - `npm run verify:bundles` — proves no Quote Center dealer pricing or client
   records reach a browser bundle (runs in CI after the build; `.next/static` is
   served without auth, so page-level gating is not by itself a control)

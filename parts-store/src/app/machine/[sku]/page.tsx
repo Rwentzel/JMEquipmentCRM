@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sku: stri
     title: `${machine.name} — JM Equipment`,
     description: machine.blurb,
     robots: pageRobots(),
+    alternates: { canonical: `/machine/${machine.sku}` },
   };
 }
 

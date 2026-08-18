@@ -25,22 +25,75 @@ export interface SupportAnswer {
 const DESK_LINE = `Call ${catalog.contact.phone} or email ${catalog.contact.email} — the parts desk replies in writing.`;
 
 const PRICING_REFUSAL =
-  "Pricing and exact stock counts aren't published online — every quote is confirmed in writing based on configuration, freight, and lead time. Add the item to a request (it takes under a minute) and the desk will send a firm written quote. " +
+  "Pricing isn't published online — every quote is confirmed in writing based on configuration, freight, and lead time. Add the item to a request (it takes under a minute) and the desk will send a firm written quote. " +
   DESK_LINE;
 
-/** Questions that must never be answered with specifics, on any engine. */
-const GUARDED = /\b(price|prices|pricing|cost|costs|how much|discount|margin|markup|how many (do|are)|units in stock|quantity on hand|vendor|supplier|wholesale|distributor)\b/i;
+const STOCK_REFUSAL =
+  "We don't publish exact stock counts — they move through the day, and a number that is wrong by the time you read it helps nobody. Each item shows an availability band instead, and the desk confirms real availability and lead time in a written quote on your request. " +
+  DESK_LINE;
+
+const SOURCING_REFUSAL =
+  "We don't discuss sourcing or supplier details. What we can tell you is what a part fits and how quickly we can get it to you — send the machine serial and what you're replacing, and the desk confirms fit and lead time in writing. " +
+  DESK_LINE;
+
+/**
+ * Questions that must never be answered with specifics, on any engine.
+ *
+ * Split by subject so the refusal explains the actual reason. A customer
+ * asking who supplies a bearing, and being told that "pricing isn't published
+ * online", reads as a bot that did not understand the question — and it is the
+ * sourcing boundary, not the pricing one, that is being protected.
+ */
+const GUARDED: Array<{ re: RegExp; refusal: string }> = [
+  {
+    re: /\b(vendor|vendors|supplier|suppliers|wholesale|distributor|who makes|who manufactures|where do you (get|source|buy))\b/i,
+    refusal: SOURCING_REFUSAL,
+  },
+  {
+    re: /\b(how many (do|are|have)|units in stock|quantity on hand|stock count|how much stock|in stock right now)\b/i,
+    refusal: STOCK_REFUSAL,
+  },
+  {
+    re: /\b(price|prices|pricing|cost|costs|how much|discount|margin|markup|quote me a number)\b/i,
+    refusal: PRICING_REFUSAL,
+  },
+];
+
+function guardFor(q: string): string | null {
+  return GUARDED.find((g) => g.re.test(q))?.refusal ?? null;
+}
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-/** Find catalog items (machines + parts) mentioned by SKU or name keywords. */
+/**
+ * Distinctive model tokens for a machine, e.g. "1650", "1600e", "vcs12".
+ *
+ * Customers refer to machines by model number, not by full catalogue name or
+ * internal SKU — "specs on the 1650" is the normal phrasing. Matching only on
+ * the whole SKU or whole name missed all of it. Tokens must contain a digit
+ * and be at least three characters so that ordinary words and stray small
+ * numbers cannot match.
+ */
+function modelTokens(sku: string, name: string): string[] {
+  return [
+    ...new Set(
+      `${sku} ${name}`
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((t) => t.length >= 3 && /\d/.test(t)),
+    ),
+  ];
+}
+
+/** Find catalog items (machines + parts) mentioned by SKU, model, or name keywords. */
 function matchCatalog(q: string): Array<{ sku: string; name: string; band: string; action: string }> {
   const nq = norm(q);
   const hits: Array<{ sku: string; name: string; band: string; action: string }> = [];
   for (const m of catalog.machines) {
-    if (nq.includes(m.sku.toLowerCase()) || nq.includes(norm(m.name)) || nq.includes(norm(m.family))) {
+    const byModel = modelTokens(m.sku, m.name).some((t) => new RegExp(`\\b${t}\\b`).test(nq));
+    if (nq.includes(m.sku.toLowerCase()) || nq.includes(norm(m.name)) || nq.includes(norm(m.family)) || byModel) {
       hits.push({ sku: m.sku, name: m.name, band: m.statusBand, action: actionLabel(m.action) });
     }
   }
@@ -64,15 +117,31 @@ function matchFaq(q: string): string | null {
   return best?.a ?? null;
 }
 
+/** "What are the specs of the 1650?" — asking for the published spec plate. */
+const SPEC_INTENT =
+  /\b(spec|specs|specification|specifications|dimension|dimensions|how (wide|fast|big|heavy)|web width|cut-?off|capacity|throughput|horsepower|voltage|footprint)\b/i;
+
+/** Published spec rows for a machine, if we hold any. Public data by construction. */
+function specLines(sku: string): string | null {
+  const machine = catalog.machines.find((m) => m.sku === sku);
+  if (!machine?.specs?.length) return null;
+  return machine.specs.slice(0, 6).map((row) => `${row.k}: ${row.v}`).join(" · ");
+}
+
 /** Deterministic engine — always available, zero dependencies. */
 function rulesAnswer(question: string): SupportAnswer {
   const hits = matchCatalog(question);
   const faq = matchFaq(question);
+  const wantsSpecs = SPEC_INTENT.test(question);
 
   const parts: string[] = [];
   if (hits.length > 0) {
     for (const h of hits) {
-      parts.push(`${h.name} (${h.sku}) — availability: ${h.band}. Next step: ${h.action}.`);
+      const specs = wantsSpecs ? specLines(h.sku) : null;
+      parts.push(
+        `${h.name} (${h.sku}) — availability: ${h.band}. Next step: ${h.action}.` +
+          (specs ? `\n${specs}` : ""),
+      );
     }
     parts.push("Add it to your request list and the desk confirms fit, availability, and pricing in writing.");
   }
@@ -125,9 +194,10 @@ export async function answerSupportQuestion(question: string): Promise<SupportAn
     return { answer: "Ask me about a part, a machine, freight, or how quoting works.", engine: "rules", skus: [] };
   }
 
-  // Policy guardrail — refuse pricing/quantity/vendor specifics on ANY engine.
-  if (GUARDED.test(q)) {
-    return { answer: PRICING_REFUSAL, engine: "rules", skus: matchCatalog(q).map((h) => h.sku) };
+  // Policy guardrail — refuse pricing/quantity/sourcing specifics on ANY engine.
+  const refusal = guardFor(q);
+  if (refusal) {
+    return { answer: refusal, engine: "rules", skus: matchCatalog(q).map((h) => h.sku) };
   }
 
   if (aiAvailable()) {

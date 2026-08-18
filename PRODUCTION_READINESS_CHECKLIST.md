@@ -79,7 +79,14 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 15. Terms / disclaimers
 - 🟡 Terms of Sale, Freight & Shipping policy pages (sandbox drafts; `/terms`, `/freight`)
-- ⬜ Compatibility disclaimer page
+- 🟡 Compatibility disclaimer — the substance is already in place in three
+  spots rather than one page: Terms §8 ("compatibility information … is
+  advisory; the buyer is responsible for verifying fit"), the FAQ entry on
+  cross-referencing ("send the serial number … we verify fit before quoting
+  rather than guessing"), and the optional machine-serial field on the RFQ
+  form. A separate page would duplicate rather than add; the open question for
+  legal review is whether the Terms wording is strong enough, not whether a
+  page exists.
 - 🔒 Legal review of all policy pages before launch
 
 ### 16. Privacy policy
@@ -89,6 +96,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 ### 17. Accessibility
 - ✅ focus-visible, reduced-motion, alt text, semantic landmarks
 - ✅ Keyboard-focusable nav, mobile menu, ARIA on interactive controls
+- ✅ Contrast decisions locked by `tests/contrast.test.ts` — token-level WCAG
+  maths in the normal test run (no browser), so a palette edit that pushes body
+  text back under 4.5:1 fails CI with the exact pair and ratio named
 - ✅ **WCAG 2.1 AA audit passing** — axe-core over a real browser, 13 page states
   (8 routes + mobile + assistant widget, category rail, mobile nav, populated
   request list): **0 violations**. Reproduce with `node scripts/a11y-audit.mjs`.
@@ -109,7 +119,12 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Privacy-respecting analytics (none today); 🔒 choose vendor + consent posture
 
 ### 20. Backups
-- ⬜ Source data versioned in git (✅ for demo data); ⬜ backup plan for real catalog + submissions store
+- ⬜ Source data versioned in git (✅ for demo data)
+- ✅ Backup/restore for the submissions store: `npm run backup` / `npm run restore`
+  (verified archives, atomic writes, dry-run restore, pre-restore safety copy,
+  14 unit tests incl. a full disaster drill). Runbook in LAUNCH.md §5.
+- ⬜ JM to schedule the daily backup, copy archives **off-box**, and do the
+  quarterly restore drill — tooling cannot do these three things for you
 - ✅ PII retention tooling: `npm run retention -- --days N [--apply]` archives + purges old **closed** RFQs (open work never touched; dry-run default; tested) — JM picks the window (§25)
 
 ### 21. Admin workflow

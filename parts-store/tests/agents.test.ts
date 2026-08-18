@@ -103,3 +103,52 @@ test("security agent ignores events older than 24h", () => {
   const findings = analyzeEvents(events, new Date());
   assert.ok(findings.every((f) => f.severity === "info"));
 });
+
+/* ---- support agent: model numbers, specs, and subject-specific refusals ---- */
+
+test("support agent recognises a machine by model number alone", async () => {
+  // How customers actually ask: "the 1650", not "GMC-TCII-1650 Dual Rotary Sheeter".
+  const res = await answerSupportQuestion("Do you still support the 1650?");
+  assert.ok(res.skus.includes("GMC-TCII-1650"), `expected the 1650 to be matched, got ${JSON.stringify(res.skus)}`);
+});
+
+test("support agent answers a spec question with the published spec plate", async () => {
+  const res = await answerSupportQuestion("What are the specs of the 1650?");
+  assert.ok(res.skus.includes("GMC-TCII-1650"));
+  assert.match(res.answer, /Web Width/i);
+  assert.doesNotMatch(res.answer, /I can help with machine and part availability/, "must not fall through to the generic reply");
+});
+
+test("support agent does not volunteer specs when they were not asked for", async () => {
+  const res = await answerSupportQuestion("Is the 1650 available?");
+  assert.ok(res.skus.includes("GMC-TCII-1650"));
+  assert.doesNotMatch(res.answer, /Web Width/i);
+});
+
+test("model matching does not fire on short or digitless words", async () => {
+  // "50" is too short to be a model token and "sheeter" is handled by family
+  // matching; neither should drag in an unrelated machine.
+  const res = await answerSupportQuestion("I need 50 of something");
+  assert.deepEqual(res.skus, []);
+});
+
+test("sourcing questions get a sourcing refusal, not a pricing one", async () => {
+  const res = await answerSupportQuestion("Who is your supplier for bearings?");
+  assert.match(res.answer, /don't discuss sourcing/i);
+  assert.doesNotMatch(res.answer, /Pricing isn't published/i);
+  for (const leak of [/vendor is/i, /supplied by/i, /\$\s?\d/]) assert.doesNotMatch(res.answer, leak);
+});
+
+test("stock-count questions get a stock refusal that explains the bands", async () => {
+  const res = await answerSupportQuestion("How many do you have in stock right now?");
+  assert.match(res.answer, /don't publish exact stock counts/i);
+  assert.doesNotMatch(res.answer, /\b\d+\s+(units|in stock)\b/i);
+});
+
+test("pricing questions still refuse, and never emit a figure", async () => {
+  for (const q of ["How much is JM108?", "What's the price of a core splitter?", "Can I get a discount?"]) {
+    const res = await answerSupportQuestion(q);
+    assert.match(res.answer, /Pricing isn't published/i, `for: ${q}`);
+    assert.doesNotMatch(res.answer, /\$\s?\d/, `for: ${q}`);
+  }
+});

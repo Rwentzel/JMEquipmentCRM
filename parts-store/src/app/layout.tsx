@@ -31,6 +31,11 @@ const DESC =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://parts.jmequipment.net"),
+  // Default canonical for the home page, which is a Client Component and
+  // therefore cannot export metadata of its own. EVERY other indexable page
+  // overrides this with its own path — tests/seo.test.ts enforces that, so a
+  // new page can never silently inherit "/" as its canonical.
+  alternates: { canonical: "/" },
   title: {
     default: "JM Equipment — Industrial Parts Store",
     template: "%s · JM Equipment",
