@@ -10,6 +10,12 @@
   --jme-red: #a8353a;
   --jme-red-deep: #7a1f23;
   --jme-red-bright: #c0413f;
+  /* Red for TEXT on the dark surface ramp. --jme-red-bright is a fill/border
+     value: as 15px body text it lands at 3.08:1 on --plate, under the WCAG AA
+     4.5:1 floor. This is the perceptually nearest red that clears 4.5:1 on
+     every dark surface up to --plate-hi. Use it for red type on dark; keep
+     --jme-red-bright for backgrounds, borders and rules. */
+  --jme-red-text: #eb665e;
   --jme-red-sheen: #be4a48;
   --jme-gold: #b8920a;
   --jme-charcoal: #1f1f1f;
