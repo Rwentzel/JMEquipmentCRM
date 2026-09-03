@@ -26,6 +26,7 @@ import { FAQ } from "@/data/faq";
 import { AssistantWidget } from "@/components/AssistantWidget";
 import { ReorderPanel } from "@/components/ReorderPanel";
 import { rememberRequest } from "@/lib/recentRequests";
+import { useUrlParam } from "@/hooks/useUrlParam";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
 import { asset, actionLabel } from "@/lib/utils";
@@ -1052,7 +1053,10 @@ function Tweaks({ open, onClose, tw, setTw }: { open: boolean; onClose: () => vo
 /* ------------------------------------------------------------------ App --- */
 export default function StorefrontPage() {
   const { items, add, addWithQty, setQty, remove } = useRequestList();
-  const [reorderRef, setReorderRef] = useState<string | null>(null);
+  // Deep link from order confirmations: /?reorder=RFQ-XXXXXXXX (derived from the URL, not synced into state).
+  const rawReorder = useUrlParam("reorder");
+  const reorderRef =
+    rawReorder && /^RFQ-[A-Za-z0-9]{8}$/.test(rawReorder.trim()) ? rawReorder.trim().toUpperCase() : null;
   const { message, show } = useToast();
   const [twOpen, setTwOpen] = useState(false);
   const [tw, setTw] = useState<Tw>({ accent: "#A8353A", density: "Comfortable", stats: "Show" });
@@ -1105,14 +1109,12 @@ export default function StorefrontPage() {
 
   const count = items.reduce((s, i) => s + (i.qty || 1), 0);
 
+  // Bring the request desk into view when arriving by reorder link (DOM side effect only).
   useEffect(() => {
-    const r = new URLSearchParams(window.location.search).get("reorder");
-    if (r && /^RFQ-[A-Za-z0-9]{8}$/.test(r.trim())) {
-      setReorderRef(r.trim().toUpperCase());
-      const el = document.getElementById("request");
-      if (el) window.scrollTo({ top: el.offsetTop - 70 });
-    }
-  }, []);
+    if (!reorderRef) return;
+    const el = document.getElementById("request");
+    if (el) window.scrollTo({ top: el.offsetTop - 70 });
+  }, [reorderRef]);
 
   const nameFor = (sku: string) => D.parts.find((p) => p.sku === sku)?.name ?? D.machines.find((m) => m.sku === sku)?.name ?? sku;
 

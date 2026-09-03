@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui";
-import { readRecent, type RecentRequest } from "@/lib/recentRequests";
+import { readRecent } from "@/lib/recentRequests";
 
 interface Loaded {
   ref: string;
@@ -14,6 +14,10 @@ interface Loaded {
  * The email is required every time (the reference is printed on confirmations
  * and is not a secret). Recent references from this device are offered as
  * one-tap chips; nothing else is stored locally.
+ *
+ * State is derived rather than synced: `initialRef` (from the ?reorder= deep
+ * link) opens the panel and prefills the field until the customer overrides
+ * either, so no effect has to copy props into state.
  */
 export function ReorderPanel({
   initialRef,
@@ -22,23 +26,16 @@ export function ReorderPanel({
   initialRef?: string | null;
   onLoaded: (loaded: Loaded) => void;
 }) {
-  const [open, setOpen] = useState(Boolean(initialRef));
-  const [ref, setRef] = useState(initialRef ?? "");
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
+  const [refInput, setRefInput] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [recent, setRecent] = useState<RecentRequest[]>([]);
 
-  useEffect(() => {
-    setRecent(readRecent());
-  }, [open]);
-
-  useEffect(() => {
-    if (initialRef) {
-      setRef(initialRef);
-      setOpen(true);
-    }
-  }, [initialRef]);
+  const open = manualOpen ?? Boolean(initialRef);
+  const ref = refInput ?? initialRef ?? "";
+  // Read device memory only while the panel is open (client-only render path).
+  const recent = useMemo(() => (open ? readRecent() : []), [open]);
 
   async function load() {
     setBusy(true);
@@ -55,7 +52,7 @@ export function ReorderPanel({
         return;
       }
       onLoaded({ ref: data.ref, items: data.items });
-      setOpen(false);
+      setManualOpen(false);
     } catch {
       setErr("Could not reach the parts desk — check your connection and try again.");
     } finally {
@@ -69,7 +66,7 @@ export function ReorderPanel({
         <span>
           <b>Ordered before?</b> Reload the parts from a previous request with its reference and your email.
         </span>
-        <button className="ps-reorder__toggle" onClick={() => setOpen(true)}>
+        <button className="ps-reorder__toggle" onClick={() => setManualOpen(true)}>
           Reorder from a reference
         </button>
       </div>
@@ -80,7 +77,7 @@ export function ReorderPanel({
     <div className="ps-reorder" role="region" aria-label="Reorder from a previous request">
       <div className="ps-reorder__hd">
         <b>Reorder from a previous request</b>
-        <button className="ps-reorder__toggle" onClick={() => setOpen(false)} aria-label="Close reorder panel">
+        <button className="ps-reorder__toggle" onClick={() => setManualOpen(false)} aria-label="Close reorder panel">
           ✕
         </button>
       </div>
@@ -93,7 +90,7 @@ export function ReorderPanel({
         <div className="ps-reorder__recent" aria-label="Recent requests from this device">
           <span>Recent from this device:</span>
           {recent.map((r) => (
-            <button key={r.ref} className="ps-reorder__chip" onClick={() => setRef(r.ref)} type="button">
+            <button key={r.ref} className="ps-reorder__chip" onClick={() => setRefInput(r.ref)} type="button">
               <span className="jme-mono">{r.ref}</span>
               <small>
                 {new Date(r.at).toLocaleDateString()} · {r.n} line{r.n === 1 ? "" : "s"}
@@ -107,7 +104,7 @@ export function ReorderPanel({
           Reference
           <input
             value={ref}
-            onChange={(e) => setRef(e.target.value.toUpperCase())}
+            onChange={(e) => setRefInput(e.target.value.toUpperCase())}
             placeholder="RFQ-A1B2C3D4"
             autoComplete="off"
             inputMode="text"
