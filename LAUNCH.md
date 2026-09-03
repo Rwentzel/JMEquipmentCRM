@@ -82,6 +82,16 @@ Fly prints to the jmequipment.net DNS.
    clean, and trimming the token from the URL must give a 404. Sign it → the
    `[ACCEPTED]` email lands at `RFQ_NOTIFY_TO` and the pipeline shows *Accepted*.
 
+## 3a. The customer link
+
+One public link serves every customer: the storefront root. Put it in email
+signatures. On order confirmations, use the **reorder link** the desk
+notification email provides for that request —
+`https://<site>/?reorder=RFQ-XXXXXXXX` — which opens the request desk with the
+reference prefilled; the customer enters the email they ordered with and their
+previous lines reload for a fresh written quote. The reference is not a
+credential on its own (wrong email → same 404 as an unknown reference).
+
 ## 4. Go live (indexing)
 
 Only after JM sign-off: set `JME_LAUNCH=live` and redeploy. The flag is
