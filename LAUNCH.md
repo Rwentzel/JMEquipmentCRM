@@ -149,6 +149,44 @@ the variable alone does nothing until the next build. Confirm
   pricing/cost. It lives on the same volume — back it up with the RFQ store. The
   retention sweep deliberately does **not** touch it: accepted quotes are signed
   business records, so purging them is a JM decision, not an automated one.
+### Parts links (for signatures and confirmations)
+
+Two kinds of link pre-fill the customer's request. They look alike and do
+different things:
+
+- **Reorder link** — `?reorder=RFQ-XXXXXXXX` (section 3a). Reloads the
+  customer's *own* previous request through this system. Needs their
+  reference and the email they used, because it reads stored data.
+- **Parts link** — `?parts=SKU:qty,...` (this section). Pre-fills any list of
+  catalogue parts. Needs nothing, because it never touches stored data. Use it
+  in a signature, on a confirmation that came out of QuickBooks rather than
+  this system, or to suggest a wear kit.
+
+```
+https://parts.jmequipment.net/?parts=P12109:2,B1462:1
+```
+
+`SKU:quantity`, comma-separated; a missing quantity means one. Spaces and
+letter case do not matter, and a Goodstrong part's prior part number resolves
+to the current one. On arrival the parts are added to the customer's request
+list, the page scrolls to the form, and the parts are removed from the URL so
+a refresh does not add them again. If a SKU carries a `/`, paste the link into
+a browser once and copy the encoded form it shows.
+
+What a parts link can and cannot do, since it will be forwarded around:
+
+- It carries **only SKUs and quantities** — no customer name, account or
+  reference. Anyone with the link gets a pre-filled request list and nothing
+  else. It is safe in a signature that goes to every customer.
+- Only SKUs in the public catalogue resolve; anything else is dropped and the
+  customer is told how many were not recognised. Part names come from the
+  catalogue, never from the link.
+- Quantities are held to the same 1–9999 the request form enforces, and the
+  number of lines is capped, so a hostile link cannot flood the form.
+
+Either link still ends in a written quote — it pre-fills the request, it does
+not place an order.
+
 ### Recovering from data loss
 
 1. **Stop the app.** Restoring under a running server races with its own writes.

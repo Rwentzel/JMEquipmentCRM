@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
+import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
+import { goodstrongModels } from "@/data/goodstrong";
 import { NumberInput } from "@/components/NumberInput";
 import {
   Button,
@@ -1084,6 +1086,33 @@ export default function StorefrontPage() {
     setContactRaw(c);
     if (sent) setSent(false);
   };
+
+  // Parts links (?parts=SKU:qty,...) from signatures and confirmations
+  // pre-fill the request list. See src/lib/partsLink.ts for what the link may
+  // and may not carry, and how it differs from ?reorder= above. Consumed once,
+  // then removed from the URL so a refresh does not add the parts twice and a
+  // copied link is clean.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const raw = url.searchParams.get(PARTS_PARAM);
+    if (raw === null) return;
+
+    const lookup = buildSkuLookup(catalog, goodstrongModels);
+
+    const { items: found, dropped } = parsePartsParam(raw, lookup);
+    for (const it of found) addWithQty({ sku: it.sku, name: it.name, source: "Parts link" }, it.qty);
+
+    if (found.length > 0) {
+      const n = found.length;
+      show(`Added ${n} item${n === 1 ? "" : "s"} from your parts link${dropped ? ` (${dropped} not recognised)` : ""}`);
+    } else if (dropped > 0) {
+      show(`We couldn't match the parts in that link — call ${CONTACT_PHONE} and the desk will sort it out`);
+    }
+
+    url.searchParams.delete(PARTS_PARAM);
+    window.history.replaceState(null, "", `${url.pathname}${url.search}#request`);
+    document.getElementById("request")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [addWithQty, show]);
 
   const blurField = (k: "company" | "name" | "email") => () => {
     const v = contact[k].trim();
