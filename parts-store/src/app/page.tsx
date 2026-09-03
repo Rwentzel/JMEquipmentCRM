@@ -24,6 +24,9 @@ import { catalog } from "@/data/catalog";
 import { TAXONOMY, subsystemOf } from "@/data/taxonomy";
 import { FAQ } from "@/data/faq";
 import { AssistantWidget } from "@/components/AssistantWidget";
+import { ReorderPanel } from "@/components/ReorderPanel";
+import { rememberRequest } from "@/lib/recentRequests";
+import { useUrlParam } from "@/hooks/useUrlParam";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
 import { asset, actionLabel } from "@/lib/utils";
@@ -666,6 +669,8 @@ function Request({
   onRemove,
   onSend,
   onPrint,
+  reorderRef,
+  onReorderLoaded,
 }: {
   items: ReturnType<typeof useRequestList>["items"];
   contact: ContactForm;
@@ -678,6 +683,8 @@ function Request({
   onRemove: (sku: string) => void;
   onSend: (mode: "quote" | "message") => void;
   onPrint: () => void;
+  reorderRef: string | null;
+  onReorderLoaded: (loaded: { ref: string; items: Array<{ sku: string; qty: number }> }) => void;
 }) {
   const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setContact({ ...contact, [k]: e.target.value });
@@ -699,6 +706,7 @@ function Request({
             desk confirms price, stock, and lead time in writing.
           </p>
         </div>
+        <ReorderPanel initialRef={reorderRef} onLoaded={onReorderLoaded} />
         <div className="ps-reqgrid">
           <div className="jme-card ps-reqcard">
             <div className="jme-card__hd">
@@ -817,6 +825,12 @@ function Request({
                   <span>
                     The parts desk replies in writing — typically the same business day.
                     {reference ? <> Reference <span className="jme-mono">{reference}</span>.</> : null}
+                    {reference ? (
+                      <span className="ps-sent__reorder">
+                        Keep that reference: next time, choose <b>Reorder from a reference</b> above, enter it with
+                        this email, and these parts reload in one step.
+                      </span>
+                    ) : null}
                   </span>
                 </div>
               ) : (
@@ -1038,7 +1052,11 @@ function Tweaks({ open, onClose, tw, setTw }: { open: boolean; onClose: () => vo
 
 /* ------------------------------------------------------------------ App --- */
 export default function StorefrontPage() {
-  const { items, add, setQty, remove } = useRequestList();
+  const { items, add, addWithQty, setQty, remove } = useRequestList();
+  // Deep link from order confirmations: /?reorder=RFQ-XXXXXXXX (derived from the URL, not synced into state).
+  const rawReorder = useUrlParam("reorder");
+  const reorderRef =
+    rawReorder && /^RFQ-[A-Za-z0-9]{8}$/.test(rawReorder.trim()) ? rawReorder.trim().toUpperCase() : null;
   const { message, show } = useToast();
   const [twOpen, setTwOpen] = useState(false);
   const [tw, setTw] = useState<Tw>({ accent: "#A8353A", density: "Comfortable", stats: "Show" });
@@ -1091,6 +1109,20 @@ export default function StorefrontPage() {
 
   const count = items.reduce((s, i) => s + (i.qty || 1), 0);
 
+  // Bring the request desk into view when arriving by reorder link (DOM side effect only).
+  useEffect(() => {
+    if (!reorderRef) return;
+    const el = document.getElementById("request");
+    if (el) window.scrollTo({ top: el.offsetTop - 70 });
+  }, [reorderRef]);
+
+  const nameFor = (sku: string) => D.parts.find((p) => p.sku === sku)?.name ?? D.machines.find((m) => m.sku === sku)?.name ?? sku;
+
+  const onReorderLoaded = (loaded: { ref: string; items: Array<{ sku: string; qty: number }> }) => {
+    for (const it of loaded.items) addWithQty({ sku: it.sku, name: nameFor(it.sku), source: `Reorder of ${loaded.ref}` }, it.qty);
+    show(`Loaded ${loaded.items.length} line${loaded.items.length === 1 ? "" : "s"} from ${loaded.ref}`);
+  };
+
   const jump = (id: string) => {
     const el = id === "top" ? document.body : document.getElementById(id);
     if (el) window.scrollTo({ top: id === "top" ? 0 : el.offsetTop - 70, behavior: "smooth" });
@@ -1129,6 +1161,7 @@ export default function StorefrontPage() {
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setReference(typeof data.ref === "string" ? data.ref : null);
+        if (typeof data.ref === "string" && mode === "quote") rememberRequest(data.ref, items.length);
         setSent(true);
         show(mode === "message" ? "Message sent — desk replies in writing" : "Request sent — desk replies in writing");
       } else if (res.status >= 500) {
@@ -1171,6 +1204,8 @@ export default function StorefrontPage() {
         onRemove={remove}
         onSend={sendRequest}
         onPrint={() => window.print()}
+        reorderRef={reorderRef}
+        onReorderLoaded={onReorderLoaded}
       />
         <Trust />
         <Faq />
