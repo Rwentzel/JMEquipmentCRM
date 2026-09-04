@@ -5,7 +5,9 @@ import { audit, hashKey } from "@/lib/auditLog";
 import { clientKey, rateLimit } from "@/lib/rateLimit";
 import { configLines } from "@/lib/rfqConfig";
 import { sendRfqNotification } from "@/lib/mail";
-import { saveRfq, type StoredRfq, type StoredRfqContact } from "@/lib/rfqStore";
+import { getRfq, saveRfq, type StoredRfq, type StoredRfqContact, type StoredRfqOrigin } from "@/lib/rfqStore";
+import { matchReorder, normalizeRef } from "@/lib/reorder";
+import { details } from "@/data/details";
 import { randomUUID } from "node:crypto";
 import { evaluateQuote } from "@/lib/validateQuote";
 
@@ -42,7 +44,13 @@ interface IncomingItem {
  * on every diagram order. Rebuilding the text here rather than trusting the
  * browser's means a crafted value cannot reach the desk email or the CSV.
  */
-function resolveOrigin(sku: string, raw: unknown): string | null {
+/**
+ * Validate a drawing location against our own diagram data and return both
+ * the text the desk reads and the ids that produced it. The ids are stored
+ * too: they are what a reorder hands back to the browser to resend, and
+ * without them a belt picked off page 5-3 reordered as a bare part number.
+ */
+function resolveOrigin(sku: string, raw: unknown): { source: string; origin: StoredRfqOrigin } | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as { model?: unknown; section?: unknown; page?: unknown; bubble?: unknown };
   const modelId = String(o.model ?? "");
@@ -56,7 +64,10 @@ function resolveOrigin(sku: string, raw: unknown): string | null {
   if (!model || !section || !page) return null;
   if (!page.parts.some((part) => part.sku === sku && part.bubble === bubble)) return null;
 
-  return `${model.label} · ${section.label} · p.${page.pageLabel} · #${bubble}`;
+  return {
+    source: `${model.label} · ${section.label} · p.${page.pageLabel} · #${bubble}`,
+    origin: { model: model.id, section: section.id, page: page.pageLabel, bubble },
+  };
 }
 
 /**
@@ -67,11 +78,18 @@ function resolveOrigin(sku: string, raw: unknown): string | null {
  * along, and nothing a customer can type reaches the desk email or the CSV
  * export by this route — only text from our own data.
  */
-function resolveOptions(machineSku: string, raw: unknown): string[] {
-  if (!Array.isArray(raw) || raw.length === 0) return [];
+function resolveOptions(machineSku: string, raw: unknown): { config: string[]; optionIds: string[] } {
+  if (!Array.isArray(raw) || raw.length === 0) return { config: [], optionIds: [] };
+  const wanted = raw.slice(0, 40).map((v) => String(v));
   // Shared with the quote conversion, which has to recognise these exact lines
   // to tell a standard build from a configured one.
-  return configLines(machineSku, raw.slice(0, 40).map((v) => String(v)));
+  const config = configLines(machineSku, wanted);
+  // Keep only the ids this machine actually offers, in the catalogue's own
+  // order — the same filter configLines applies — so what is stored is what
+  // was resolved, and a reorder can hand exactly that back to the browser.
+  const offered = new Set((details[machineSku]?.options ?? []).flatMap((opt) => opt.choices.map((c) => c.sku)));
+  const optionIds = config.length ? wanted.filter((id, i) => offered.has(id) && wanted.indexOf(id) === i) : [];
+  return { config, optionIds };
 }
 
 const validSkus = new Set<string>([
@@ -100,6 +118,14 @@ const freightSkus = new Set<string>(
 
 const GENERIC_FAIL = "Please check the form and try again.";
 
+/** The reference a reorder claims to repeat, or null unless it checks out. */
+async function verifiedReorderOf(raw: unknown, email: unknown): Promise<string | null> {
+  const ref = normalizeRef(raw);
+  if (!ref) return null;
+  const prior = await getRfq(ref).catch(() => null);
+  return matchReorder(prior, email) ? ref : null;
+}
+
 // Fallback contact details, for the case where we cannot record the request.
 const JME_PHONE = "(269) 659-0093";
 const JME_EMAIL = "parts@jmequipment.net";
@@ -122,7 +148,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { contact?: Record<string, unknown>; items?: IncomingItem[]; mode?: unknown };
+  let body: { contact?: Record<string, unknown>; items?: IncomingItem[]; mode?: unknown; reorderOf?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -148,15 +174,21 @@ export async function POST(req: Request) {
 
   const storedItems = items.map((it) => {
     const sku = String(it.sku);
-    const config = resolveOptions(sku, it.options);
-    const source = resolveOrigin(sku, it.origin);
+    const { config, optionIds } = resolveOptions(sku, it.options);
+    const located = resolveOrigin(sku, it.origin);
     return {
       sku,
       qty: Math.min(Math.max(Math.floor(Number(it.qty)), 1), 9999),
-      ...(config.length > 0 ? { config } : {}),
-      ...(source ? { source } : {}),
+      ...(config.length > 0 ? { config, optionIds } : {}),
+      ...(located ? { source: located.source, origin: located.origin } : {}),
     };
   });
+
+  // Which earlier request this repeats. The browser says so, but the desk
+  // only hears it if the claim passes the same check the reorder endpoint
+  // applies — the reference exists and was submitted with this same email —
+  // so a typed or forged reference can never put a line in the desk's email.
+  const repeatOf = await verifiedReorderOf(body.reorderOf, contact.email);
 
   const contactBlock: StoredRfqContact = {
     company: clean(contact.company, 200),
@@ -176,7 +208,7 @@ export async function POST(req: Request) {
 
   let rfq: StoredRfq;
   try {
-    rfq = await saveRfq({ contact: contactBlock, items: storedItems, message, freight });
+    rfq = await saveRfq({ contact: contactBlock, items: storedItems, message, freight, ...(repeatOf ? { reorderOf: repeatOf } : {}) });
   } catch (err) {
     // The store is unavailable (full volume, detached mount, bad permissions).
     // A customer who filled the form correctly must not be told to check it,

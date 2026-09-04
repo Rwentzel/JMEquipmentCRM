@@ -36,6 +36,14 @@ export interface StoredRfqContact {
   wantsAccount?: boolean;
 }
 
+/** A location on a manual drawing, as the ids the diagram data is keyed by. */
+export interface StoredRfqOrigin {
+  model: string;
+  section: string;
+  page: string;
+  bubble: number;
+}
+
 export interface StoredRfqItem {
   sku: string;
   qty: number;
@@ -45,10 +53,20 @@ export interface StoredRfqItem {
    */
   config?: string[];
   /**
+   * The choice ids those labels were resolved from, validated against the
+   * machine's own option set at intake. Kept because a reorder can hand ids
+   * back to the browser to resend, and labels cannot be turned back into ids:
+   * without these a configured machine reloaded as the standard build.
+   * Absent on records stored before ids were kept.
+   */
+  optionIds?: string[];
+  /**
    * Where the part was picked off a manual drawing, verified against the
    * diagram data at intake. Absent for anything not chosen from a drawing.
    */
   source?: string;
+  /** The ids that produced `source`, for the same reason as optionIds. */
+  origin?: StoredRfqOrigin;
 }
 
 export interface StoredRfq {
@@ -61,6 +79,12 @@ export interface StoredRfq {
   message?: string;
   /** True when any line item carries a freight-quote action. */
   freight: boolean;
+  /**
+   * The earlier request this one repeats, when the customer reloaded it by
+   * reference. Recorded only after the server verified the reference against
+   * the submitting email — the browser's claim alone never reaches the desk.
+   */
+  reorderOf?: string;
 }
 
 function dataDir(): string {
@@ -144,6 +168,7 @@ export interface NewRfqInput {
   items: StoredRfqItem[];
   message?: string;
   freight: boolean;
+  reorderOf?: string;
 }
 
 /** Persist a new RFQ and return its crypto-random reference. */
@@ -159,6 +184,7 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
       items: input.items,
       message: input.message,
       freight: input.freight,
+      ...(input.reorderOf ? { reorderOf: input.reorderOf } : {}),
     };
     const all = await readAll();
     all.unshift(rfq);
