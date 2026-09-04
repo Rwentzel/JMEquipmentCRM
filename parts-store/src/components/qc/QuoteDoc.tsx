@@ -181,7 +181,9 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
             </ul>
           </>
         )}
-        <p style={{ fontSize: "10.5px", color: "var(--subtle)", marginTop: "12px", lineHeight: 1.6 }}>{doc.roiDisclaimer}</p>
+        {doc.hasEstimates && (
+          <p style={{ fontSize: "10.5px", color: "var(--subtle)", marginTop: "12px", lineHeight: 1.6 }}>{doc.roiDisclaimer}</p>
+        )}
       </div>
 
       <div style={{ padding: "26px 38px 32px", breakBefore: "page" }}>
