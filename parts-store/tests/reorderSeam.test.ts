@@ -85,8 +85,11 @@ test("a record stored before ids were kept returns its labels but no ids", () =>
     items: [{ sku: "JME-VCS12-75", qty: 1, config: ["Power: 5 HP / 460V 3Ø"] }],
   };
   const [line] = matchReorder(legacy, "ada@reorder.example")!;
-  assert.deepEqual(line, { sku: "JME-VCS12-75", qty: 1, config: ["Power: 5 HP / 460V 3Ø"] });
+  // Read `options` before the deepEqual: assert's signature narrows `line` to
+  // the expected literal's type afterwards, and CI's typecheck (which runs on
+  // this file, unlike the tsx-stripped test run) rightly refused the access.
   assert.equal(line!.options, undefined);
+  assert.deepEqual(line, { sku: "JME-VCS12-75", qty: 1, config: ["Power: 5 HP / 460V 3Ø"] });
 });
 
 /* ---- intake keeps the ids, and only believes a verified repeat ---- */
