@@ -50,3 +50,36 @@ export function partMatches(
   const sku = compactSku(p.sku);
   return tokens.every((t) => hay.includes(t) || sku.includes(compactSku(t)));
 }
+
+/**
+ * Character ranges of `text` to highlight for a tokenised query: every
+ * case-insensitive occurrence of every token, merged where they overlap or
+ * touch, in document order. Pure, so the marking logic is tested without a
+ * renderer.
+ *
+ * A token that matched only through the compacted SKU (e.g. "JMESHT0096"
+ * against "JME-SHT-0096") has no literal substring to mark and is skipped —
+ * the row is found, which is what matters.
+ */
+export function highlightRanges(text: string, tokens: string[]): Array<[number, number]> {
+  const lower = text.toLowerCase();
+  const hits: Array<[number, number]> = [];
+  for (const t of tokens) {
+    if (!t) continue;
+    let from = 0;
+    for (;;) {
+      const at = lower.indexOf(t, from);
+      if (at === -1) break;
+      hits.push([at, at + t.length]);
+      from = at + t.length;
+    }
+  }
+  hits.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const merged: Array<[number, number]> = [];
+  for (const [s, e] of hits) {
+    const last = merged[merged.length - 1];
+    if (last && s <= last[1]) last[1] = Math.max(last[1], e);
+    else merged.push([s, e]);
+  }
+  return merged;
+}

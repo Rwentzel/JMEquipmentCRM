@@ -52,3 +52,33 @@ test("query tokenising is whitespace-tolerant and lowercases", () => {
 test("an empty query matches the whole catalogue", () => {
   assert.equal(find("").length, catalog.parts.length);
 });
+
+import { highlightRanges } from "../src/lib/partSearch";
+
+test("highlight marks every token where it occurs, in order, case-insensitively", () => {
+  const text = "Belt for Bottom slitter drive";
+  assert.deepEqual(highlightRanges(text, queryTokens("slitter bottom")), [[9, 15], [16, 23]]);
+  assert.deepEqual(highlightRanges(text, queryTokens("BELT DRIVE")), [[0, 4], [24, 29]]);
+});
+
+test("highlight merges overlapping and touching ranges into one mark", () => {
+  assert.deepEqual(highlightRanges("slitter", queryTokens("slit slitter")), [[0, 7]], "overlapping");
+  assert.deepEqual(highlightRanges("beltbelt", queryTokens("belt")), [[0, 8]], "touching");
+  // Separated by a space they are NOT touching, and must stay two marks —
+  // marking the space between two words would read as one wrong word.
+  assert.deepEqual(highlightRanges("bottom slitter", queryTokens("bottom slitter")), [[0, 6], [7, 14]]);
+});
+
+test("highlight marks repeated occurrences and nothing for an absent token", () => {
+  assert.deepEqual(highlightRanges("belt belt", queryTokens("belt")), [[0, 4], [5, 9]]);
+  assert.deepEqual(highlightRanges("Belt for Bottom slitter drive", queryTokens("JMESHT0096")), []);
+  assert.deepEqual(highlightRanges("anything", []), []);
+});
+
+test("highlight ranges always cover exactly the query tokens' text", () => {
+  const text = "Tidland Diaphragm Kit Model 50 (Dia/PstAsm/RetPlt/Bolt)";
+  for (const [s, e] of highlightRanges(text, queryTokens("diaphragm kit dia"))) {
+    const piece = text.slice(s, e).toLowerCase();
+    assert.ok(["diaphragm", "kit", "dia"].some((t) => piece.includes(t)), `"${piece}" is not a token`);
+  }
+});

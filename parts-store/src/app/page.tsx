@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
-import { partMatches, queryTokens } from "@/lib/partSearch";
+import { highlightRanges, partMatches, queryTokens } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import { goodstrongModels } from "@/data/goodstrong";
 import { NumberInput } from "@/components/NumberInput";
@@ -359,17 +359,24 @@ function StatusLegend() {
 }
 
 /* ----------------------------------------------------------------- Parts --- */
+/**
+ * Marks every query token where it occurs, so a result found by an
+ * out-of-order or non-adjacent query ("slitter bottom") shows *why* it
+ * matched. Before the matcher went token-based this marked only the whole
+ * phrase, which after that change listed the right rows with no mark at all.
+ */
 function Highlight({ text, q }: { text: string; q: string }) {
-  if (!q) return <>{text}</>;
-  const idx = text.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return <>{text}</>;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="ps-match">{text.slice(idx, idx + q.length)}</mark>
-      {text.slice(idx + q.length)}
-    </>
-  );
+  const ranges = highlightRanges(text, queryTokens(q));
+  if (ranges.length === 0) return <>{text}</>;
+  const out: React.ReactNode[] = [];
+  let cursor = 0;
+  ranges.forEach(([s, e], i) => {
+    if (s > cursor) out.push(text.slice(cursor, s));
+    out.push(<mark key={i} className="ps-match">{text.slice(s, e)}</mark>);
+    cursor = e;
+  });
+  if (cursor < text.length) out.push(text.slice(cursor));
+  return <>{out}</>;
 }
 
 const PARTS_PAGE_SIZE = 30;
