@@ -28,6 +28,27 @@ const PRICING_REFUSAL =
   "Pricing isn't published online — every quote is confirmed in writing based on configuration, freight, and lead time. Add the item to a request (it takes under a minute) and the desk will send a firm written quote. " +
   DESK_LINE;
 
+/**
+ * A price the assistant must never state: a "$" immediately before a digit.
+ *
+ * SECURITY_NOTES describes "an output screen for $ amounts". It existed only on
+ * the LLM path (`answerSupportQuestion` below). The rules engine, though, ends
+ * its answer by echoing machine spec rows (`specLines`) and FAQ answers — text
+ * that catalogBoundary does not check for prices (it locks part names only) and
+ * that a future FAQ edit or spec import could put a figure into. So the screen
+ * is applied to the rules answer as well: a no-op on today's price-free
+ * catalogue, and the belt to the LLM path's braces when the data drifts.
+ */
+export const PRICE_SHAPE = /\$\s?\d/;
+
+/** Replace any answer that states a price with the standing pricing refusal. */
+export function screenPriceOut(ans: SupportAnswer): SupportAnswer {
+  if (PRICE_SHAPE.test(ans.answer)) {
+    return { answer: PRICING_REFUSAL, engine: ans.engine, skus: ans.skus };
+  }
+  return ans;
+}
+
 const STOCK_REFUSAL =
   "We don't publish exact stock counts — they move through the day, and a number that is wrong by the time you read it helps nobody. Each item shows an availability band instead, and the desk confirms real availability and lead time in a written quote on your request. " +
   DESK_LINE;
@@ -225,9 +246,10 @@ export async function answerSupportQuestion(question: string): Promise<SupportAn
   if (aiAvailable()) {
     const text = await complete({ system: SYSTEM_PROMPT, user: q, maxTokens: 400 });
     // Belt-and-braces: if the model output looks like it leaked a price, fall back.
-    if (text && !/\$\s?\d/.test(text)) {
+    if (text && !PRICE_SHAPE.test(text)) {
       return { answer: text, engine: "ai", skus: matchCatalog(q).map((h) => h.sku) };
     }
   }
-  return rulesAnswer(q);
+  // Every terminal rules answer passes the output screen (see PRICE_SHAPE).
+  return screenPriceOut(rulesAnswer(q));
 }

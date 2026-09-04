@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answerSupportQuestion } from "../src/lib/agents/supportAgent";
+import { readFileSync } from "node:fs";
+import { answerSupportQuestion, screenPriceOut } from "../src/lib/agents/supportAgent";
 import { scoreRfq } from "../src/lib/agents/triageAgent";
 import { catalogChecks } from "../src/lib/agents/maintenanceAgent";
 import { analyzeEvents } from "../src/lib/agents/securityAgent";
@@ -11,6 +12,31 @@ import type { AuditEvent } from "../src/lib/auditLog";
 delete process.env.ANTHROPIC_API_KEY;
 
 /* ---- support agent ---- */
+
+test("the output screen redacts a price on ANY engine, not just the LLM path", () => {
+  // SECURITY_NOTES promises "an output screen for $ amounts". It guarded the
+  // LLM answer only; the rules engine ends by echoing machine spec rows and FAQ
+  // answers — text catalogBoundary does not check for prices — so a future FAQ
+  // edit or spec import could put a figure past it. The screen is pure and
+  // applied to the rules exit; here it is exercised directly.
+  const leaked = { answer: "Rebuilds start at $28,500 depending on condition.", engine: "rules" as const, skus: ["X"] };
+  const out = screenPriceOut(leaked);
+  assert.match(out.answer, /Pricing isn't published/i, "a stated price is replaced by the refusal");
+  assert.doesNotMatch(out.answer, /\$\s?\d/);
+  assert.deepEqual(out.skus, ["X"], "the matched skus survive the screen");
+
+  const clean = { answer: "Splitter Blade (JME-VCS-BLD-001) — availability: Quote Required.", engine: "rules" as const, skus: [] };
+  assert.equal(screenPriceOut(clean), clean, "a price-free answer passes through untouched");
+});
+
+test("answerSupportQuestion actually runs the rules answer through the screen", () => {
+  // The recurring lesson this session: a correct helper is inert unless the
+  // caller uses it. Pin the wiring to the source so the screen cannot be
+  // quietly detached from the rules exit.
+  const src = readFileSync(new URL("../src/lib/agents/supportAgent.ts", import.meta.url), "utf8");
+  assert.match(src, /return screenPriceOut\(rulesAnswer\(q\)\)/, "the terminal rules answer must be screened");
+  assert.match(src, /PRICE_SHAPE\.test\(text\)/, "the LLM path screens on the same shared pattern");
+});
 
 test("support agent refuses pricing questions and never emits a price", async () => {
   const res = await answerSupportQuestion("How much does the JM108 knife bearing cost?");
