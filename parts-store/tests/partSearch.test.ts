@@ -28,9 +28,28 @@ test("every token must match — a two-word query is narrower than either word a
   assert.ok(both >= 1);
   assert.ok(both < belt && both < slitter, `AND semantics: ${both} should be below ${belt} and ${slitter}`);
   for (const p of find("belt slitter")) {
-    const hay = [p.sku, p.name, p.category, p.fitment, p.description, ...(p.keywords ?? [])].join(" ").toLowerCase();
+    const hay = [p.sku, p.name, p.cat, p.category, p.fitment, p.description, ...(p.keywords ?? [])].join(" ").toLowerCase();
     assert.ok(hay.includes("belt") && hay.includes("slitter"), `${p.sku} matched without both words`);
   }
+});
+
+test("the machine family is searchable — a customer types the family before the part", () => {
+  // 99% of the catalogue carries its family in `cat` ("Sheeter", "Brakes")
+  // with no fine-grained `category`, and the haystack read `category` only. So
+  // "sheeter" found 4 of 1,930 sheeter parts and "sheeter belt" found none,
+  // though the category rail groups every one of them under Sheeter. A
+  // customer arriving from an email signature types the family first.
+  for (const [word, catName] of [["sheeter", "Sheeter"], ["brakes", "Brakes"], ["rollstand", "Rollstand"]]) {
+    const inCat = catalog.parts.filter((p) => p.cat === catName);
+    if (inCat.length === 0) continue;
+    const missed = inCat.filter((p) => find(word).every((f) => f.sku !== p.sku));
+    assert.equal(missed.length, 0, `${missed.length} '${catName}' parts are not found by '${word}'`);
+  }
+  // …and the family still narrows with a second word (AND across cat + name).
+  const belts = find("sheeter belt");
+  assert.ok(belts.length > 5, `'sheeter belt' should list the sheeter belts, got ${belts.length}`);
+  assert.ok(belts.every((p) => p.cat === "Sheeter"), "every hit is a sheeter part");
+  assert.ok(belts.some((p) => /belt/i.test(p.name)), "and a belt");
 });
 
 test("no fuzzy matching: a typo returns nothing rather than a plausible wrong part", () => {
