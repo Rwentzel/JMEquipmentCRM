@@ -29,9 +29,19 @@ export function queryTokens(q: string): string[] {
   return q.trim().toLowerCase().split(/\s+/).filter(Boolean);
 }
 
-/** The searchable text of a part, built once per part per search. */
-export function partHaystack(p: Pick<Part, "sku" | "name" | "category" | "fitment" | "description" | "keywords">): string {
-  return [p.sku, p.name, p.category, p.fitment, p.description, ...(p.keywords ?? [])]
+/**
+ * The searchable text of a part, built once per part per search.
+ *
+ * `cat` is the machine-family category every part carries ("Sheeter",
+ * "Brakes") and the field the category rail filters on; `category` is the
+ * fine-grained one only a handful of parts set ("Blades"). The haystack read
+ * `category` but not `cat`, so on the 2,198 generated parts — 99% of the
+ * catalogue, which carry `cat` and no `category` — the family was invisible to
+ * the search box: "sheeter" found 4 of 1,930 sheeter parts, and "sheeter belt"
+ * found none at all, though the rail groups every one of them under Sheeter.
+ */
+export function partHaystack(p: Pick<Part, "sku" | "name" | "cat" | "category" | "fitment" | "description" | "keywords">): string {
+  return [p.sku, p.name, p.cat, p.category, p.fitment, p.description, ...(p.keywords ?? [])]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -42,7 +52,7 @@ export function partHaystack(p: Pick<Part, "sku" | "name" | "category" | "fitmen
  * punctuation-free match against its SKU. An empty query matches everything.
  */
 export function partMatches(
-  p: Pick<Part, "sku" | "name" | "category" | "fitment" | "description" | "keywords">,
+  p: Pick<Part, "sku" | "name" | "cat" | "category" | "fitment" | "description" | "keywords">,
   tokens: string[],
 ): boolean {
   if (tokens.length === 0) return true;
