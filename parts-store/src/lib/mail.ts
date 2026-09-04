@@ -18,6 +18,8 @@ import nodemailer from "nodemailer";
 import { audit } from "@/lib/auditLog";
 import type { StoredRfq } from "@/lib/rfqStore";
 import { catalog } from "@/data/catalog";
+import { goodstrongModels } from "@/data/goodstrong";
+import { buildSkuLookup } from "@/lib/partsLink";
 import { siteUrl } from "@/lib/launch";
 
 export function mailConfigured(): boolean {
@@ -29,14 +31,15 @@ export function mailConfigured(): boolean {
  * the storefront shows), so this adds nothing to the email that a customer
  * could not already see.
  */
-const CATALOG_NAMES: Map<string, string> = new Map([
-  ...catalog.machines.map((m) => [m.sku, m.name] as const),
-  ...catalog.parts.map((p) => [p.sku, p.name] as const),
-]);
+const CATALOG_NAMES = buildSkuLookup(catalog, goodstrongModels);
 
-/** Part or machine name for a SKU, or null for anything not in the catalog. */
+/**
+ * Part or machine name for a SKU, or null for anything we do not list. The
+ * same lookup the storefront uses, so a belt ordered off a manual drawing is
+ * named here too — it used to arrive as "1808-8YU-50 × 2" and nothing else.
+ */
 function catalogName(sku: string): string | null {
-  return CATALOG_NAMES.get(sku) ?? null;
+  return CATALOG_NAMES.get(sku.toLowerCase())?.name ?? null;
 }
 
 /**
@@ -96,6 +99,9 @@ export function formatRfqEmail(rfq: StoredRfq): { subject: string; text: string 
       ? `New message ${rfq.ref} — no line items, question only`
       : `New quote request ${rfq.ref}${rfq.freight ? " — FREIGHT QUOTE REQUIRED" : ""}`,
     `Received: ${rfq.createdAt}`,
+    // A repeat is priced against what was quoted last time. The reference is
+    // only here because the server verified it against the submitting email.
+    ...(rfq.reorderOf ? [`Repeat of: ${rfq.reorderOf}`] : []),
     "",
     `Company:  ${oneLine(c.company)}`,
     `Contact:  ${oneLine([c.name, c.lastName].filter(Boolean).join(" "))}`,

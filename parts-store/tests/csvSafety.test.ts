@@ -86,7 +86,9 @@ test("RFC 4180 quoting still holds for commas, quotes and newlines", () => {
   const csv = rfqsToCsv([rfq({ company: 'Acme, "The" Co.' }, "line one\nline two")]);
   const c = cells(csv);
   assert.equal(c[5], 'Acme, "The" Co.');
-  assert.equal(c.at(-1), "line one\nline two");
+  // repeat_of is the last column (appended, so nothing keyed by position moved); the message sits before it.
+  assert.equal(c.at(-2), "line one\nline two");
+  assert.equal(c.at(-1), "", "a first order repeats nothing");
 });
 
 test("the header row is not disturbed", () => {

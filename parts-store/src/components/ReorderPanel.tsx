@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui";
 import { readRecent } from "@/lib/recentRequests";
+import type { ReorderItem } from "@/lib/reorder";
 
 interface Loaded {
   ref: string;
-  items: Array<{ sku: string; qty: number }>;
+  items: ReorderItem[];
 }
 
 /**

@@ -89,8 +89,11 @@ signatures. On order confirmations, use the **reorder link** the desk
 notification email provides for that request —
 `https://<site>/?reorder=RFQ-XXXXXXXX` — which opens the request desk with the
 reference prefilled; the customer enters the email they ordered with and their
-previous lines reload for a fresh written quote. The reference is not a
-credential on its own (wrong email → same 404 as an unknown reference).
+previous lines reload for a fresh written quote — configured machines with
+the build they chose, drawing-picked parts with their page and bubble. The
+desk's notification for the repeat is headed "Repeat of: RFQ-…" so it can be
+priced against what was quoted last time. The reference is not a credential
+on its own (wrong email → same 404 as an unknown reference).
 
 ## 4. Go live (indexing)
 

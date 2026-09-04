@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
+import type { ReorderItem as ReorderLine } from "@/lib/reorder";
 import { goodstrongModels } from "@/data/goodstrong";
 import { NumberInput } from "@/components/NumberInput";
 import {
@@ -686,7 +687,7 @@ function Request({
   onSend: (mode: "quote" | "message") => void;
   onPrint: () => void;
   reorderRef: string | null;
-  onReorderLoaded: (loaded: { ref: string; items: Array<{ sku: string; qty: number }> }) => void;
+  onReorderLoaded: (loaded: { ref: string; items: ReorderLine[] }) => void;
 }) {
   const set = (k: keyof ContactForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setContact({ ...contact, [k]: e.target.value });
@@ -1145,11 +1146,46 @@ export default function StorefrontPage() {
     if (el) window.scrollTo({ top: el.offsetTop - 70 });
   }, [reorderRef]);
 
-  const nameFor = (sku: string) => D.parts.find((p) => p.sku === sku)?.name ?? D.machines.find((m) => m.sku === sku)?.name ?? sku;
+  // The request this list was reloaded from, sent with the submission so the
+  // desk sees "repeat of RFQ-…". The server re-verifies it against the email
+  // before believing it; here it is just remembered.
+  const [reorderOf, setReorderOf] = useState<string | null>(null);
 
-  const onReorderLoaded = (loaded: { ref: string; items: Array<{ sku: string; qty: number }> }) => {
-    for (const it of loaded.items) addWithQty({ sku: it.sku, name: nameFor(it.sku), source: `Reorder of ${loaded.ref}` }, it.qty);
-    show(`Loaded ${loaded.items.length} line${loaded.items.length === 1 ? "" : "s"} from ${loaded.ref}`);
+  const onReorderLoaded = (loaded: { ref: string; items: ReorderLine[] }) => {
+    // The same lookup the parts link uses: catalogue plus every Goodstrong
+    // drawing part. Searching the catalogue alone reloaded a timing belt as
+    // the bare part number "1808-8YU-50" with nothing to say what it was.
+    const lookup = buildSkuLookup(catalog, goodstrongModels);
+    let reconfigure = 0;
+    for (const it of loaded.items) {
+      const name = lookup.get(it.sku.toLowerCase())?.name ?? it.sku;
+      // A configured machine only travels if the ids that produced its labels
+      // were kept. Showing the labels without the ids would let the customer
+      // see 460V / 90 in while the desk received the standard build — which is
+      // the exact failure this exists to prevent — so a record from before ids
+      // were stored is flagged for reconfiguring instead.
+      const legacy = !!it.config?.length && !it.options?.length;
+      if (legacy) reconfigure++;
+      addWithQty(
+        {
+          sku: it.sku,
+          name,
+          ...(it.options?.length ? { options: it.options, configLabel: (it.config ?? []).join(" · ") } : {}),
+          ...(it.origin ? { origin: it.origin } : {}),
+          source: legacy
+            ? `Reorder of ${loaded.ref} — its configuration was not kept on file; set it again from the machine page`
+            : it.source
+              ? `${it.source} · reorder of ${loaded.ref}`
+              : `Reorder of ${loaded.ref}`,
+        },
+        it.qty,
+      );
+    }
+    setReorderOf(loaded.ref);
+    show(
+      `Loaded ${loaded.items.length} line${loaded.items.length === 1 ? "" : "s"} from ${loaded.ref}` +
+        (reconfigure ? ` — ${reconfigure} need${reconfigure === 1 ? "s" : ""} reconfiguring` : ""),
+    );
   };
 
   const jump = (id: string) => {
@@ -1184,7 +1220,7 @@ export default function StorefrontPage() {
       const res = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contact, items: mode === "quote" ? items : [], mode }),
+        body: JSON.stringify({ contact, items: mode === "quote" ? items : [], mode, ...(reorderOf ? { reorderOf } : {}) }),
       });
       // Generic handling — the API returns generic messages by design.
       const data = await res.json().catch(() => ({}));
