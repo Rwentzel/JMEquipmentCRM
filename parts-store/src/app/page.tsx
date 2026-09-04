@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
+import { partMatches, queryTokens } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import { goodstrongModels } from "@/data/goodstrong";
 import { NumberInput } from "@/components/NumberInput";
@@ -399,17 +400,13 @@ function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }
 
   const results = useMemo<Part[]>(() => {
     const nq = dq.trim().toLowerCase();
+    const tokens = queryTokens(dq);
     const list = D.parts.filter(
       (p) =>
         (!family || p.cat === family) &&
         (!sub || subsystemOf(p) === sub) &&
         (!inStock || p.statusBand === "In Stock" || p.statusBand === "Limited Stock") &&
-        (!nq ||
-          [p.sku, p.name, p.category, p.fitment, p.description, ...(p.keywords ?? [])]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase()
-            .includes(nq)),
+        partMatches(p, tokens),
     );
     const rank = (p: Part) => {
       if (!nq) return 0;
