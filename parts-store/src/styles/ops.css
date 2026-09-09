@@ -254,6 +254,16 @@
   flex-wrap: wrap;
 }
 
+.ops__kind {
+  padding: var(--s-1) var(--s-2);
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  color: var(--paper);
+  background: var(--plate-hi);
+  border: var(--bd-hair);
+  border-radius: var(--r-1);
+}
+
 .ops__btnlink {
   display: inline-flex;
   align-items: center;
