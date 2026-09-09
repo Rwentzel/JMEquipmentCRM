@@ -86,6 +86,7 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
               </a>
             );
           })}
+          <Link href="/machines">Machine Platform</Link>
           <Link href="/compare">Compare</Link>
           <Link href="/parts/goodstrong">Goodstrong Parts</Link>
         </div>
