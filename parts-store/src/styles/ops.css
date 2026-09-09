@@ -228,7 +228,8 @@
 }
 
 .ops__sechd button,
-.ops__agentbtns button {
+.ops__agentbtns button,
+.ops__btnlink {
   padding: var(--s-1) var(--s-3);
   font-family: var(--font-display);
   font-size: var(--t-xs);
@@ -242,7 +243,8 @@
 }
 
 .ops__sechd button:hover,
-.ops__agentbtns button:hover {
+.ops__agentbtns button:hover,
+.ops__btnlink:hover {
   border-color: var(--accent);
 }
 
@@ -250,6 +252,13 @@
   display: flex;
   gap: var(--s-2);
   flex-wrap: wrap;
+}
+
+.ops__btnlink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  line-height: 1.2;
 }
 
 .ops__agentbtns button:disabled {

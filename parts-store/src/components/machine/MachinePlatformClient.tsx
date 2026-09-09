@@ -4,6 +4,7 @@ import "@/styles/platform.css";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button, Diamond, Eyebrow, SmartImg, StatusBand, Tag, Toast } from "@/components/ui";
+import { SiteNav } from "@/components/SiteNav";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { foreignLines, type MachinePartsResult } from "@/lib/machineParts";
@@ -62,26 +63,16 @@ export function MachinePlatformClient({
 
   return (
     <>
-      <nav className="ps-nav mp-nav" aria-label="Site">
-        <div className="ps-nav__in">
-          <Link className="brand" href="/">
-            <Diamond size={30} />
-            <span>
-              <b>JM Equipment</b>
-              <small>Converting Machinery Solutions</small>
-            </span>
-          </Link>
-          <div className="ps-nav__links open mp-nav__links">
-            <Link href="/#parts">Catalog</Link>
-            <span aria-current="page">Machine Platform</span>
-            <Link href="/parts/goodstrong">Manuals</Link>
-            <Link href="/compare">Compare</Link>
-          </div>
-          <Button size="sm" href="/#request">
-            Request List{count > 0 ? ` · ${count}` : ""}
-          </Button>
-        </div>
-      </nav>
+      <SiteNav
+        className="mp-nav"
+        count={count}
+        links={[
+          { label: "Catalog", href: "/#parts" },
+          { label: "Machine Platform", href: "/machines", current: true },
+          { label: "Manuals", href: "/parts/goodstrong" },
+          { label: "Compare", href: "/compare" },
+        ]}
+      />
 
       <main id="main" className="mp">
         <header className="mp__head">
