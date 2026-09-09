@@ -367,8 +367,9 @@ function SupportRequestForm({
         </span>
         {done.held && (
           <p className="sh__held">
-            The published {done.held.label} Part Catalogue is online now &mdash; its sections and parts pages are{" "}
-            <Link href={done.held.href}>here</Link>. The desk still confirms it against your serial in writing.
+            The published {done.held.label} Part Catalogue is online now:{" "}
+            <Link href={done.held.href}>browse its sections and parts pages</Link>. The desk still confirms it against
+            your serial in writing.
           </p>
         )}
         <dl className="jme-plate jme-plate__rows sh__echo">
