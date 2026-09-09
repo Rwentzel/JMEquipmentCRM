@@ -9,6 +9,7 @@ import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useUrlParam } from "@/hooks/useUrlParam";
 import { SUPPORT_FORMS, fieldErrors, type SupportForm, type SupportKind } from "@/lib/supportRequest";
+import { matchSerialToModel } from "@/data/goodstrong";
 
 const PHONE = "(269) 659-0093";
 const TEL = "tel:+12696590093";
@@ -309,7 +310,7 @@ function SupportRequestForm({
   const [website, setWebsite] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState<{ ref: string | null; echo: Record<string, string> } | null>(null);
+  const [done, setDone] = useState<{ ref: string | null; echo: Record<string, string>; held: { label: string; href: string } | null } | null>(null);
 
   const set = (key: string) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
@@ -331,7 +332,14 @@ function SupportRequestForm({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setDone({ ref: typeof data.ref === "string" ? data.ref : null, echo: { ...values } });
+        // A serial the published manuals already cover gets its link on the
+        // spot; the desk still confirms in writing.
+        const model = (form.kind === "epc-lookup" || form.kind === "manual-request") && values.serial ? matchSerialToModel(values.serial) : undefined;
+        setDone({
+          ref: typeof data.ref === "string" ? data.ref : null,
+          echo: { ...values },
+          held: model ? { label: model.label, href: `/parts/goodstrong/${model.id}` } : null,
+        });
         onNotice("Request logged — the desk replies in writing");
       } else if (res.status >= 500) {
         onNotice(data.error || `Our system is having trouble — please call ${PHONE}`);
@@ -357,6 +365,12 @@ function SupportRequestForm({
           The parts desk replies in writing, typically within one business day. This is not scheduled work or a firm
           quotation until we confirm it in writing.
         </span>
+        {done.held && (
+          <p className="sh__held">
+            The published {done.held.label} Part Catalogue is online now &mdash; its sections and parts pages are{" "}
+            <Link href={done.held.href}>here</Link>. The desk still confirms it against your serial in writing.
+          </p>
+        )}
         <dl className="jme-plate jme-plate__rows sh__echo">
           {form.fields
             .filter((f) => done.echo[f.key])
