@@ -84,6 +84,7 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
       links={[
         ...anchors,
         { label: "Machine Platform", href: "/machines" },
+        { label: "Support", href: "/support" },
         { label: "Compare", href: "/compare" },
         { label: "Goodstrong Parts", href: "/parts/goodstrong" },
       ]}
@@ -946,6 +947,7 @@ function Footer() {
         <div>
           <h3>Information</h3>
           <Link href="/compare">Compare machines</Link>
+          <a href="/support">Support</a>
           <a href="/freight">Freight &amp; shipping</a>
           <a href="/terms">Terms of sale</a>
           <a href="/privacy">Privacy policy</a>

@@ -350,6 +350,18 @@
   border-radius: var(--r-1);
 }
 
+/* Which Support Hub form a request came from. Steel blue keeps it apart from
+   the red FREIGHT / NO ACCT flags; light ink on it measures above 9:1. */
+.ops__flag--kind {
+  color: #dbe6f5;
+  background: #2b3a4f;
+}
+
+.ops__detail {
+  display: block;
+  color: var(--paper-dim);
+}
+
 .ops__msg {
   font-style: italic;
   max-width: 32ch;

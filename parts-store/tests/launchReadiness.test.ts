@@ -106,8 +106,11 @@ test("CSV escapes quotes/commas/newlines and round-trips the RFQ", () => {
   assert.ok(row!.includes("JME-VCS-0021 x4; JME-SHT-0004 x1"));
   assert.ok(row!.includes(",5,"), "total units");
   const cols = header!.split(",");
-  assert.equal(cols.length, 19);
-  assert.equal(cols.at(-1), "repeat_of", "new columns are appended, never inserted, so import mappings keyed by position survive");
+  assert.equal(cols.length, 21);
+  // New columns are appended, never inserted, so import mappings keyed by
+  // position survive: repeat_of stayed at 18 when the Support Hub pair landed.
+  assert.equal(cols.indexOf("repeat_of"), 18);
+  assert.deepEqual(cols.slice(-2), ["kind", "details"]);
 });
 
 test("CSV with no records is just the header", () => {

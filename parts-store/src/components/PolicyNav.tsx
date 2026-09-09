@@ -6,6 +6,7 @@ export function PolicyNav() {
       links={[
         { label: "Parts Store", href: "/" },
         { label: "Machine Platform", href: "/machines" },
+        { label: "Support", href: "/support" },
         { label: "Compare", href: "/compare" },
       ]}
     />

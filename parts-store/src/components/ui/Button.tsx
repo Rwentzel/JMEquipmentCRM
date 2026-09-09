@@ -17,6 +17,12 @@ type CommonProps = {
 
 type ButtonProps = CommonProps & {
   as?: "button";
+  /**
+   * A link needs `as="a"`. Without this guard `<Button href>` type-checked
+   * (href exists on the anchor half of the union) and rendered a <button
+   * href="…"> that went nowhere when clicked.
+   */
+  href?: never;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "disabled" | "children" | "className">;
 
 type AnchorProps = CommonProps & {

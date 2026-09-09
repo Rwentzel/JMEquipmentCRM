@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Diamond } from "@/components/ui";
 import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
+import { SUPPORT_FORMS, isSupportKind } from "@/lib/supportRequest";
 import type { MaintenanceReport } from "@/lib/agents/maintenanceAgent";
 import type { SecurityReport } from "@/lib/agents/securityAgent";
 import type { TriageReport } from "@/lib/agents/triageAgent";
@@ -188,7 +189,14 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
               <tbody>
                 {rfqs.map((r) => (
                   <tr key={r.ref}>
-                    <td className="mono">{r.ref}</td>
+                    <td className="mono">
+                      {r.ref}
+                      {r.kind && isSupportKind(r.kind) && (
+                        <span className="ops__flag ops__flag--kind" title={SUPPORT_FORMS[r.kind].label}>
+                          {SUPPORT_FORMS[r.kind].tag}
+                        </span>
+                      )}
+                    </td>
                     <td>{ageLabel(r.createdAt)}</td>
                     <td>
                       <b>
@@ -209,6 +217,12 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                             : ""}
                         </small>
                       )}
+                      {r.details &&
+                        Object.entries(r.details).map(([label, value]) => (
+                          <small key={label} className="ops__detail">
+                            {label}: {value}
+                          </small>
+                        ))}
                       {r.message && <small className="ops__msg">&ldquo;{r.message}&rdquo;</small>}
                     </td>
                     <td>

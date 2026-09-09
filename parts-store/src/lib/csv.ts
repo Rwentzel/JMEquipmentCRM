@@ -40,6 +40,8 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     // Appended last: a column inserted mid-row would shift every column after
     // it and silently break any spreadsheet or import mapping keyed by position.
     "repeat_of",
+    // Support Hub requests: which form, and its labelled answers.
+    "kind", "details",
   ];
   const rows = rfqs.map((r) => [
     r.ref, r.createdAt, r.updatedAt, r.status, r.freight ? "yes" : "no",
@@ -61,6 +63,10 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     r.items.reduce((n, it) => n + it.qty, 0),
     r.message ?? "",
     r.reorderOf ?? "",
+    r.kind ?? "",
+    Object.entries(r.details ?? {})
+      .map(([label, value]) => `${label}: ${value}`)
+      .join("; "),
   ]);
   return [header, ...rows].map((row) => row.map(csvField).join(",")).join("\r\n") + "\r\n";
 }

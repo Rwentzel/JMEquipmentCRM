@@ -84,7 +84,7 @@ export function SiteNav({
             Request List{count > 0 ? ` · ${count}` : ""}
           </Button>
         ) : (
-          <Button size="sm" href={requestHref}>
+          <Button as="a" size="sm" href={requestHref}>
             Request List{count > 0 ? ` · ${count}` : ""}
           </Button>
         )}

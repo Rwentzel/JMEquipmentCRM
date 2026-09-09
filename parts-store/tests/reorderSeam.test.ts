@@ -129,13 +129,15 @@ test("a first order carries no repeat line", () => {
   assert.doesNotMatch(formatRfqEmail(first).text, /Repeat of/);
 });
 
-test("the CSV carries the repeat as its LAST column so nothing keyed by position moves", () => {
+test("the CSV keeps the repeat at its fixed column so nothing keyed by position moves", () => {
   const repeat: StoredRfq = { ...first, ref: "RFQ-1CD9191C", reorderOf: "RFQ-89FA831D" };
   const [header, row] = rfqsToCsv([repeat]).trim().split("\r\n");
   const cols = header!.split(",");
-  assert.equal(cols[cols.length - 1], "repeat_of");
+  // Appended in this order: repeat_of was column 18 when it shipped, and the
+  // Support Hub columns went after it rather than moving it.
+  assert.equal(cols.indexOf("repeat_of"), 18);
   assert.equal(cols.indexOf("freight"), 4, "existing columns keep their positions");
-  assert.ok(row!.endsWith(",RFQ-89FA831D"));
+  assert.equal(row!.split(",")[18], "RFQ-89FA831D");
 });
 
 test("the quote built from a repeat tells the rep to check the earlier price", () => {
