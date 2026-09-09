@@ -1,5 +1,6 @@
 "use client";
 
+import { ManualNav } from "./ManualNav";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Diamond, Eyebrow, SmartImg } from "@/components/ui";
@@ -12,6 +13,8 @@ export function GoodstrongPicker() {
   const [serialOpen, setSerialOpen] = useState(false);
 
   return (
+    <>
+      <ManualNav />
     <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
@@ -64,5 +67,6 @@ export function GoodstrongPicker() {
         }}
       />
     </main>
+    </>
   );
 }

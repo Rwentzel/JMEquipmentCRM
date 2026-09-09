@@ -1,5 +1,6 @@
 "use client";
 
+import { ManualNav } from "./ManualNav";
 import { useState } from "react";
 import { Callout, Eyebrow, SmartImg, Tag, Toast } from "@/components/ui";
 import { useRequestList } from "@/hooks/useRequestList";
@@ -43,6 +44,8 @@ export function ExplodedViewer({
   }
 
   return (
+    <>
+      <ManualNav />
     <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
@@ -132,5 +135,6 @@ export function ExplodedViewer({
         {message && <Toast tone="green">{message}</Toast>}
       </div>
     </main>
+    </>
   );
 }

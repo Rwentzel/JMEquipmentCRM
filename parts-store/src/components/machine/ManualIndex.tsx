@@ -1,3 +1,4 @@
+import { ManualNav } from "./ManualNav";
 import { Callout, Eyebrow, Tag } from "@/components/ui";
 import { goodstrongModels } from "@/data/goodstrong";
 import { catalog } from "@/data/catalog";
@@ -13,6 +14,8 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
     : undefined;
 
   return (
+    <>
+      <ManualNav />
     <main className="gs-page">
       <section className="ps-sec">
         <div className="ps-wrap">
@@ -89,5 +92,6 @@ export function ManualIndex({ model }: { model: GoodstrongModel }) {
         </div>
       </section>
     </main>
+    </>
   );
 }
