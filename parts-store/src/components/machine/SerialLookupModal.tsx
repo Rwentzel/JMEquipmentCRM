@@ -54,7 +54,14 @@ export function SerialLookupModal({
               We couldn&rsquo;t match that serial number automatically yet. Call{" "}
               <a href={`tel:${catalog.contact.phone}`}>{catalog.contact.phone}</a> or{" "}
               <a href={`mailto:${catalog.contact.email}`}>{catalog.contact.email}</a> and the parts desk will confirm
-              your model.
+              your model &mdash; or send it to the desk now and get a reference on screen.
+            </p>
+          )}
+          {notFound && (
+            <p className="ps-actions">
+              <Button as="a" variant="gold" href={`/support?panel=epc&serial=${encodeURIComponent(serial.trim())}`}>
+                Ask the desk about this serial
+              </Button>
             </p>
           )}
           <div className="ps-actions">

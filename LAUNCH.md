@@ -197,9 +197,10 @@ stored data, so all are safe in a signature that goes to every customer:
   with that machine selected: its confirmed-fit parts, and only those, with
   everything else in its family marked "confirm fitment".
 - **Support links** — `/support?panel=manual|service|fitment|epc|contact`
-  opens the Support Hub with that form ready. The fitment form also takes
-  `&sku=…&machine=…` to arrive filled in; this is the link the machine
-  pages use for "Ask about fitment". `/how-quoting-works` is the page to
+  opens the Support Hub with that form ready. Any form with a serial field
+  takes `&serial=…`, and the fitment form also takes `&sku=…&machine=…`, to
+  arrive filled in; these are the links the machine pages and the manual
+  picker use for "Ask about fitment" and an unmatched serial. `/how-quoting-works` is the page to
   point at when a customer asks why there is no price.
 
 Either link still ends in a written quote — it pre-fills the request, it does

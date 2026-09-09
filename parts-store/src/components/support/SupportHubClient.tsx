@@ -109,6 +109,7 @@ export function SupportHubClient() {
   // form opens already filled in.
   const seedSku = useUrlParam("sku");
   const seedMachine = useUrlParam("machine");
+  const seedSerial = useUrlParam("serial");
   const [picked, setPicked] = useState<Panel | null | undefined>(undefined);
   const open: Panel | null = picked === undefined ? (fromUrl ? (PANEL_BY_PARAM[fromUrl] ?? null) : null) : picked;
 
@@ -214,7 +215,7 @@ export function SupportHubClient() {
                 key={open}
                 form={SUPPORT_FORMS[open]}
                 onNotice={show}
-                seed={open === "fitment-check" ? { sku: seedSku ?? "", machine: seedMachine ?? "" } : undefined}
+                seed={{ sku: seedSku ?? "", machine: seedMachine ?? "", serial: seedSerial ?? "" }}
               />
             )}
           </section>
