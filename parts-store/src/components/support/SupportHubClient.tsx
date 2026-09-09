@@ -104,6 +104,10 @@ export function SupportHubClient() {
   // The URL opens a panel on arrival; a click overrides it for this visit.
   // Derived, not synced in an effect, so server and first client render agree.
   const fromUrl = useUrlParam("panel");
+  // A machine page hands the part and machine over in the URL so the fitment
+  // form opens already filled in.
+  const seedSku = useUrlParam("sku");
+  const seedMachine = useUrlParam("machine");
   const [picked, setPicked] = useState<Panel | null | undefined>(undefined);
   const open: Panel | null = picked === undefined ? (fromUrl ? (PANEL_BY_PARAM[fromUrl] ?? null) : null) : picked;
 
@@ -205,7 +209,12 @@ export function SupportHubClient() {
             {open === "guides" ? (
               <Guides onService={() => choose("service-request")} />
             ) : (
-              <SupportRequestForm key={open} form={SUPPORT_FORMS[open]} onNotice={show} />
+              <SupportRequestForm
+                key={open}
+                form={SUPPORT_FORMS[open]}
+                onNotice={show}
+                seed={open === "fitment-check" ? { sku: seedSku ?? "", machine: seedMachine ?? "" } : undefined}
+              />
             )}
           </section>
         )}
@@ -283,8 +292,18 @@ function Guides({ onService }: { onService: () => void }) {
 
 const CONTACT_PHONE_NOTE = `Could not send — check your connection, or call ${PHONE}`;
 
-function SupportRequestForm({ form, onNotice }: { form: SupportForm; onNotice: (m: string) => void }) {
-  const blank = () => Object.fromEntries(form.fields.map((f) => [f.key, ""])) as Record<string, string>;
+function SupportRequestForm({
+  form,
+  onNotice,
+  seed,
+}: {
+  form: SupportForm;
+  onNotice: (m: string) => void;
+  /** Values to start the form with (from the URL); capped like any other input. */
+  seed?: Record<string, string>;
+}) {
+  const blank = () =>
+    Object.fromEntries(form.fields.map((f) => [f.key, (seed?.[f.key] ?? "").slice(0, 200)])) as Record<string, string>;
   const [values, setValues] = useState<Record<string, string>>(blank);
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState("");

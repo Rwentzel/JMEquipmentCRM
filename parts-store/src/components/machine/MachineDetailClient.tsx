@@ -160,11 +160,6 @@ export function MachineDetailClient({
               </a>
             ))}
           </div>
-          <div className="md-reqbtn">
-            <Button size="sm" as="a" href="/#request">
-              Request List{count > 0 ? ` · ${count}` : ""}
-            </Button>
-          </div>
         </div>
       </div>
 
@@ -495,7 +490,7 @@ export function MachineDetailClient({
                           as="a"
                           size="sm"
                           variant="ghost"
-                          href={`/support?panel=fitment`}
+                          href={`/support?panel=fitment&sku=${encodeURIComponent(p.sku)}&machine=${encodeURIComponent(machine.name)}`}
                         >
                           Ask about fitment
                         </Button>
