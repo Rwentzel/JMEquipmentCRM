@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Diamond } from "@/components/ui";
 import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
-import { SUPPORT_FORMS, isSupportKind } from "@/lib/supportRequest";
+import { SUPPORT_FORMS, SUPPORT_KINDS, isSupportKind, type SupportKind } from "@/lib/supportRequest";
 import type { MaintenanceReport } from "@/lib/agents/maintenanceAgent";
 import type { SecurityReport } from "@/lib/agents/securityAgent";
 import type { TriageReport } from "@/lib/agents/triageAgent";
@@ -67,6 +67,12 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
   }, [load]);
 
   const [quoting, setQuoting] = useState<string | null>(null);
+  // Which kind of request to show: everything, quote requests and plain
+  // messages (no kind), or one Support Hub form.
+  const [kindFilter, setKindFilter] = useState<"all" | "quote" | SupportKind>("all");
+  const shown = rfqs.filter((r) =>
+    kindFilter === "all" ? true : kindFilter === "quote" ? !r.kind : r.kind === kindFilter,
+  );
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   async function setStatus(ref: string, status: RfqStatus) {
@@ -164,6 +170,20 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         <div className="ops__sechd">
           <h2>RFQ inbox</h2>
           <div className="ops__agentbtns">
+            <select
+              className="ops__kind"
+              aria-label="Filter by request kind"
+              value={kindFilter}
+              onChange={(e) => setKindFilter(e.target.value as "all" | "quote" | SupportKind)}
+            >
+              <option value="all">All kinds</option>
+              <option value="quote">Quotes &amp; messages</option>
+              {SUPPORT_KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {SUPPORT_FORMS[k].label}
+                </option>
+              ))}
+            </select>
             <a className="ops__btnlink" href="/api/ops/rfqs/export" download>Export CSV</a>
             <button onClick={() => void load()}>Refresh</button>
           </div>
@@ -173,7 +193,8 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         {!loadErr && rfqs.length === 0 && (
           <p className="ops__empty">No requests yet. Submissions from the storefront land here instantly.</p>
         )}
-        {rfqs.length > 0 && (
+        {rfqs.length > 0 && shown.length === 0 && <p className="ops__empty">No requests of that kind yet.</p>}
+        {shown.length > 0 && (
           <div className="ops__tablewrap">
             <table className="ops__table">
               <thead>
@@ -187,7 +208,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                 </tr>
               </thead>
               <tbody>
-                {rfqs.map((r) => (
+                {shown.map((r) => (
                   <tr key={r.ref}>
                     <td className="mono">
                       {r.ref}
