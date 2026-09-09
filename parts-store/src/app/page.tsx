@@ -62,7 +62,7 @@ function MachinePhoto({ m }: { m: Machine }) {
 
 /* ------------------------------------------------------------------ Nav --- */
 function Nav({ count, onJump }: { count: number; onJump: (id: string) => void }) {
-  const anchors = ["Machines", "Parts", "Request", "Why JME"].map((label) => {
+  const anchors = ["Machines", "Parts"].map((label) => {
     const id = label.toLowerCase().replace(/[^a-z]/g, "");
     return {
       label,
@@ -83,37 +83,72 @@ function Nav({ count, onJump }: { count: number; onJump: (id: string) => void })
       }}
       links={[
         ...anchors,
+        { label: "Manuals", href: "/parts/goodstrong" },
         { label: "Machine Platform", href: "/machines" },
-        { label: "Compare", href: "/compare" },
-        { label: "Goodstrong Parts", href: "/parts/goodstrong" },
+        { label: "Support", href: "/support" },
+        { label: "How quoting works", href: "/how-quoting-works" },
       ]}
     />
   );
 }
 
 /* ----------------------------------------------------------------- Hero --- */
-function Hero({ onJump, statsOn }: { onJump: (id: string) => void; statsOn: boolean }) {
+function Hero({
+  onJump,
+  statsOn,
+  onSearch,
+}: {
+  onJump: (id: string) => void;
+  statsOn: boolean;
+  onSearch: (q: string) => void;
+}) {
+  const [term, setTerm] = useState("");
   return (
     <header className="ps-hero" id="top">
       <div className="ps-hero__grid">
         <div className="ps-hero__copy">
-          <Eyebrow>Converting Machinery Solutions · Est. 1989</Eyebrow>
+          <Eyebrow>{D.contact.city} · Since {D.contact.est}</Eyebrow>
           <h1 className="ps-hero__h1">
-            3<em>×</em> the cores.
+            Converting
             <br />
-            Same pallet.
+            Machinery Solutions
           </h1>
           <p className="ps-hero__lead">
             Sheeters, rollstands, and the JME core splitter — built, rebuilt, and parts-supported under one roof in{" "}
             {D.contact.city} since {D.contact.est}.
           </p>
-          <div className="ps-hero__cta">
-            <Button size="lg" onClick={() => onJump("machines")}>
-              Browse Machines
+          {/* Search first: the reference puts the catalog search in the hero
+              because most visitors arrive from an order confirmation with a
+              part in mind. Submitting filters the catalog below and scrolls
+              to it; ?q= does the same from a link. */}
+          <form
+            className="ps-hero__search"
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSearch(term);
+            }}
+          >
+            <label className="ps-vh" htmlFor="ps-hero-q">
+              Search the parts catalog
+            </label>
+            <input
+              id="ps-hero-q"
+              type="search"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="Search by SKU, part name, or machine…"
+              autoComplete="off"
+            />
+            <Button type="submit" size="lg">
+              Search parts
             </Button>
-            <Button size="lg" variant="ghost" onClick={() => onJump("parts")}>
-              Order Parts
-            </Button>
+          </form>
+          <div className="ps-hero__links">
+            <a href="#machines" onClick={(e) => { e.preventDefault(); onJump("machines"); }}>
+              Browse machines
+            </a>
+            <Link href="/support">Get support</Link>
           </div>
           <ul className="ps-hero__creds" aria-label="Credentials">
             <li>Sturgis, MI</li>
@@ -232,6 +267,109 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => voi
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------------ Splitter --- */
+/**
+ * The core-splitter claim the reference carries as its own band. The
+ * figures are the ones our own machine data states (details.ts): cycle time
+ * and power. Savings are described, not promised — see the copy.
+ */
+function SplitterBand() {
+  return (
+    <section className="ps-split" aria-labelledby="ps-split-h">
+      <div className="ps-wrap ps-split__grid">
+        <div>
+          <Eyebrow>JME-VCS core splitter</Eyebrow>
+          <h2 id="ps-split-h" className="ps-split__h">
+            3<em>×</em> the cores.
+            <br />
+            Same pallet.
+          </h2>
+          <p className="ps-split__lead">
+            The splitter densifies spent cores so a pallet leaves the building full of material instead of full of
+            air. Freight and disposal both drop. Savings depend on your core mix and hauler — the figures we give you
+            are estimates, not guarantees, and we work them out against your own numbers.
+          </p>
+          <dl className="ps-split__stats">
+            <div>
+              <dt>Per core, single stroke</dt>
+              <dd>&lt; 30 sec</dd>
+            </div>
+            <div>
+              <dt>Standard shop power</dt>
+              <dd>5 HP · 230V 1Ø</dd>
+            </div>
+            <div>
+              <dt>Head and frame</dt>
+              <dd>12&Prime; · 75&Prime;</dd>
+            </div>
+          </dl>
+          <Link className="ps-split__cta" href="/machines?m=JME-VCS12-75">
+            See the splitter and its parts &rarr;
+          </Link>
+        </div>
+        <div className="ps-split__art" aria-hidden>
+          <div className="ps-split__box">
+            <span>Before · 6 cores</span>
+            <div className="ps-split__cores ps-split__cores--6">
+              {Array.from({ length: 6 }, (_, i) => (
+                <i key={i} />
+              ))}
+            </div>
+          </div>
+          <div className="ps-split__box">
+            <span>After · 24 cores</span>
+            <div className="ps-split__cores ps-split__cores--24">
+              {Array.from({ length: 24 }, (_, i) => (
+                <i key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------------- Desk cards --- */
+/** The reference's three desk cards: where to go for parts, documents, and the reason there are no prices. */
+function DeskCards() {
+  const cards = [
+    {
+      t: "Parts desk",
+      b: "Send us the SKU, the dataplate photo, or the old part in your hand. We confirm fitment against your serial number before anything ships.",
+      href: "#parts",
+      cta: "Open the catalog",
+    },
+    {
+      t: "Manuals & diagrams",
+      b: "Documentation is held per serial, not per model. We send what we hold for your machine and tell you plainly what we don't.",
+      href: "/parts/goodstrong",
+      cta: "Browse manuals",
+    },
+    {
+      t: "Why we quote",
+      b: "No prices are published online. Fitment depends on serial number, model year, and how the line was configured, so every request comes back as a firm written quotation — not a binding order.",
+      href: "/how-quoting-works",
+      cta: "How quoting works",
+    },
+  ];
+  return (
+    <section className="ps-desk" aria-label="Where to go next">
+      <div className="ps-wrap ps-desk__grid">
+        {cards.map((c) => (
+          <article key={c.t} className="ps-desk__card">
+            <h2 className="ps-desk__t">{c.t}</h2>
+            <p>{c.b}</p>
+            <a className="ps-desk__cta" href={c.href}>
+              {c.cta} &rarr;
+            </a>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -377,8 +515,15 @@ type SortKey = "relevance" | "name" | "sku" | "stock";
  * with relevance ranking, sort, in-stock filter, and dense scannable rows.
  * RFQ-first: rows show status bands and quote CTAs, never prices.
  */
-function Parts({ onAdd }: { onAdd: (it: { sku: string; name: string }) => void }) {
-  const [q, setQ] = useState("");
+function Parts({
+  onAdd,
+  q,
+  setQ,
+}: {
+  onAdd: (it: { sku: string; name: string }) => void;
+  q: string;
+  setQ: (q: string) => void;
+}) {
   const dq = useDebounce(q, 200);
   const [family, setFamily] = useState<string | null>(null);
   const [sub, setSub] = useState<string | null>(null);
@@ -703,9 +848,54 @@ function Request({
         <div className="ps-reqgrid">
           <div className="jme-card ps-reqcard">
             <div className="jme-card__hd">
-              <h3>Who should we answer?</h3>
+              <h3>
+                <span className="ps-reqcard__step">Step 1 of 2</span>
+                Your lines
+              </h3>
+              <span className="ps-linecount">
+                {items.length} {items.length === 1 ? "line" : "lines"} · {items.reduce((n, i) => n + i.qty, 0)} total
+              </span>
+            </div>
+            <div className="jme-card__body">
+              {items.length === 0 && (
+                <div className="ps-empty">
+                  Your request list is empty. <a href="#machines" className="ps-link--gold">Browse machines</a> or{" "}
+                  <a href="#parts" className="ps-link--gold">search parts</a> to add items.
+                </div>
+              )}
+              {items.map((i) => (
+                <div className="ps-line" key={i.sku}>
+                  <div className="ps-line__main">
+                    <span className="jme-mono ps-line__sku">{i.sku}</span>
+                    <span className="ps-line__name">{i.name}</span>
+                    {i.configLabel && <span className="ps-line__config">{i.configLabel}</span>}
+                    {i.source && <span className="ps-line__config">{i.source}</span>}
+                  </div>
+                  <div className="ps-line__right">
+                    <NumberInput
+                      className="jme-input ps-qty"
+                      integer
+                      min={1}
+                      value={i.qty}
+                      aria-label={`Quantity for ${i.sku}`}
+                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
+                    />
+                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="jme-card ps-reqcard">
+            <div className="jme-card__hd">
+              <h3>
+                <span className="ps-reqcard__step">Step 2 of 2</span>
+                Where should the quote go?
+              </h3>
               <span className="jme-mono ps-reqcard__badge">
-                RFQ
+                No pricing shown online
               </span>
             </div>
             <div className="jme-card__body">
@@ -759,15 +949,17 @@ function Request({
 
               <label className="ps-check">
                 <input type="checkbox" checked={!contact.wantsAccount} onChange={(e) => setContact({ ...contact, wantsAccount: !e.target.checked })} />
-                Don&rsquo;t create an account for me (by default we&rsquo;ll set one up so you can track this request)
+                <span>Don&rsquo;t create an account for me (by default we&rsquo;ll set one up so you can track this request)</span>
               </label>
 
               <label className="ps-check">
                 <input type="checkbox" checked={contact.consent} onChange={setCheck("consent")} required />
-                I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Sale</a> and{" "}
-                <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and consent to being contacted
-                about this request.
-                {errors.consent && <span className="ps-field-err" role="alert"> {errors.consent}</span>}
+                <span>
+                  I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Sale</a> and{" "}
+                  <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and consent to being contacted
+                  about this request. Details are used for quoting only.
+                  {errors.consent && <span className="ps-field-err" role="alert"> {errors.consent}</span>}
+                </span>
               </label>
 
               {/* Honeypot: visually hidden, must remain empty */}
@@ -775,43 +967,6 @@ function Request({
                 <label htmlFor="ps-website">Website</label>
                 <input id="ps-website" name="website" tabIndex={-1} autoComplete="off" value={contact.website} onChange={set("website")} />
               </div>
-            </div>
-          </div>
-          <div className="jme-card ps-reqcard">
-            <div className="jme-card__hd">
-              <h3>Line items</h3>
-              <span className="ps-linecount">{items.length} item(s)</span>
-            </div>
-            <div className="jme-card__body">
-              {items.length === 0 && (
-                <div className="ps-empty">
-                  Your request list is empty. <a href="#machines" className="ps-link--gold">Browse machines</a> or{" "}
-                  <a href="#parts" className="ps-link--gold">search parts</a> to add items.
-                </div>
-              )}
-              {items.map((i) => (
-                <div className="ps-line" key={i.sku}>
-                  <div className="ps-line__main">
-                    <span className="jme-mono ps-line__sku">{i.sku}</span>
-                    <span className="ps-line__name">{i.name}</span>
-                    {i.configLabel && <span className="ps-line__config">{i.configLabel}</span>}
-                    {i.source && <span className="ps-line__config">{i.source}</span>}
-                  </div>
-                  <div className="ps-line__right">
-                    <NumberInput
-                      className="jme-input ps-qty"
-                      integer
-                      min={1}
-                      value={i.qty}
-                      aria-label={`Quantity for ${i.sku}`}
-                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
-                    />
-                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ))}
               {sent ? (
                 <div className="ps-sent" role="status">
                   <b>Request sent.</b>
@@ -846,6 +1001,26 @@ function Request({
             </div>
           </div>
         </div>
+        <ol className="ps-next" aria-label="What happens next">
+          <li>
+            <span className="ps-next__n" aria-hidden>01</span>
+            <b>We confirm fitment</b>
+            <span>Checked against your serial and build sheet before anything is quoted.</span>
+          </li>
+          <li>
+            <span className="ps-next__n" aria-hidden>02</span>
+            <b>You get a written quote</b>
+            <span>Line-by-line pricing, lead time, and freight — within one business day, usually the same day.</span>
+          </li>
+          <li>
+            <span className="ps-next__n" aria-hidden>03</span>
+            <b>Approve and it ships</b>
+            <span>Reply to the quote. No card on file, no hidden fees. <a href="/how-quoting-works">How quoting works &rarr;</a></span>
+          </li>
+        </ol>
+        <p className="ps-next__call">
+          Need it faster? Call the parts desk at <a href={`tel:${CONTACT_PHONE}`}>{CONTACT_PHONE}</a>, Monday&ndash;Friday 9am&ndash;5pm ET.
+        </p>
       </div>
     </section>
   );
@@ -946,6 +1121,8 @@ function Footer() {
         <div>
           <h3>Information</h3>
           <Link href="/compare">Compare machines</Link>
+          <a href="/how-quoting-works">How quoting works</a>
+          <a href="/support">Support</a>
           <a href="/freight">Freight &amp; shipping</a>
           <a href="/terms">Terms of sale</a>
           <a href="/privacy">Privacy policy</a>
@@ -1048,6 +1225,12 @@ export default function StorefrontPage() {
   const { items, add, addWithQty, setQty, remove } = useRequestList();
   // Deep link from order confirmations: /?reorder=RFQ-XXXXXXXX (derived from the URL, not synced into state).
   const rawReorder = useUrlParam("reorder");
+  // Catalog search. The URL seeds it (?q=blade from an email or the
+  // assistant); the hero form and the catalog box both write it. Derived, so
+  // no effect syncs the two and the first client render matches the server.
+  const urlQ = useUrlParam("q");
+  const [typedQ, setTypedQ] = useState<string | null>(null);
+  const q = typedQ ?? urlQ ?? "";
   const reorderRef =
     rawReorder && /^RFQ-[A-Za-z0-9]{8}$/.test(rawReorder.trim()) ? rawReorder.trim().toUpperCase() : null;
   const { message, show } = useToast();
@@ -1182,6 +1365,10 @@ export default function StorefrontPage() {
     const el = id === "top" ? document.body : document.getElementById(id);
     if (el) window.scrollTo({ top: id === "top" ? 0 : el.offsetTop - 70, behavior: "smooth" });
   };
+  const search = (term: string) => {
+    setTypedQ(term);
+    jump("parts");
+  };
 
   const addItem = (it: { sku: string; name: string }) => {
     add(it);
@@ -1240,12 +1427,13 @@ export default function StorefrontPage() {
       {/* Landmark for assistive tech: the skip link above jumps into it, and
           screen readers can move straight past the nav to the content. */}
       <main id="main">
-        <Hero onJump={jump} statsOn={tw.stats === "Show"} />
+        <Hero onJump={jump} statsOn={tw.stats === "Show"} onSearch={search} />
       <div className="jme-cutline" />
       <Machines onAdd={addItem} />
+      <SplitterBand />
       <Industries />
       <Capabilities />
-      <Parts onAdd={addItem} />
+      <Parts onAdd={addItem} q={q} setQ={setTypedQ} />
       <Services />
       <Request
         items={items}
@@ -1263,6 +1451,7 @@ export default function StorefrontPage() {
         onReorderLoaded={onReorderLoaded}
       />
         <Trust />
+        <DeskCards />
         <Faq />
       </main>
       <Footer />

@@ -30,13 +30,17 @@ Other scripts: `npm run build`, `npm start`, `npm run lint`, `npm run typecheck`
 | Route | What |
 |-------|------|
 | `/` | Storefront (hero, machines, McMaster-style parts browser, request desk, FAQ, assistant widget) |
-| `/machine/[sku]` | Machine detail (configure, specs, related parts) — SSG pages |
+| `/machines` | Machine Platform — pick a machine, see only the parts confirmed to fit it (`?m=SKU` deep link) |
+| `/machine/[sku]` | Machine detail (configure, specs, fit-confirmed related parts) — SSG pages |
+| `/support` | Support Hub — troubleshooting, manual / service / fitment / EPC / sales forms (`?panel=` deep link) |
+| `/how-quoting-works` | Why nothing carries a price; the four steps from list to shipment |
 | `/compare` | Side-by-side machine comparison |
 | `/parts/goodstrong` | Goodstrong sheeter hub — model picker (1600 / 1600-E / 1650) + serial-number lookup |
 | `/parts/goodstrong/[model]` | Manual index — the factory Part Catalogue's own sections & page numbers |
 | `/parts/goodstrong/[model]/[section]` | Exploded-view parts page: callout bubbles ↔ parts table, quantity picker → request list |
 | `/ops` | **Internal** ops desk — RFQ inbox, lifecycle, agent panels (gated, noindexed) |
 | `/api/quote` | RFQ intake — validated (incl. consent + message-only mode), honeypot, rate-limited, persisted |
+| `/api/support` | Support Hub intake — validated against the form spec, stored as a typed request in the same inbox |
 | `/api/assistant` | Support assistant — public-catalog-grounded, rate-limited |
 | `/api/ops/*` | Ops session, RFQ inbox, agent runner (ops session required) |
 | `/api/health` | Minimal liveness probe |

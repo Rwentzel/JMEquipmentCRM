@@ -276,3 +276,11 @@ test("asking whether an item is in stock still gets its availability band", asyn
   assert.doesNotMatch(res.answer, /don't publish exact stock counts/i);
   assert.match(res.answer, /availability/i);
 });
+
+test("a manual, diagram or service question is pointed at the Support Hub", async () => {
+  for (const q of ["Do you have a manual for my 1650?", "I need the electrical schematic", "Can someone come service the sheeter?"]) {
+    const a = await answerSupportQuestion(q);
+    assert.equal(a.engine, "rules");
+    assert.match(a.answer, /Support Hub/, `"${q}" should route to the hub, got: ${a.answer}`);
+  }
+});

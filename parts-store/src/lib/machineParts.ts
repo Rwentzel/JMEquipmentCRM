@@ -108,3 +108,27 @@ export function foreignLines<T extends { sku: string }>(
     return f !== undefined && f !== family && f !== "Other";
   });
 }
+
+export type RelatedTier = "fits" | "confirm" | "none";
+
+export interface RelatedParts {
+  /** Which tier the list is drawn from — decides how the detail page labels it. */
+  tier: RelatedTier;
+  parts: Part[];
+  /** How many parts sit in that tier altogether, for the "all N" link. */
+  total: number;
+  /** The parts family the confirm tier is drawn from (the catalogue's name, e.g. "Sheeter"), or null. */
+  family: string | null;
+}
+
+/**
+ * The parts a machine's detail page shows under "Keep it running". The
+ * confirmed-fit list when the desk has one; otherwise the family's parts
+ * marked as needing a fitment check — never presented as if they fit.
+ */
+export function relatedForMachine(sku: string, cap = 8): RelatedParts {
+  const r = partsForMachine(sku);
+  if (r.fits.length > 0) return { tier: "fits", parts: r.fits.slice(0, cap), total: r.fits.length, family: r.family };
+  if (r.confirmTotal > 0) return { tier: "confirm", parts: r.confirm.slice(0, cap), total: r.confirmTotal, family: r.family };
+  return { tier: "none", parts: [], total: 0, family: r.family };
+}

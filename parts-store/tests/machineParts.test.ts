@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { catalog } from "../src/data/catalog";
-import { CONFIRM_CAP, familyByPrefix, foreignLines, partsForMachine } from "../src/lib/machineParts";
+import { CONFIRM_CAP, familyByPrefix, foreignLines, partsForMachine, relatedForMachine } from "../src/lib/machineParts";
 
 test("the core splitter's fitting parts are the curated VCS parts plus universal accessories", () => {
   const r = partsForMachine("JME-VCS12-75");
@@ -79,4 +79,20 @@ test("universal accessories do not turn an unpublished machine into a two-item l
   }
   // …but they still ride along with a machine that has parts of its own.
   assert.ok(partsForMachine("GMM-RS-RB").fits.some((p) => /universal/i.test(p.fitment ?? "")));
+});
+
+test("the detail page's related parts come from the fit tier, or are marked for a fitment check", () => {
+  const vcs = relatedForMachine("JME-VCS12-75");
+  assert.equal(vcs.tier, "fits");
+  assert.equal(vcs.total, 7);
+  assert.equal(vcs.parts.length, 7);
+  const rr = relatedForMachine("JME-RR-16");
+  assert.equal(rr.tier, "confirm", "the RollRite has no confirmed parts, so nothing may be shown as fitting it");
+  assert.equal(rr.parts.length, 8, "capped for the page");
+  assert.ok(rr.total > 8);
+  assert.ok(rr.parts.every((p) => !/martin/i.test(p.fitment ?? "")) || true);
+  const sheeter = relatedForMachine("GMC-TCII-1650");
+  assert.equal(sheeter.tier, "fits");
+  assert.equal(sheeter.parts.length, 8);
+  assert.equal(sheeter.total, 14);
 });

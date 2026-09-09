@@ -70,6 +70,7 @@ export function MachinePlatformClient({
           { label: "Catalog", href: "/#parts" },
           { label: "Machine Platform", href: "/machines", current: true },
           { label: "Manuals", href: "/parts/goodstrong" },
+          { label: "Support", href: "/support" },
           { label: "Compare", href: "/compare" },
         ]}
       />
@@ -160,7 +161,7 @@ export function MachinePlatformClient({
             )}
             <div className="mp__cta">
               <Button onClick={addMachine}>Add machine to request list</Button>
-              <Button variant="ghost" href={`/machine/${machine.sku}`}>
+              <Button as="a" variant="ghost" href={`/machine/${machine.sku}`}>
                 Full detail &amp; configurator
               </Button>
             </div>
@@ -210,7 +211,7 @@ export function MachinePlatformClient({
                 your serial and the factory manual
                 {parts.confirmTotal > 0 ? ` — or start from the ${parts.family} family parts below.` : "."}
               </p>
-              <Button href="/#request">Request parts</Button>
+              <Button as="a" href="/#request">Request parts</Button>
             </div>
           )}
 

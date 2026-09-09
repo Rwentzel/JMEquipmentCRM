@@ -1,0 +1,202 @@
+/* How quoting works — the RFQ Flow reference. Static page, tokens only. */
+
+.fl {
+  max-width: var(--wrap-max);
+  margin: 0 auto;
+  padding: calc(var(--nav-h) + var(--s-12)) var(--wrap-pad) var(--s-20);
+}
+
+.fl__head {
+  max-width: 720px;
+  margin-bottom: var(--s-10);
+}
+
+.fl__title {
+  font-size: 56px;
+  line-height: var(--lh-display);
+  margin: var(--s-3) 0 var(--s-5);
+}
+
+.fl__lead {
+  font-size: var(--t-md);
+  line-height: var(--lh-body);
+  color: var(--paper-dim);
+}
+
+/* Steps: the reference sets them on a raised plate inside a darker frame. */
+.fl__steps {
+  list-style: none;
+  margin: 0 0 var(--s-10);
+  padding: var(--s-8);
+  background: var(--plate);
+  border: var(--bd-hair);
+}
+
+.fl__step {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: var(--s-6);
+  padding: var(--s-6) var(--s-5);
+  background: var(--ink-2);
+  border-bottom: var(--bd-hair);
+}
+
+.fl__step:first-child {
+  border-top: var(--bd-hair);
+}
+
+.fl__n {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  color: var(--paper-faint);
+}
+
+.fl__step-t {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin: 0 0 var(--s-2);
+}
+
+.fl__step p {
+  margin: 0;
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
+  color: var(--paper-dim);
+}
+
+.fl__bullets {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+}
+
+.fl__bullets li {
+  position: relative;
+  padding-left: var(--s-5);
+  margin-bottom: var(--s-1);
+  font-size: var(--t-sm);
+  color: var(--paper-dim);
+}
+
+.fl__bullets li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--jme-red-text);
+}
+
+/* Ask / never */
+.fl__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-5);
+  margin-bottom: var(--s-8);
+}
+
+.fl__col {
+  padding: var(--s-6);
+  background: var(--ink-2);
+  border: var(--bd-hair);
+}
+
+.fl__col--ask {
+  border-left: 3px solid var(--jme-gold);
+}
+
+.fl__col-t {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin: 0 0 var(--s-3);
+}
+
+.fl__col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fl__col li {
+  padding: var(--s-2) 0;
+  font-size: var(--t-sm);
+  color: var(--paper-dim);
+  border-bottom: var(--bd-hair);
+}
+
+.fl__col li:last-child {
+  border-bottom: 0;
+}
+
+/* Ready band */
+.fl__ready {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-8);
+  padding: var(--s-8);
+  background: var(--ink-2);
+  border: var(--bd-hair);
+}
+
+.fl__ready-t {
+  font-size: var(--t-xl);
+}
+
+.fl__ready p {
+  margin: 0 0 var(--s-2);
+  font-size: var(--t-base);
+  color: var(--paper-dim);
+}
+
+.fl__contact a {
+  color: var(--paper);
+}
+
+.fl__actions {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.fl__more {
+  margin-top: var(--s-8);
+  font-size: var(--t-sm);
+  color: var(--paper-faint);
+}
+
+.fl__more a {
+  color: var(--paper-dim);
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .fl__title {
+    font-size: 40px;
+  }
+  .fl__steps {
+    padding: var(--s-3);
+  }
+  .fl__step {
+    grid-template-columns: 56px 1fr;
+    gap: var(--s-4);
+    padding: var(--s-5) var(--s-4);
+  }
+  .fl__n {
+    font-size: 28px;
+  }
+  .fl__cols {
+    grid-template-columns: 1fr;
+  }
+  .fl__ready {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

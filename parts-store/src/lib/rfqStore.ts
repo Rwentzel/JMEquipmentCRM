@@ -17,6 +17,7 @@ import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promis
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { audit } from "@/lib/auditLog";
+import type { SupportKind } from "@/lib/supportRequest";
 
 export type RfqStatus = "new" | "reviewing" | "quoted" | "won" | "lost" | "archived";
 
@@ -85,6 +86,17 @@ export interface StoredRfq {
    * the submitting email — the browser's claim alone never reaches the desk.
    */
   reorderOf?: string;
+  /**
+   * Which Support Hub form this came from. Absent on quote requests and
+   * plain messages, which is everything stored before the hub existed.
+   */
+  kind?: SupportKind;
+  /**
+   * The hub form's labelled answers, in the form's own order. Select answers
+   * are our own option text (validated at intake); the rest is capped free
+   * text. Absent unless `kind` is set.
+   */
+  details?: Record<string, string>;
 }
 
 function dataDir(): string {
@@ -169,6 +181,8 @@ export interface NewRfqInput {
   message?: string;
   freight: boolean;
   reorderOf?: string;
+  kind?: SupportKind;
+  details?: Record<string, string>;
 }
 
 /** Persist a new RFQ and return its crypto-random reference. */
@@ -185,6 +199,7 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
       message: input.message,
       freight: input.freight,
       ...(input.reorderOf ? { reorderOf: input.reorderOf } : {}),
+      ...(input.kind ? { kind: input.kind, details: input.details ?? {} } : {}),
     };
     const all = await readAll();
     all.unshift(rfq);

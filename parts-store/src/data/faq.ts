@@ -32,6 +32,11 @@ export const FAQ: FaqEntry[] = [
     keys: ["freight", "heavy", "shipping cost", "truck", "crate", "ltl"],
   },
   {
+    q: "Do you have manuals, diagrams, or service for my machine?",
+    a: "Yes. The Support Hub takes manual and parts-diagram requests by serial number, field-service requests, and fitment checks. Every form there reaches the same parts desk in Sturgis, gives you a reference number on screen, and gets a written reply from a person.",
+    keys: ["manual", "manuals", "diagram", "diagrams", "schematic", "documentation", "service", "repair", "technician", "field service", "support"],
+  },
+  {
     q: "Is a request a binding order?",
     a: "No. Submitting a request asks for a firm written quotation. Nothing is ordered or charged until you approve the quote.",
     keys: ["binding", "order", "charged", "commit", "obligation", "cancel"],

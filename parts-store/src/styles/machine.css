@@ -46,7 +46,8 @@
 /* --------------------------------------------------------------- Subnav --- */
 .md-subnav {
   position: sticky;
-  top: 0;
+  /* Under the sticky site nav, not behind it. */
+  top: var(--nav-h);
   z-index: 40;
   background: color-mix(in srgb, var(--ink) 90%, transparent);
   backdrop-filter: blur(8px);
@@ -693,4 +694,23 @@
   font-size: 12.5px;
   letter-spacing: 0.06em;
   color: #7d7a73;
+}
+
+.md-parts__more {
+  margin-top: var(--s-4);
+  font-size: var(--t-sm);
+}
+
+.md-parts__more a {
+  color: var(--paper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--jme-red-text);
+}
+
+/* The parts table is wider than a phone; scroll it inside the section
+   rather than letting the page scroll sideways. */
+.md-parts__scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

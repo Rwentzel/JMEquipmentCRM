@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Button, Diamond, Eyebrow, StatusBand, Tag, Toast } from "@/components/ui";
+import { SiteNav } from "@/components/SiteNav";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { actionLabel } from "@/lib/utils";
@@ -42,23 +43,16 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
 
   return (
     <main>
-      <div className="cmp-top">
-        <div className="cmp-top__in">
-          <Link className="brand" href="/">
-            <Diamond size={28} />
-            <span>
-              <b>JM Equipment</b>
-              <small>Converting Machinery Solutions</small>
-            </span>
-          </Link>
-          <div className="cmp-top__nav">
-            <Link href="/">Storefront</Link>
-            <Button size="sm" as="a" href="/#request">
-              Request List{count > 0 ? ` · ${count}` : ""}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <SiteNav
+        count={count}
+        links={[
+          { label: "Catalog", href: "/#parts" },
+          { label: "Machine Platform", href: "/machines" },
+          { label: "Manuals", href: "/parts/goodstrong" },
+          { label: "Support", href: "/support" },
+          { label: "Compare", href: "/compare", current: true },
+        ]}
+      />
 
       <div className="cmp-head">
         <div className="cmp-head__in">
