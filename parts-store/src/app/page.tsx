@@ -848,9 +848,54 @@ function Request({
         <div className="ps-reqgrid">
           <div className="jme-card ps-reqcard">
             <div className="jme-card__hd">
-              <h3>Who should we answer?</h3>
+              <h3>
+                <span className="ps-reqcard__step">Step 1 of 2</span>
+                Your lines
+              </h3>
+              <span className="ps-linecount">
+                {items.length} {items.length === 1 ? "line" : "lines"} · {items.reduce((n, i) => n + i.qty, 0)} total
+              </span>
+            </div>
+            <div className="jme-card__body">
+              {items.length === 0 && (
+                <div className="ps-empty">
+                  Your request list is empty. <a href="#machines" className="ps-link--gold">Browse machines</a> or{" "}
+                  <a href="#parts" className="ps-link--gold">search parts</a> to add items.
+                </div>
+              )}
+              {items.map((i) => (
+                <div className="ps-line" key={i.sku}>
+                  <div className="ps-line__main">
+                    <span className="jme-mono ps-line__sku">{i.sku}</span>
+                    <span className="ps-line__name">{i.name}</span>
+                    {i.configLabel && <span className="ps-line__config">{i.configLabel}</span>}
+                    {i.source && <span className="ps-line__config">{i.source}</span>}
+                  </div>
+                  <div className="ps-line__right">
+                    <NumberInput
+                      className="jme-input ps-qty"
+                      integer
+                      min={1}
+                      value={i.qty}
+                      aria-label={`Quantity for ${i.sku}`}
+                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
+                    />
+                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="jme-card ps-reqcard">
+            <div className="jme-card__hd">
+              <h3>
+                <span className="ps-reqcard__step">Step 2 of 2</span>
+                Where should the quote go?
+              </h3>
               <span className="jme-mono ps-reqcard__badge">
-                RFQ
+                No pricing shown online
               </span>
             </div>
             <div className="jme-card__body">
@@ -904,15 +949,17 @@ function Request({
 
               <label className="ps-check">
                 <input type="checkbox" checked={!contact.wantsAccount} onChange={(e) => setContact({ ...contact, wantsAccount: !e.target.checked })} />
-                Don&rsquo;t create an account for me (by default we&rsquo;ll set one up so you can track this request)
+                <span>Don&rsquo;t create an account for me (by default we&rsquo;ll set one up so you can track this request)</span>
               </label>
 
               <label className="ps-check">
                 <input type="checkbox" checked={contact.consent} onChange={setCheck("consent")} required />
-                I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Sale</a> and{" "}
-                <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and consent to being contacted
-                about this request.
-                {errors.consent && <span className="ps-field-err" role="alert"> {errors.consent}</span>}
+                <span>
+                  I agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Sale</a> and{" "}
+                  <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>, and consent to being contacted
+                  about this request. Details are used for quoting only.
+                  {errors.consent && <span className="ps-field-err" role="alert"> {errors.consent}</span>}
+                </span>
               </label>
 
               {/* Honeypot: visually hidden, must remain empty */}
@@ -920,43 +967,6 @@ function Request({
                 <label htmlFor="ps-website">Website</label>
                 <input id="ps-website" name="website" tabIndex={-1} autoComplete="off" value={contact.website} onChange={set("website")} />
               </div>
-            </div>
-          </div>
-          <div className="jme-card ps-reqcard">
-            <div className="jme-card__hd">
-              <h3>Line items</h3>
-              <span className="ps-linecount">{items.length} item(s)</span>
-            </div>
-            <div className="jme-card__body">
-              {items.length === 0 && (
-                <div className="ps-empty">
-                  Your request list is empty. <a href="#machines" className="ps-link--gold">Browse machines</a> or{" "}
-                  <a href="#parts" className="ps-link--gold">search parts</a> to add items.
-                </div>
-              )}
-              {items.map((i) => (
-                <div className="ps-line" key={i.sku}>
-                  <div className="ps-line__main">
-                    <span className="jme-mono ps-line__sku">{i.sku}</span>
-                    <span className="ps-line__name">{i.name}</span>
-                    {i.configLabel && <span className="ps-line__config">{i.configLabel}</span>}
-                    {i.source && <span className="ps-line__config">{i.source}</span>}
-                  </div>
-                  <div className="ps-line__right">
-                    <NumberInput
-                      className="jme-input ps-qty"
-                      integer
-                      min={1}
-                      value={i.qty}
-                      aria-label={`Quantity for ${i.sku}`}
-                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
-                    />
-                    <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
-                      ×
-                    </button>
-                  </div>
-                </div>
-              ))}
               {sent ? (
                 <div className="ps-sent" role="status">
                   <b>Request sent.</b>
@@ -991,6 +1001,26 @@ function Request({
             </div>
           </div>
         </div>
+        <ol className="ps-next" aria-label="What happens next">
+          <li>
+            <span className="ps-next__n" aria-hidden>01</span>
+            <b>We confirm fitment</b>
+            <span>Checked against your serial and build sheet before anything is quoted.</span>
+          </li>
+          <li>
+            <span className="ps-next__n" aria-hidden>02</span>
+            <b>You get a written quote</b>
+            <span>Line-by-line pricing, lead time, and freight — within one business day, usually the same day.</span>
+          </li>
+          <li>
+            <span className="ps-next__n" aria-hidden>03</span>
+            <b>Approve and it ships</b>
+            <span>Reply to the quote. No card on file, no hidden fees. <a href="/how-quoting-works">How quoting works &rarr;</a></span>
+          </li>
+        </ol>
+        <p className="ps-next__call">
+          Need it faster? Call the parts desk at <a href={`tel:${CONTACT_PHONE}`}>{CONTACT_PHONE}</a>, Monday&ndash;Friday 9am&ndash;5pm ET.
+        </p>
       </div>
     </section>
   );

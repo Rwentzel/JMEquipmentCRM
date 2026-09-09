@@ -415,17 +415,19 @@ function SupportRequestForm({ form, onNotice }: { form: SupportForm; onNotice: (
 
       <label className="ps-check">
         <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
-        I agree to the{" "}
-        <a href="/privacy" target="_blank" rel="noreferrer">
-          Privacy Policy
-        </a>{" "}
-        and consent to being contacted about this request.
-        {errors.consent && (
-          <span className="ps-field-err" role="alert">
-            {" "}
-            {errors.consent}
-          </span>
-        )}
+        <span>
+          I agree to the{" "}
+          <a href="/privacy" target="_blank" rel="noreferrer">
+            Privacy Policy
+          </a>{" "}
+          and consent to being contacted about this request.
+          {errors.consent && (
+            <span className="ps-field-err" role="alert">
+              {" "}
+              {errors.consent}
+            </span>
+          )}
+        </span>
       </label>
 
       {/* Honeypot: visually hidden, must remain empty */}

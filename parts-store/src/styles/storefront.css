@@ -790,6 +790,9 @@
 
 .ps-check a {
   color: var(--jme-gold);
+  /* Inside the label's text run, so the link must read as one without colour. */
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ---- Links ---- */
@@ -2650,5 +2653,83 @@
   .ps-split__stats {
     grid-template-columns: 1fr;
     gap: var(--s-3);
+  }
+}
+
+/* ---------------------------------------------- Request: two steps --- */
+.ps-check > span {
+  flex: 1 1 auto;
+}
+
+.ps-reqcard__step {
+  display: block;
+  margin-bottom: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  font-weight: var(--fw-reg);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--jme-gold);
+}
+
+.ps-next {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  list-style: none;
+  margin: var(--s-8) 0 0;
+  padding: 0;
+}
+
+.ps-next li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-5);
+  background: var(--ink-2);
+  border: var(--bd-hair);
+  font-size: var(--t-sm);
+  line-height: var(--lh-body);
+  color: var(--paper-dim);
+}
+
+.ps-next__n {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  color: var(--paper-faint);
+}
+
+.ps-next li b {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+}
+
+.ps-next li a {
+  color: var(--paper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--jme-red-text);
+}
+
+.ps-next__call {
+  margin: var(--s-4) 0 0;
+  font-size: var(--t-sm);
+  color: var(--paper-dim);
+}
+
+.ps-next__call a {
+  color: var(--paper);
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .ps-next {
+    grid-template-columns: 1fr;
   }
 }
