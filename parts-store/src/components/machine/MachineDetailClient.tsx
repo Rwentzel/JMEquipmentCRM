@@ -2,7 +2,21 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { Button, Callout, DataPlate, Diamond, Eyebrow, SmartImg, SpecTable, StatBlock, StatusBand, Tag, Toast } from "@/components/ui";
+import {
+  Button,
+  Callout,
+  DataPlate,
+  Diamond,
+  Eyebrow,
+  SmartImg,
+  SpecTable,
+  StatBlock,
+  StatusBand,
+  Tag,
+  Toast,
+} from "@/components/ui";
+import { SiteNav } from "@/components/SiteNav";
+import type { RelatedParts } from "@/lib/machineParts";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useScrollSpy } from "@/hooks/useScrollSpy";
@@ -22,11 +36,11 @@ const SECTIONS: [string, string][] = [
 export function MachineDetailClient({
   machine,
   detail,
-  relatedParts,
+  related,
 }: {
   machine: Machine;
   detail: MachineDetail;
-  relatedParts: Part[];
+  related: RelatedParts;
 }) {
   const { add, count } = useRequestList();
   const { message, show } = useToast();
@@ -52,7 +66,8 @@ export function MachineDetailClient({
         if (sel) lines.push(`${o.label}: ${sel.v}`);
       } else {
         const picked = o.choices.filter((c) => checks.has(o.id + ":" + c.sku));
-        if (picked.length) lines.push(`${o.label}: ${picked.map((c) => c.v).join(", ")}`);
+        if (picked.length)
+          lines.push(`${o.label}: ${picked.map((c) => c.v).join(", ")}`);
       }
     });
     return lines;
@@ -97,33 +112,36 @@ export function MachineDetailClient({
   const gLen = detail.gallery.length;
   const prev = useCallback(() => setGi((i) => (i - 1 + gLen) % gLen), [gLen]);
   const next = useCallback(() => setGi((i) => (i + 1) % gLen), [gLen]);
-  const onGalleryKey = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") { e.preventDefault(); prev(); }
-    else if (e.key === "ArrowRight") { e.preventDefault(); next(); }
-  }, [prev, next]);
+  const onGalleryKey = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        prev();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        next();
+      }
+    },
+    [prev, next],
+  );
 
   return (
     <main>
-      {/* Top bar */}
-      <div className="md-top">
-        <div className="md-top__in">
-          <Link className="brand" href="/">
-            <Diamond size={28} />
-            <span>
-              <b>JM Equipment</b>
-              <small>Converting Machinery Solutions</small>
-            </span>
-          </Link>
-          <a className="md-phone" href="tel:(269) 659-0093">
-            (269) 659-0093
-          </a>
-        </div>
-      </div>
+      <SiteNav
+        count={count}
+        links={[
+          { label: "Catalog", href: "/#parts" },
+          { label: "Machine Platform", href: "/machines" },
+          { label: "Manuals", href: "/parts/goodstrong" },
+          { label: "Support", href: "/support" },
+          { label: "Compare", href: "/compare" },
+        ]}
+      />
 
       {/* Sub-nav with scroll spy */}
       <div className="md-subnav">
         <div className="md-subnav__in">
-          <Link className="md-back" href="/">
+          <Link className="md-back" href={`/machines?m=${machine.sku}`}>
             ← All machines
           </Link>
           <div className="md-subnav__links">
@@ -133,7 +151,10 @@ export function MachineDetailClient({
                 href={`#${id}`}
                 className={active === id ? "on" : ""}
                 aria-current={active === id ? "true" : undefined}
-                onClick={(e) => { e.preventDefault(); jump(id); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  jump(id);
+                }}
               >
                 {label}
               </a>
@@ -164,7 +185,11 @@ export function MachineDetailClient({
               <Button size="lg" onClick={addMachine}>
                 {actionLabel(machine.action)}
               </Button>
-              <Button size="lg" variant="ghost" onClick={() => jump("configure")}>
+              <Button
+                size="lg"
+                variant="ghost"
+                onClick={() => jump("configure")}
+              >
                 Configure
               </Button>
             </div>
@@ -172,32 +197,66 @@ export function MachineDetailClient({
               <StatusBand band={detail.badge.band} />
             </div>
           </div>
-          <div className="md-gallery" onKeyDown={hasGallery ? onGalleryKey : undefined} tabIndex={hasGallery ? 0 : undefined} role={hasGallery ? "region" : undefined} aria-label={hasGallery ? "Product gallery" : undefined}>
+          <div
+            className="md-gallery"
+            onKeyDown={hasGallery ? onGalleryKey : undefined}
+            tabIndex={hasGallery ? 0 : undefined}
+            role={hasGallery ? "region" : undefined}
+            aria-label={hasGallery ? "Product gallery" : undefined}
+          >
             <div className="md-hero__photo">
               {hero ? (
-                <SmartImg src={asset(hero.src)} alt={hero.cap} className={hero.fit === "cover" ? "is-cover" : undefined} priority />
+                <SmartImg
+                  src={asset(hero.src)}
+                  alt={hero.cap}
+                  className={hero.fit === "cover" ? "is-cover" : undefined}
+                  priority
+                />
               ) : (
                 <div className="md-hero__ph">
                   <Diamond size={72} />
-                  <span className="md-hero__ph-fam">{machine.family ?? "JM Equipment"}</span>
-                  <span className="md-hero__ph-note">Photo on request — call (269) 659-0093</span>
+                  <span className="md-hero__ph-fam">
+                    {machine.family ?? "JM Equipment"}
+                  </span>
+                  <span className="md-hero__ph-note">
+                    Photo on request — call (269) 659-0093
+                  </span>
                 </div>
               )}
               {hero && <span className="md-hero__cap">{hero.cap}</span>}
               {hasGallery && (
                 <>
-                  <button className="md-gallery__arr md-gallery__arr--prev" onClick={prev} aria-label="Previous image">‹</button>
-                  <button className="md-gallery__arr md-gallery__arr--next" onClick={next} aria-label="Next image">›</button>
+                  <button
+                    className="md-gallery__arr md-gallery__arr--prev"
+                    onClick={prev}
+                    aria-label="Previous image"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    className="md-gallery__arr md-gallery__arr--next"
+                    onClick={next}
+                    aria-label="Next image"
+                  >
+                    ›
+                  </button>
                   <div className="md-gallery__dots" aria-hidden>
                     {detail.gallery.map((_, i) => (
-                      <span key={i} className={"md-gallery__dot" + (i === gi ? " on" : "")} />
+                      <span
+                        key={i}
+                        className={"md-gallery__dot" + (i === gi ? " on" : "")}
+                      />
                     ))}
                   </div>
                 </>
               )}
             </div>
             {hasGallery && (
-              <div className="md-gallery__thumbs" role="group" aria-label="Gallery thumbnails">
+              <div
+                className="md-gallery__thumbs"
+                role="group"
+                aria-label="Gallery thumbnails"
+              >
                 {detail.gallery.map((img, i) => (
                   <button
                     key={img.src}
@@ -231,7 +290,9 @@ export function MachineDetailClient({
                   <div className="md-choices">
                     {o.choices.map((c) => {
                       const on =
-                        o.type === "radio" ? radio[o.id] === c.sku : checks.has(o.id + ":" + c.sku);
+                        o.type === "radio"
+                          ? radio[o.id] === c.sku
+                          : checks.has(o.id + ":" + c.sku);
                       const toggle = () => {
                         if (o.type === "radio") {
                           setRadio((r) => ({ ...r, [o.id]: c.sku }));
@@ -253,11 +314,18 @@ export function MachineDetailClient({
                           aria-checked={on}
                           tabIndex={0}
                           onClick={toggle}
-                          onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); } }}
+                          onKeyDown={(e) => {
+                            if (e.key === " " || e.key === "Enter") {
+                              e.preventDefault();
+                              toggle();
+                            }
+                          }}
                         >
                           <div className="md-choice__v">
                             <span>{c.v}</span>
-                            {c.note && <span className="md-choice__note">{c.note}</span>}
+                            {c.note && (
+                              <span className="md-choice__note">{c.note}</span>
+                            )}
                           </div>
                           <span className="md-choice__price" aria-hidden>
                             {on ? "✓" : ""}
@@ -278,7 +346,8 @@ export function MachineDetailClient({
                 <div className="jme-card__body">
                   {selection.length === 0 ? (
                     <p className="md-config__default">
-                      Standard configuration. Select options to refine your request.
+                      Standard configuration. Select options to refine your
+                      request.
                     </p>
                   ) : (
                     <ul className="md-config__list">
@@ -288,8 +357,9 @@ export function MachineDetailClient({
                     </ul>
                   )}
                   <Callout title="Quoted individually">
-                    Pricing, freight, and lead time are confirmed in writing by the parts desk. Add your configuration
-                    to the request list to get a firm written quotation.
+                    Pricing, freight, and lead time are confirmed in writing by
+                    the parts desk. Add your configuration to the request list
+                    to get a firm written quotation.
                   </Callout>
                   <div className="md-config__action">
                     <Button block onClick={addMachine}>
@@ -308,9 +378,7 @@ export function MachineDetailClient({
         <div className="md-sec__in">
           <Eyebrow>How it works</Eyebrow>
           <h2>From load to recover</h2>
-          <p className="md-tagline">
-            {detail.lead}
-          </p>
+          <p className="md-tagline">{detail.lead}</p>
           <div className="md-grid-2 md-how__grid">
             {detail.how.map((s) => (
               <div className="md-step" key={s.n}>
@@ -331,10 +399,19 @@ export function MachineDetailClient({
           <Eyebrow>Specifications</Eyebrow>
           <h2>Specs</h2>
           <div className="md-grid-2">
-            <DataPlate title={machine.name} sku={machine.sku} rows={machine.specs} headingLevel={3} />
+            <DataPlate
+              title={machine.name}
+              sku={machine.sku}
+              rows={machine.specs}
+              headingLevel={3}
+            />
             <Callout title="Proof">
               <div className="md-proof">
-                <StatBlock stats={[{ value: detail.proof.stat, label: detail.proof.label }]} />
+                <StatBlock
+                  stats={[
+                    { value: detail.proof.stat, label: detail.proof.label },
+                  ]}
+                />
                 <span>{detail.proof.quote}</span>
               </div>
             </Callout>
@@ -360,43 +437,90 @@ export function MachineDetailClient({
       {/* Parts */}
       <section id="parts" className="md-sec">
         <div className="md-sec__in">
-          <Eyebrow>Related parts</Eyebrow>
+          <Eyebrow>
+            {related.tier === "fits"
+              ? "Parts that fit this machine"
+              : "Related parts"}
+          </Eyebrow>
           <h2>Keep it running</h2>
-          {relatedParts.length > 0 ? (
-            <SpecTable
-              columns={[
-                { key: "sku", label: "Part #" },
-                { key: "name", label: "Description" },
-                { key: "status", label: "Availability" },
-                { key: "act", label: "", align: "right" },
-              ]}
-            >
-              {relatedParts.map((p) => (
-                <tr key={p.sku}>
-                  <td className="jme-mono md-parts__sku">
-                    {p.sku}
-                  </td>
-                  <td>{p.name}</td>
-                  <td>
-                    <StatusBand band={p.statusBand} />
-                  </td>
-                  <td className="r">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        add({ sku: p.sku, name: p.name });
-                        show("Added to request");
-                      }}
-                    >
-                      {actionLabel(p.action)}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </SpecTable>
+          {related.tier === "confirm" && (
+            <p className="md-tagline">
+              No published part is confirmed for this machine yet. These are the{" "}
+              {related.family ?? "family"} parts the desk stocks — send your
+              serial number and we confirm fitment before anything ships.
+            </p>
+          )}
+          {related.parts.length > 0 ? (
+            <div className="md-parts__scroll">
+              <SpecTable
+                columns={[
+                  { key: "sku", label: "Part #" },
+                  { key: "name", label: "Description" },
+                  {
+                    key: "status",
+                    label: related.tier === "fits" ? "Availability" : "Fitment",
+                  },
+                  { key: "act", label: "", align: "right" },
+                ]}
+              >
+                {related.parts.map((p) => (
+                  <tr key={p.sku}>
+                    <td className="jme-mono md-parts__sku">{p.sku}</td>
+                    <td>{p.name}</td>
+                    <td>
+                      {related.tier === "fits" ? (
+                        <StatusBand band={p.statusBand} />
+                      ) : (
+                        <Tag tone="consult">Confirm fitment</Tag>
+                      )}
+                    </td>
+                    <td className="r">
+                      {related.tier === "fits" ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            add({
+                              sku: p.sku,
+                              name: p.name,
+                              source: `${machine.name} · fits`,
+                            });
+                            show("Added to request");
+                          }}
+                        >
+                          {actionLabel(p.action)}
+                        </Button>
+                      ) : (
+                        <Button
+                          as="a"
+                          size="sm"
+                          variant="ghost"
+                          href={`/support?panel=fitment`}
+                        >
+                          Ask about fitment
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </SpecTable>
+            </div>
           ) : (
-            <p className="md-tagline">Parts for this machine are quoted on request — call the parts desk.</p>
+            <p className="md-tagline">
+              Parts for this machine are quoted on request — call the parts
+              desk.
+            </p>
+          )}
+          {related.total > related.parts.length && (
+            <p className="md-parts__more">
+              <Link href={`/machines?m=${machine.sku}`}>
+                All {related.total}{" "}
+                {related.tier === "fits"
+                  ? "parts that fit"
+                  : `${related.family ?? ""} parts`.trim()}{" "}
+                on the Machine Platform &rarr;
+              </Link>
+            </p>
           )}
         </div>
       </section>
@@ -421,7 +545,11 @@ export function MachineDetailClient({
         </div>
       </section>
 
-      <div className={"ps-toastwrap" + (message ? " show" : "")} role="status" aria-live="polite">
+      <div
+        className={"ps-toastwrap" + (message ? " show" : "")}
+        role="status"
+        aria-live="polite"
+      >
         {message && <Toast tone="green">{message}</Toast>}
       </div>
     </main>

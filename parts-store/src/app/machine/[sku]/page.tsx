@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { catalog } from "@/data/catalog";
 import { details } from "@/data/details";
-import { toPublicMachine, toPublicPart } from "@/data/sanitize";
+import { toPublicMachine } from "@/data/sanitize";
+import { relatedForMachine } from "@/lib/machineParts";
 import { MachineDetailClient } from "@/components/machine/MachineDetailClient";
 import { pageRobots } from "@/lib/launch";
 
@@ -46,11 +47,13 @@ export default async function MachinePage({ params }: { params: Promise<{ sku: s
   if (!rawMachine || !detail) notFound();
 
   const machine = toPublicMachine(rawMachine);
-  const relatedParts = catalog.parts.filter((p) => p.cat === detail.partsCat).slice(0, 8).map(toPublicPart);
+  // Confirmed-fit parts first; the family's parts only as "confirm fitment",
+  // so the RollRite no longer lists the Martin rollstand's parts as its own.
+  const related = relatedForMachine(sku);
 
   return (
     <>
-      <MachineDetailClient machine={machine} detail={detail} relatedParts={relatedParts} />
+      <MachineDetailClient machine={machine} detail={detail} related={related} />
       <ProductJsonLd machine={machine} />
     </>
   );
