@@ -947,6 +947,7 @@ function Footer() {
         <div>
           <h3>Information</h3>
           <Link href="/compare">Compare machines</Link>
+          <a href="/how-quoting-works">How quoting works</a>
           <a href="/support">Support</a>
           <a href="/freight">Freight &amp; shipping</a>
           <a href="/terms">Terms of sale</a>

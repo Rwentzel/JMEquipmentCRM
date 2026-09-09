@@ -13,7 +13,7 @@ export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://parts.jmequipment.net";
-  const staticRoutes = ["", "/machines", "/support", "/compare", "/freight", "/terms", "/privacy", "/parts/goodstrong"];
+  const staticRoutes = ["", "/machines", "/support", "/how-quoting-works", "/compare", "/freight", "/terms", "/privacy", "/parts/goodstrong"];
   const machineRoutes = catalog.machines.map((m) => `/machine/${m.sku}`);
   const goodstrongRoutes = goodstrongModels.flatMap((m) => [
     `/parts/goodstrong/${m.id}`,
