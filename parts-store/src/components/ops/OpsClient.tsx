@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Diamond } from "@/components/ui";
 import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
 import type { MaintenanceReport } from "@/lib/agents/maintenanceAgent";
@@ -36,6 +37,7 @@ function ageLabel(iso: string): string {
 }
 
 export function OpsClient({ devOpen }: { devOpen: boolean }) {
+  const router = useRouter();
   const [rfqs, setRfqs] = useState<StoredRfq[]>([]);
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loadErr, setLoadErr] = useState<string | null>(null);
@@ -99,7 +101,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
       });
       const data = (await res.json().catch(() => null)) as { ok?: boolean; id?: string } | null;
       if (res.ok && data?.ok && data.id) {
-        window.location.href = `/quotes/builder?q=${encodeURIComponent(data.id)}`;
+        router.push(`/quotes/builder?q=${encodeURIComponent(data.id)}`);
         return;
       }
       setQuoteError("Could not create the quote. Check that the Quote Center is enabled.");
@@ -161,7 +163,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
         <div className="ops__sechd">
           <h2>RFQ inbox</h2>
           <div className="ops__agentbtns">
-            <button onClick={() => { window.location.href = "/api/ops/rfqs/export"; }}>Export CSV</button>
+            <a className="ops__btnlink" href="/api/ops/rfqs/export" download>Export CSV</a>
             <button onClick={() => void load()}>Refresh</button>
           </div>
         </div>

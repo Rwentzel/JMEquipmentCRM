@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
 import { highlightRanges, partMatches, queryTokens } from "@/lib/partSearch";
@@ -20,6 +20,7 @@ import {
   Tag,
   Toast,
 } from "@/components/ui";
+import { SiteNav } from "@/components/SiteNav";
 import { useRequestList } from "@/hooks/useRequestList";
 import { useToast } from "@/hooks/useToast";
 import { useReveal } from "@/hooks/useReveal";
@@ -61,47 +62,32 @@ function MachinePhoto({ m }: { m: Machine }) {
 
 /* ------------------------------------------------------------------ Nav --- */
 function Nav({ count, onJump }: { count: number; onJump: (id: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const links = ["Machines", "Parts", "Request", "Why JME"];
-  const go = (id: string) => {
-    setOpen(false);
-    onJump(id);
-  };
+  const anchors = ["Machines", "Parts", "Request", "Why JME"].map((label) => {
+    const id = label.toLowerCase().replace(/[^a-z]/g, "");
+    return {
+      label,
+      href: `#${id}`,
+      onClick: (e: MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+        onJump(id);
+      },
+    };
+  });
   return (
-    <nav className="ps-nav">
-      <div className="ps-nav__in">
-        <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); go("top"); }}>
-          <Diamond size={30} />
-          <span>
-            <b>JM Equipment</b>
-            <small>Converting Machinery Solutions</small>
-          </span>
-        </a>
-        <div className={"ps-nav__links" + (open ? " open" : "")}>
-          {links.map((l) => {
-            const id = l.toLowerCase().replace(/[^a-z]/g, "");
-            return (
-              <a key={l} href={`#${id}`} onClick={(e) => { e.preventDefault(); go(id); }}>
-                {l}
-              </a>
-            );
-          })}
-          <Link href="/compare">Compare</Link>
-          <Link href="/parts/goodstrong">Goodstrong Parts</Link>
-        </div>
-        <Button size="sm" onClick={() => go("request")}>
-          Request List{count > 0 ? ` · ${count}` : ""}
-        </Button>
-        <button
-          className="ps-nav__burger"
-          aria-label="Toggle menu"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-        >
-          {open ? "✕" : "≡"}
-        </button>
-      </div>
-    </nav>
+    <SiteNav
+      count={count}
+      onRequest={() => onJump("request")}
+      onBrand={(e) => {
+        e.preventDefault();
+        onJump("top");
+      }}
+      links={[
+        ...anchors,
+        { label: "Machine Platform", href: "/machines" },
+        { label: "Compare", href: "/compare" },
+        { label: "Goodstrong Parts", href: "/parts/goodstrong" },
+      ]}
+    />
   );
 }
 
