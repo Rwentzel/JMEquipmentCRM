@@ -100,6 +100,51 @@ await flow("a Support Hub form submits and the request reaches the ops inbox wit
   ok(rec.details?.["Machine model"] === "Goodstrong GMC-TC II 1650", `inbox record details: ${JSON.stringify(rec.details)}`);
 });
 
+await flow("configurator ids never reach a screen or the desk; the desk gets the labels", async (page) => {
+  // Owner ruling 2026-09-10: choices carry an internal id, never a coined
+  // part number. The id may travel to the intake, but the customer only
+  // ever sees labels and the desk only ever reads labels.
+  await page.goto(`${BASE}/machine/JME-VCS12-75`, { waitUntil: "networkidle" });
+  const ids = ["P1", "P3", "P4", "F75", "F90"]; // JME-VCS12-75 power + frame ids (details.ts)
+  const noBare = (text, where) => {
+    for (const id of ids) ok(!new RegExp(`(^|[^A-Za-z0-9])${id}(?![A-Za-z0-9])`).test(text), `${where} shows the internal id ${id}`);
+  };
+  noBare(await page.locator("body").innerText(), "machine page");
+  await page.locator(".md-choice", { hasText: "460V" }).first().click();
+  await page.locator(".md-choice", { hasText: "90" }).first().click();
+  await page.waitForTimeout(200);
+  noBare(await page.locator("body").innerText(), "machine page after choosing");
+  await page.locator(".md-config__action button, .md-config button").first().click();
+  await page.waitForTimeout(400);
+  await page.goto(`${BASE}/#request`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+  const line = await page.locator(".ps-line").first().innerText();
+  ok(/460V/.test(line), `request list line lacks the chosen label: ${line}`);
+  noBare(await page.locator("body").innerText(), "request list");
+  await page.fill("#f-company", "Smoke Test Co");
+  await page.fill("#f-first-name", "Smoke");
+  await page.fill("#f-email", "smoke@example.test");
+  await page.locator(".ps-check input[type=checkbox]").last().check();
+  await page.click("text=Get a Quote");
+  await page.waitForSelector(".ps-sent", { timeout: 10_000 });
+  const ref = (await page.locator(".ps-sent").innerText()).match(/RFQ-[0-9A-F]{8}/)?.[0];
+  ok(ref, "no reference shown");
+  if (!OPS_TOKEN) return;
+  const login = await page.request.post(`${BASE}/api/ops/session`, { data: { token: OPS_TOKEN } });
+  ok(login.ok(), `ops login failed (${login.status()})`);
+  const cookie = (login.headers()["set-cookie"] || "").split(";")[0];
+  const list = await (await page.request.get(`${BASE}/api/ops/rfqs`, { headers: { cookie } })).json();
+  const rec = (list.rfqs || []).find((r) => r.ref === ref);
+  ok(rec, `inbox has no record ${ref}`);
+  const cfg = (rec.items?.[0]?.config || []).join(" | ");
+  ok(/Power: 5 HP \/ 460V 3Ø/.test(cfg), `desk config lacks the resolved power label: ${cfg}`);
+  noBare(cfg, "desk config lines");
+  const csv = await (await page.request.get(`${BASE}/api/ops/rfqs/export`, { headers: { cookie } })).text();
+  const row = csv.split("\n").find((l) => l.startsWith(ref)) || "";
+  ok(row.includes("460V"), "CSV row lacks the resolved label");
+  noBare(row, "CSV row");
+});
+
 await flow("the Machine Platform shows only confirmed-fit parts, and an honest empty state", async (page) => {
   await page.goto(`${BASE}/machines?m=JME-VCS12-75`, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);

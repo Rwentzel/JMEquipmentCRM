@@ -29,7 +29,7 @@ export const runtime = "nodejs";
 interface IncomingItem {
   sku?: unknown;
   qty?: unknown;
-  /** Configurator choice ids (DetailChoice.sku), resolved to labels server-side. */
+  /** Configurator choice ids (DetailChoice.id), resolved to labels server-side. */
   options?: unknown;
   /** Manual-drawing location, resolved and verified server-side. */
   origin?: unknown;
