@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { answerSupportQuestion, screenPriceOut } from "../src/lib/agents/supportAgent";
+import { answerSupportQuestion, linksFor, screenPriceOut } from "../src/lib/agents/supportAgent";
 import { scoreRfq } from "../src/lib/agents/triageAgent";
 import { catalogChecks } from "../src/lib/agents/maintenanceAgent";
 import { analyzeEvents } from "../src/lib/agents/securityAgent";
@@ -34,7 +34,7 @@ test("answerSupportQuestion actually runs the rules answer through the screen", 
   // caller uses it. Pin the wiring to the source so the screen cannot be
   // quietly detached from the rules exit.
   const src = readFileSync(new URL("../src/lib/agents/supportAgent.ts", import.meta.url), "utf8");
-  assert.match(src, /return screenPriceOut\(rulesAnswer\(q\)\)/, "the terminal rules answer must be screened");
+  assert.match(src, /screenPriceOut\(rulesAnswer\(q\)\)/, "the terminal rules answer must be screened");
   assert.match(src, /PRICE_SHAPE\.test\(text\)/, "the LLM path screens on the same shared pattern");
 });
 
@@ -302,4 +302,19 @@ test("maintenance agent reports fitment coverage without failing the health pane
   assert.match(c!.detail, /of \d+ machines have confirmed-fit parts/);
   // The RollRite has no confirmed parts in the catalogue today; it must be named.
   assert.match(c!.detail, /JME-RR-16/);
+});
+
+test("answers carry same-site links derived from the answer, not the question", async () => {
+  const manual = await answerSupportQuestion("Do you have a manual for my 1650?");
+  assert.ok(manual.links.some((l) => l.href === "/support"), "a Support Hub answer links to the hub");
+  const part = await answerSupportQuestion("Do you have JME-VCS-BLD-001?");
+  assert.ok(part.links.some((l) => l.href === "/?q=JME-VCS-BLD-001"), "a part answer links to the filtered catalog");
+  const machine = await answerSupportQuestion("Tell me about the JME-VCS12-75");
+  assert.ok(machine.links.some((l) => l.href === "/machines?m=JME-VCS12-75"), "a machine answer links to the platform");
+  const price = await answerSupportQuestion("How much is the 1650?");
+  assert.ok(price.links.some((l) => l.href === "/how-quoting-works"), "a pricing refusal links to how quoting works");
+  // A question cannot mint a link: only the answer text and catalogue SKUs do.
+  const crafted = linksFor("Plain answer.", ["NOT-A-SKU"]);
+  assert.deepEqual(crafted.map((l) => l.href), ["/?q=NOT-A-SKU"]);
+  for (const a of [manual, part, machine, price]) for (const l of a.links) assert.match(l.href, /^\/(?!\/)/);
 });

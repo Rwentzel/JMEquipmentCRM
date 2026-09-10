@@ -1562,8 +1562,10 @@
 
 .ps-ask__msg.user {
   align-self: flex-end;
-  color: var(--ink);
-  background: var(--accent);
+  /* Light on the brand red, like the primary button: dark ink on it measured
+     under 4.5:1 for body-size text. */
+  color: var(--paper);
+  background: var(--jme-red);
 }
 
 .ps-ask__msg.busy {
@@ -1592,6 +1594,28 @@
 .ps-ask__sugs button:hover {
   color: var(--paper);
   border-color: var(--paper-faint);
+}
+
+.ps-ask__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+}
+
+.ps-ask__links a {
+  padding: 2px var(--s-3);
+  font-size: var(--t-xs);
+  color: var(--paper);
+  text-decoration: none;
+  border: 1px solid var(--paper-faint);
+  border-radius: var(--r-pill);
+}
+
+.ps-ask__links a:hover,
+.ps-ask__links a:focus-visible {
+  border-color: var(--jme-gold);
+  color: var(--jme-gold);
 }
 
 .ps-ask__bar {

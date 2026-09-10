@@ -20,6 +20,44 @@ export interface SupportAnswer {
   engine: "ai" | "rules";
   /** Catalog SKUs referenced, so the UI can deep-link them. */
   skus: string[];
+  /** Places on the site the answer points at, for the widget to render as links. */
+  links: AnswerLink[];
+}
+
+export interface AnswerLink {
+  label: string;
+  href: string;
+}
+
+/**
+ * Where an answer can send the customer next, derived from the answer's own
+ * text and the SKUs it named — never from the question, so a crafted
+ * question cannot mint a link. Machines open on the Machine Platform, parts
+ * open the catalog filtered to the SKU, and the FAQ routes point at their
+ * pages.
+ */
+export function linksFor(answer: string, skus: string[]): AnswerLink[] {
+  const links: AnswerLink[] = [];
+  for (const sku of skus.slice(0, 3)) {
+    const isMachine = catalog.machines.some((m) => m.sku === sku);
+    links.push(
+      isMachine
+        ? { label: `${sku} on the Machine Platform`, href: `/machines?m=${encodeURIComponent(sku)}` }
+        : { label: `Find ${sku} in the catalog`, href: `/?q=${encodeURIComponent(sku)}` },
+    );
+  }
+  if (/support hub/i.test(answer)) links.push({ label: "Open the Support Hub", href: "/support" });
+  if (/quoted individually|no prices|pricing isn'?t published|pricing.*(not|never) (shown|published)|firm written quot|how quoting works/i.test(answer)) {
+    links.push({ label: "How quoting works", href: "/how-quoting-works" });
+  }
+  if (/freight/i.test(answer)) links.push({ label: "Freight & shipping", href: "/freight" });
+  const seen = new Set<string>();
+  return links.filter((l) => (seen.has(l.href) ? false : (seen.add(l.href), true))).slice(0, 4);
+}
+
+/** Attach the links every answer carries. */
+function finish(ans: Omit<SupportAnswer, "links">): SupportAnswer {
+  return { ...ans, links: linksFor(ans.answer, ans.skus) };
 }
 
 const DESK_LINE = `Call ${catalog.contact.phone} or email ${catalog.contact.email} — the parts desk replies in writing.`;
@@ -42,9 +80,9 @@ const PRICING_REFUSAL =
 export const PRICE_SHAPE = /\$\s?\d/;
 
 /** Replace any answer that states a price with the standing pricing refusal. */
-export function screenPriceOut(ans: SupportAnswer): SupportAnswer {
+export function screenPriceOut<T extends Omit<SupportAnswer, "links">>(ans: T): T {
   if (PRICE_SHAPE.test(ans.answer)) {
-    return { answer: PRICING_REFUSAL, engine: ans.engine, skus: ans.skus };
+    return { ...ans, answer: PRICING_REFUSAL };
   }
   return ans;
 }
@@ -172,7 +210,7 @@ function specLines(sku: string): string | null {
 }
 
 /** Deterministic engine — always available, zero dependencies. */
-function rulesAnswer(question: string): SupportAnswer {
+function rulesAnswer(question: string): Omit<SupportAnswer, "links"> {
   const hits = matchCatalog(question);
   const faq = matchFaq(question);
   const wantsSpecs = SPEC_INTENT.test(question);
@@ -234,22 +272,22 @@ CATALOG: ${publicContext()}`;
 export async function answerSupportQuestion(question: string): Promise<SupportAnswer> {
   const q = String(question ?? "").trim().slice(0, 500);
   if (!q) {
-    return { answer: "Ask me about a part, a machine, freight, or how quoting works.", engine: "rules", skus: [] };
+    return finish({ answer: "Ask me about a part, a machine, freight, or how quoting works.", engine: "rules", skus: [] });
   }
 
   // Policy guardrail — refuse pricing/quantity/sourcing specifics on ANY engine.
   const refusal = guardFor(q);
   if (refusal) {
-    return { answer: refusal, engine: "rules", skus: matchCatalog(q).map((h) => h.sku) };
+    return finish({ answer: refusal, engine: "rules", skus: matchCatalog(q).map((h) => h.sku) });
   }
 
   if (aiAvailable()) {
     const text = await complete({ system: SYSTEM_PROMPT, user: q, maxTokens: 400 });
     // Belt-and-braces: if the model output looks like it leaked a price, fall back.
     if (text && !PRICE_SHAPE.test(text)) {
-      return { answer: text, engine: "ai", skus: matchCatalog(q).map((h) => h.sku) };
+      return finish({ answer: text, engine: "ai", skus: matchCatalog(q).map((h) => h.sku) });
     }
   }
   // Every terminal rules answer passes the output screen (see PRICE_SHAPE).
-  return screenPriceOut(rulesAnswer(q));
+  return finish(screenPriceOut(rulesAnswer(q)));
 }

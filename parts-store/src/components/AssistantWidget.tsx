@@ -14,6 +14,8 @@ import { Diamond } from "@/components/ui";
 
 interface Msg {
   role: "user" | "desk";
+  /** Where the desk's answer points (server-derived, never from the question). */
+  links?: { label: string; href: string }[];
   text: string;
 }
 
@@ -68,7 +70,14 @@ export function AssistantWidget() {
         res.ok && typeof data.answer === "string"
           ? data.answer
           : data.error || "Could not reach the desk — try again in a moment.";
-      setMsgs((m) => [...m, { role: "desk", text }]);
+      const links = Array.isArray(data.links)
+        ? (data.links as unknown[])
+            .filter((l): l is { label: string; href: string } => !!l && typeof l === "object" && typeof (l as { href?: unknown }).href === "string" && typeof (l as { label?: unknown }).label === "string")
+            // Only same-site paths render as links.
+            .filter((l) => l.href.startsWith("/") && !l.href.startsWith("//"))
+            .slice(0, 4)
+        : [];
+      setMsgs((m) => [...m, { role: "desk", text, links }]);
     } catch {
       setMsgs((m) => [...m, { role: "desk", text: "Could not reach the desk — try again in a moment." }]);
     } finally {
@@ -100,6 +109,15 @@ export function AssistantWidget() {
             {msgs.map((m, i) => (
               <div key={i} className={"ps-ask__msg " + m.role}>
                 {m.text}
+                {m.links && m.links.length > 0 && (
+                  <span className="ps-ask__links">
+                    {m.links.map((l) => (
+                      <a key={l.href} href={l.href}>
+                        {l.label} &rarr;
+                      </a>
+                    ))}
+                  </span>
+                )}
               </div>
             ))}
             {busy && <div className="ps-ask__msg desk busy">…</div>}
