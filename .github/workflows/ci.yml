@@ -90,3 +90,9 @@ jobs:
         env:
           OPS_TOKEN: ci-smoke-only-token
         run: npm run a11y -- http://127.0.0.1:3100
+
+      # Mobile LCP on the slow-4G profile. Runner timings vary, so this
+      # reports rather than gates; read it when a page grows.
+      - name: Mobile LCP (report only)
+        run: npm run lcp -- http://127.0.0.1:3100 || true
+        continue-on-error: true
