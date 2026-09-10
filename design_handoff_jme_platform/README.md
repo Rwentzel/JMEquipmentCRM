@@ -1,10 +1,11 @@
-# Handoff: JME Parts Platform (nine screens + WordPress child theme)
+# Handoff: JME Parts Platform (nine screens, two tracks)
 
-Package for the developer (or Claude Code) implementing the JM Equipment customer platform on WordPress / WooCommerce with a Cloudflare Worker for requests. Everything a non-author needs is in this folder.
+Package for the developer (or Claude Code) implementing the JM Equipment customer platform. **Read `BUILD_PROMPT.md` first** — it records the owner rulings (2026-09-10): both tracks ship (Next.js `parts-store` + WordPress/WooCommerce), full catalog, RFQ-only, every path routes to the request list. Everything a non-author needs is in this folder.
 
 ```
 handoff/
 ├─ README.md                 ← this file
+├─ BUILD_PROMPT.md           ← owner rulings + scope + build order (read first)
 ├─ standalone/               ← nine self-contained HTML design references (open offline, links work between them)
 ├─ wp-theme/jme-child/       ← Storefront child theme built from the design-system tokens
 └─ deploy/
@@ -17,7 +18,7 @@ handoff/
 
 ## Overview
 
-JM Equipment (Sturgis, MI) sells and services paper-converting machinery: Goodstrong sheeters, the JME hydraulic core splitter, rebuilt Geo M. Martin rollstands, RollRite, and the JME Linear Dancer System. The platform is **RFQ-first**: no price, cost, margin, vendor, bin location or exact quantity appears on any surface. Customers build a request list, then send it to the parts desk by email, phone or print (decision DEC-038). Availability is expressed only through seven approved status bands.
+JM Equipment (Sturgis, MI) sells and services paper-converting machinery: Goodstrong sheeters, the JME hydraulic core splitter, rebuilt Geo M. Martin rollstands, RollRite, and the JME Linear Dancer System. The platform is **RFQ-first**: no price, cost, margin, vendor, bin location or exact quantity appears on any surface. Customers build a request list, then send it to the parts desk by email, phone or print (decision DEC-038). Availability is expressed only through seven approved status bands. Catalog truth is the full QuickBooks export (2,223 parts); the 1,887-row remediated subset referenced in `deploy/` is superseded — see `BUILD_PROMPT.md`.
 
 ## About the design files
 

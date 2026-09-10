@@ -3,10 +3,13 @@ branch: main
 path: parts-store
 
 ## Last sync
-date: 2026-09-03T19:31:00Z
+date: 2026-09-10T00:00:00Z
 
 ### Updated in this project
-- Machine Detail (Configurator) now covers all nine machines in `details.ts`: added the 1600-E, Guillotine Cutter, Automatic Splicer, and Decurler configurators (options, how-it-works, applications, proof, downloads). The Decurler carries its revised copy (multi-bar decurl, any width, any sheeter). Tab order follows `catalog.ts`.
+- Owner rulings recorded in `handoff/BUILD_PROMPT.md`: both tracks (Next.js + WordPress) ship, full catalog (2,223 parts, seven bands, HOLD SKUs listed as Quote Required), no pricing, all paths route to the request list. Part-number rule (QuickBooks/manual numbers only): Machine Detail configurator no longer emits coined option codes; request items carry the real model number + descriptive `configLabel`, `options[]` empty. Standalone Machine Detail reference regenerated.
+
+## Sync history
+- 2026-09-03T19:31:00Z — - Machine Detail (Configurator) now covers all nine machines in `details.ts`: added the 1600-E, Guillotine Cutter, Automatic Splicer, and Decurler configurators (options, how-it-works, applications, proof, downloads). The Decurler carries its revised copy (multi-bar decurl, any width, any sheeter). Tab order follows `catalog.ts`.
 - Catalog, Machine Platform, Storefront, Goodstrong Manual, and Request List were checked against `catalog.ts`, `goodstrong.ts`, `types.ts`, `useRequestList.ts`, and `validateQuote.ts` — no drift; nothing rebuilt.
 - `faq.ts` (five public FAQ entries incl. the 2:30 PM ET same-day ship cutoff) has no matching screen here; not carried over.
 
@@ -24,7 +27,6 @@ date: 2026-09-03T19:31:00Z
 | JME Storefront.dc.html | `src/app/page.tsx`, `src/data/catalog.ts` |
 | JME Governance Console.dc.html | project-local (`redaction_allowlist.json`, `export_woocommerce.py`); no repo source |
 
-## Sync history
 - 2026-09-02T13:06:00Z — Linear Dancer added to Catalog and Machine Platform; RollRite and Linear Dancer configurators; Goodstrong `sectionsFrom` attribution; ghost-button contrast fix.
 - 2026-08-17T12:02:29Z (commit f26df6e537b4) — Machine Platform built on the real `catalog.ts` machine set; Request List DEC-038 send panel; Goodstrong manual rebuilt on S/N 37422 catalogue; Catalog and Configurator rebuilt on real repo data; brand colors mapped to design-system tokens.
 - 2026-08-14T19:00:27Z — Catalog, Configurator, and Goodstrong manual rebuilt on real repo data; brand colors mapped to design-system tokens.
@@ -39,9 +41,9 @@ No price, cost, margin, vendor, OEM cross-reference, bin location, or exact quan
 Availability is expressed only through the seven approved status bands.
 Manual content is transcribed from factory documents only; sections without a transcribed table say so rather than showing invented parts.
 
-## App counterparts (2026-09-09)
+## App counterparts (2026-09-10)
 
-Every reference screen now has a route in the Next.js app; the designs stay the visual reference.
+Every reference screen has a route in the Next.js app; the designs stay the visual reference.
 
 | Reference | App route |
 |---|---|
@@ -53,4 +55,4 @@ Every reference screen now has a route in the Next.js app; the designs stay the 
 | JME Request List | `/#request` (`?parts=`, `?reorder=`) |
 | JME Support Hub | `/support` (`?panel=`, `?serial=`, `?sku=&machine=`) |
 | JME RFQ Flow | `/how-quoting-works` |
-| JME Governance Console | not built — it governs the Excel import pipeline, which this repo does not contain |
+| JME Governance Console | Track B only — it governs the import pipeline, which lives in `deploy/` |

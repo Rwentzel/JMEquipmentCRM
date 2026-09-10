@@ -1,0 +1,60 @@
+/* ============================================================
+   JME — Color tokens
+   Two surface contexts share ONE brand palette:
+   • DARK   — digital products (parts store, marketing site)
+   • LIGHT  — documents & app canvas (quotes, command center)
+   Brand red, gold, charcoal are locked across both.
+   ============================================================ */
+
+:root{
+  /* ---- Brand (locked, sampled from the logo) --------------- */
+  --jme-red:        #A8353A;  /* primary — sampled from diamond face  */
+  --jme-red-deep:   #7A1F23;  /* hover / pressed / gradient base       */
+  --jme-red-bright: #C0413F;  /* sheen highlight / focus               */
+  --jme-red-sheen:  #BE4A48;  /* top of the diamond's vertical sheen   */
+  --jme-gold:       #B8920A;  /* "consult / override" indicator         */
+  --jme-charcoal:   #1F1F1F;  /* near-black structural ink             */
+  --jme-silver:     #C0C0C0;  /* metallic cue — thin lines, bezel       */
+
+  /* ---- Chrome / brushed-metal ramp (the JME monogram) ------ */
+  /* Cool-toned steel, sampled bezel highlight → deep shadow.   */
+  --metal-hi:       #F4F6FA;  /* bevel highlight (catch-light)         */
+  --metal-silver:   #C5CED5;  /* upper face                            */
+  --metal:          #A3ADB5;  /* mid face                              */
+  --metal-steel:    #72707B;  /* lower face / shadow side              */
+  --metal-shadow:   #45444E;  /* deepest groove                        */
+
+  /* ---- Semantic status ------------------------------------- */
+  --jme-green:      #2E7D52;  /* in-stock / pass / go             */
+  --jme-blue:       #1F4788;  /* Graphic Packaging / info / spec  */
+  --jme-amber:      #B8920A;  /* caution / lead-time              */
+
+  /* ---- DARK surface system (digital) ----------------------- */
+  --ink:            #141414;  /* page base                        */
+  --ink-2:          #0F0F12;  /* deepest panel / sidebar          */
+  --charcoal:       #1F1F1F;  /* raised card                      */
+  --plate:          #232220;  /* data-plate fill                  */
+  --plate-hi:       #2B2A27;  /* data-plate top of gradient       */
+  --field:          #191816;  /* input background                 */
+  --line:           #33312E;  /* hairline divider                 */
+  --line-lt:        #444240;  /* stronger border / input edge     */
+  --paper:          #EDEAE4;  /* primary text on dark             */
+  --paper-dim:      #B9B4AA;  /* secondary text on dark           */
+  --paper-faint:    #8D887E;  /* tertiary / fine print on dark    */
+
+  /* ---- LIGHT surface system (documents / app) -------------- */
+  --canvas:         #FFFFFF;  /* document / page background       */
+  --canvas-tint:    #FAFAFB;  /* app shell behind cards           */
+  --panel:          #F4F2EE;  /* gray callout / table fill        */
+  --panel-2:        #E5E5E5;  /* deeper fill                      */
+  --hairline:       #E5E5E8;  /* light divider                    */
+  --hairline-2:     #D9D6CF;  /* warm light divider               */
+  --ink-text:       #0F0F12;  /* primary text on light            */
+  --muted:          #6B6B72;  /* secondary text on light          */
+  --subtle:         #9A9A9F;  /* tertiary / captions on light     */
+
+  /* ---- Aliases (use these in components) ------------------- */
+  --accent:         var(--jme-red);
+  --accent-strong:  var(--jme-red-deep);
+  --focus:          var(--jme-red-bright);
+}

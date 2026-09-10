@@ -1,0 +1,204 @@
+/* ============================================================
+   JME — Core component styles
+   Class-based so hover/focus/variant states work for both the
+   React components and plain-HTML usage. All values reference
+   tokens. Dark-theme by default; .on-light variants where the
+   component is meant to sit on a white document/app canvas.
+   ============================================================ */
+
+/* ---------------- Button ---------------------------------- */
+.jme-btn{
+  display:inline-flex; align-items:center; gap:10px;
+  font-family:var(--font-display);
+  font-size:17px; font-weight:var(--fw-bold);
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:13px 26px;
+  border:1px solid var(--jme-red-deep);
+  background:var(--grad-red-btn); color:#fff;
+  text-decoration:none; border-radius:var(--r-1);
+  cursor:pointer; white-space:nowrap;
+  box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 1px 2px rgba(0,0,0,.25);
+  transition:filter var(--dur-fast) var(--ease),
+             box-shadow var(--dur-fast) var(--ease),
+             transform var(--dur-fast) var(--ease);
+}
+.jme-btn:hover{ filter:brightness(.92); }
+.jme-btn:active{ transform:translateY(1px); box-shadow:0 1px 2px rgba(0,0,0,.3) inset; }
+.jme-btn:focus-visible{ outline:var(--focus-ring); outline-offset:2px; }
+
+.jme-btn--ghost{ background:transparent; color:var(--paper); border-color:var(--line-lt); box-shadow:none; }
+.jme-btn--ghost:hover{ border-color:var(--jme-red); color:#fff; background:rgba(168,53,58,.12); filter:none; }
+
+.jme-btn--gold{ background:var(--jme-gold); border-color:#9c7c08; color:#1a1500; }
+.jme-btn--gold:hover{ background:#9c7c08; border-color:#9c7c08; }
+
+.jme-btn--sm{ font-size:14px; padding:9px 16px; }
+.jme-btn--lg{ font-size:19px; padding:16px 32px; }
+.jme-btn--block{ display:flex; width:100%; justify-content:center; }
+.jme-btn:disabled,.jme-btn[aria-disabled="true"]{ opacity:.45; cursor:not-allowed; transform:none; }
+
+/* on a light/document canvas the ghost edge darkens */
+.on-light .jme-btn--ghost{ color:var(--ink-text); border-color:var(--hairline-2); }
+.on-light .jme-btn--ghost:hover{ color:#fff; background:var(--jme-red); border-color:var(--jme-red); }
+
+/* ---------------- Tag -------------------------------------- */
+.jme-tag{
+  display:inline-block;
+  font-family:var(--font-body);
+  font-size:10.5px; font-weight:var(--fw-bold);
+  letter-spacing:var(--track-tag); text-transform:uppercase;
+  padding:4px 9px; border-radius:var(--r-1);
+  border:1px solid var(--line-lt); color:var(--paper-dim);
+}
+.jme-tag--consult{ border-color:var(--jme-gold); color:var(--jme-gold); }
+.jme-tag--blue{ border-color:var(--jme-blue); color:#7FA3D9; }
+.jme-tag--red{ border-color:var(--jme-red); color:#E08A8E; }
+.jme-tag--green{ border-color:var(--jme-green); color:#6FBF94; }
+.jme-tag--solid{ background:var(--jme-red); border-color:var(--jme-red); color:#fff; }
+
+/* ---------------- Badge (status dot) ---------------------- */
+.jme-badge{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--font-body); font-size:11.5px; font-weight:var(--fw-semi);
+  letter-spacing:.1em; text-transform:uppercase; color:var(--paper-dim);
+}
+.jme-badge::before{
+  content:""; width:8px; height:8px; border-radius:50%;
+  background:var(--paper-faint); flex:none;
+}
+.jme-badge--stock{ color:#6FBF94; } .jme-badge--stock::before{ background:var(--jme-green); }
+.jme-badge--lead{ color:var(--jme-gold); } .jme-badge--lead::before{ background:var(--jme-gold); }
+.jme-badge--out{ color:#E08A8E; } .jme-badge--out::before{ background:var(--jme-red); }
+.jme-badge--info{ color:#7FA3D9; } .jme-badge--info::before{ background:var(--jme-blue); }
+
+/* ---------------- Input / Field --------------------------- */
+.jme-field{ display:block; }
+.jme-field__label{
+  display:block; font-size:10.5px; font-weight:var(--fw-bold);
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--paper-dim); margin-bottom:6px;
+}
+.jme-input,.jme-select,.jme-textarea{
+  width:100%; font-family:var(--font-body); font-size:14px;
+  background:var(--field); border:1px solid var(--line-lt);
+  color:var(--paper); padding:9px 11px; border-radius:var(--r-1);
+}
+.jme-input::placeholder,.jme-textarea::placeholder{ color:var(--paper-faint); }
+.jme-input:focus,.jme-select:focus,.jme-textarea:focus{
+  outline:2px solid var(--jme-red); outline-offset:0; border-color:var(--jme-red);
+}
+.jme-select{ appearance:none; background-image:
+  linear-gradient(45deg,transparent 50%,var(--paper-dim) 50%),
+  linear-gradient(135deg,var(--paper-dim) 50%,transparent 50%);
+  background-position:calc(100% - 16px) center,calc(100% - 11px) center;
+  background-size:5px 5px,5px 5px; background-repeat:no-repeat; padding-right:30px; }
+.on-light .jme-field__label{ color:var(--muted); }
+.on-light .jme-input,.on-light .jme-select,.on-light .jme-textarea{
+  background:var(--canvas); border-color:var(--hairline-2); color:var(--ink-text); }
+
+/* ---------------- Card ------------------------------------ */
+.jme-card{
+  background:var(--charcoal); border:1px solid var(--line);
+  border-radius:var(--r-2); box-shadow:var(--sh-card);
+}
+.jme-card__body{ padding:var(--s-6); }
+.jme-card__hd{
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+  padding:var(--s-5) var(--s-6); border-bottom:1px solid var(--line);
+}
+.jme-card__hd h3{ font-family:var(--font-display); text-transform:uppercase;
+  font-size:var(--t-lg); letter-spacing:var(--track-heading); font-weight:var(--fw-bold); margin:0; }
+.on-light .jme-card{ background:var(--canvas); border-color:var(--hairline); box-shadow:var(--sh-raise); color:var(--ink-text); }
+.on-light .jme-card__hd{ border-color:var(--hairline); }
+
+/* ---------------- Data Plate (signature) ------------------ */
+.jme-plate{
+  background:var(--grad-plate-dark);
+  border:1px solid var(--line-lt); border-radius:var(--r-2);
+  position:relative; color:var(--paper);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,   /* chrome catch-light lip */
+    0 12px 34px rgba(0,0,0,.45);
+}
+/* four corner rivets */
+.jme-plate::before,.jme-plate::after,
+.jme-plate>.jme-plate__rivets::before,.jme-plate>.jme-plate__rivets::after{
+  content:""; position:absolute; width:9px; height:9px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#6E6A63,#23211E 70%);
+  box-shadow:inset 0 -1px 1px rgba(0,0,0,.7);
+}
+.jme-plate::before{ top:9px; left:9px; } .jme-plate::after{ top:9px; right:9px; }
+.jme-plate>.jme-plate__rivets::before{ bottom:9px; left:9px; }
+.jme-plate>.jme-plate__rivets::after{ bottom:9px; right:9px; }
+.jme-plate__hd{
+  display:flex; justify-content:space-between; align-items:baseline; gap:14px;
+  padding:18px 26px 12px; border-bottom:1px solid var(--line);
+  box-shadow:0 1px 0 rgba(197,206,213,.14);
+}
+.jme-plate__hd h3{ font-family:var(--font-display); text-transform:uppercase;
+  font-size:24px; letter-spacing:.04em; margin:0; font-weight:var(--fw-bold); }
+.jme-plate__sku{ font-family:var(--font-mono); font-size:12px; letter-spacing:.16em;
+  color:var(--jme-gold); font-weight:var(--fw-bold); }
+.jme-plate__rows{ padding:8px 26px 18px; }
+.jme-plate__row{
+  display:flex; justify-content:space-between; gap:16px; padding:8px 0;
+  border-bottom:1px dotted #383631; font-size:13.5px;
+}
+.jme-plate__row:last-child{ border-bottom:none; }
+.jme-plate__row .k{ color:var(--paper-dim); font-weight:var(--fw-med);
+  letter-spacing:.04em; text-transform:uppercase; font-size:11.5px; padding-top:2px; }
+.jme-plate__row .v{ text-align:right; font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums; color:var(--paper); font-weight:var(--fw-med); }
+
+/* ---------------- Callout (gray + maroon left rule) ------- */
+.jme-callout{
+  background:var(--plate); border-left:3px solid var(--jme-red);
+  border-radius:var(--r-1); padding:18px 22px; color:var(--paper);
+}
+.jme-callout__title{ font-family:var(--font-display); text-transform:uppercase;
+  font-size:15px; letter-spacing:.1em; font-weight:var(--fw-bold);
+  color:var(--jme-red); margin:0 0 6px; }
+.jme-callout p{ margin:0; font-size:13.5px; color:var(--paper-dim); line-height:1.6; }
+.on-light .jme-callout{ background:var(--panel); color:var(--ink-text); }
+.on-light .jme-callout p{ color:var(--muted); }
+
+/* ---------------- Stat Block (ROI numerals) --------------- */
+.jme-stats{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+  gap:1px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-1); overflow:hidden; }
+.jme-stat{ background:var(--plate); padding:20px 22px; }
+.jme-stat b{ font-family:var(--font-display); font-size:32px; font-weight:var(--fw-bold);
+  display:block; font-variant-numeric:tabular-nums; color:var(--paper); line-height:1; }
+.jme-stat b em{ font-style:normal; color:var(--jme-red); }
+.jme-stat span{ font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--paper-dim); display:block; margin-top:7px; }
+.on-light .jme-stats{ background:var(--hairline); border-color:var(--hairline); }
+.on-light .jme-stat{ background:var(--canvas); }
+.on-light .jme-stat b{ color:var(--ink-text); }
+.on-light .jme-stat span{ color:var(--muted); }
+
+/* ---------------- Spec Table ------------------------------ */
+.jme-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+.jme-table th{
+  font-family:var(--font-body); font-size:10px; letter-spacing:.2em;
+  text-transform:uppercase; color:#fff; background:var(--jme-charcoal);
+  text-align:left; padding:9px 12px;
+}
+.jme-table th.r{ text-align:right; }
+.jme-table td{ padding:10px 12px; border-bottom:1px solid var(--line);
+  vertical-align:top; font-variant-numeric:tabular-nums; color:var(--paper); }
+.jme-table td.r{ text-align:right; }
+.jme-table tbody tr:nth-child(even) td{ background:rgba(255,255,255,.02); }
+.jme-table .sub{ font-size:11.5px; color:var(--paper-dim); }
+.on-light .jme-table td{ border-color:var(--hairline); color:var(--ink-text); }
+.on-light .jme-table tbody tr:nth-child(even) td{ background:var(--canvas-tint); }
+.on-light .jme-table .sub{ color:var(--muted); }
+
+/* ---------------- Toast ----------------------------------- */
+.jme-toast{
+  display:inline-flex; align-items:center; gap:12px;
+  background:var(--jme-red); color:#fff; font-family:var(--font-display);
+  font-size:16px; font-weight:var(--fw-bold); letter-spacing:.08em; text-transform:uppercase;
+  padding:12px 26px; border-radius:var(--r-1); box-shadow:var(--sh-toast);
+}
+.jme-toast--gold{ background:var(--jme-gold); color:#1a1500; }
+.jme-toast--green{ background:var(--jme-green); }

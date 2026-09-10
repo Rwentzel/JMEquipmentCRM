@@ -1,0 +1,26 @@
+/* ============================================================
+   JME — Spacing & layout tokens
+   8pt baseline grid. Layouts are left-aligned and anchored,
+   never centered-and-floating (per brand standard).
+   ============================================================ */
+
+:root{
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --s-20: 80px;
+  --s-24: 96px;
+
+  /* ---- Layout --------------------------------------------- */
+  --wrap-max:    1280px;  /* content max width                  */
+  --wrap-pad:    32px;    /* gutter                             */
+  --nav-h:       62px;    /* fixed top nav height               */
+  --sidebar-w:   240px;   /* app sidebar width                  */
+}
