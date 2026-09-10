@@ -126,6 +126,14 @@ export function ReorderPanel({
           {busy ? "Loading…" : "Load parts"}
         </Button>
       </div>
+      {/* A Support Hub reference carries no parts, so there is nothing to reload;
+          say so before the lookup rather than answering with a bare "not found". */}
+      {ref.trim().toUpperCase().startsWith("REQ-") && (
+        <p className="ps-fine" role="status">
+          That is a support-request reference (REQ-…). Those carry no parts to reload — quote requests start with
+          RFQ-. For the support request itself, reply to the desk&rsquo;s email or call and quote the reference.
+        </p>
+      )}
       {err && (
         <p className="ps-field-err" role="alert">
           {err}
