@@ -33,12 +33,14 @@ export function analyzeEvents(events: AuditEvent[], now: Date): SecurityFinding[
 
   const count = (kind: AuditEvent["kind"]) => recent.filter((e) => e.kind === kind).length;
 
-  const honeypot = count("quote_honeypot");
+  // The Support Hub's intake shares the quote endpoint's posture, so its
+  // honeypot, rate-limit and validation events count toward the same signals.
+  const honeypot = count("quote_honeypot") + count("support_honeypot");
   if (honeypot >= 10) {
     findings.push({
       severity: "warn",
-      title: "Sustained bot pressure on the quote form",
-      detail: `${honeypot} honeypot hits in 24h. The form is holding, but consider edge-level bot filtering before launch.`,
+      title: "Sustained bot pressure on the request forms",
+      detail: `${honeypot} honeypot hits in 24h across the quote and support forms. The forms are holding, but consider edge-level bot filtering before launch.`,
     });
   } else if (honeypot > 0) {
     findings.push({
@@ -48,7 +50,7 @@ export function analyzeEvents(events: AuditEvent[], now: Date): SecurityFinding[
     });
   }
 
-  const limited = count("quote_rate_limited") + count("assistant_rate_limited");
+  const limited = count("quote_rate_limited") + count("support_rate_limited") + count("assistant_rate_limited");
   if (limited >= 20) {
     findings.push({
       severity: "warn",
@@ -57,8 +59,8 @@ export function analyzeEvents(events: AuditEvent[], now: Date): SecurityFinding[
     });
   }
 
-  const invalid = count("quote_invalid");
-  const accepted = count("quote_accepted");
+  const invalid = count("quote_invalid") + count("support_invalid");
+  const accepted = count("quote_accepted") + count("support_accepted");
   if (invalid >= 15 && invalid > accepted * 3) {
     findings.push({
       severity: "warn",

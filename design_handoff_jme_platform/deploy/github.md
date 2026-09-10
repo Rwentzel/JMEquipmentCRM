@@ -38,3 +38,19 @@ date: 2026-09-03T19:31:00Z
 No price, cost, margin, vendor, OEM cross-reference, bin location, or exact quantity appears on any surface.
 Availability is expressed only through the seven approved status bands.
 Manual content is transcribed from factory documents only; sections without a transcribed table say so rather than showing invented parts.
+
+## App counterparts (2026-09-09)
+
+Every reference screen now has a route in the Next.js app; the designs stay the visual reference.
+
+| Reference | App route |
+|---|---|
+| JME Storefront | `/` (search-first hero, `?q=` seeds the catalog) |
+| JME Catalog | `/#parts` (the storefront's parts browser) |
+| JME Machine Platform | `/machines` (`?m=SKU`) |
+| JME Machine Detail — Configurator | `/machine/[sku]` |
+| JME Goodstrong Manual | `/parts/goodstrong`, `/parts/goodstrong/[model]/[section]` |
+| JME Request List | `/#request` (`?parts=`, `?reorder=`) |
+| JME Support Hub | `/support` (`?panel=`, `?serial=`, `?sku=&machine=`) |
+| JME RFQ Flow | `/how-quoting-works` |
+| JME Governance Console | not built — it governs the Excel import pipeline, which this repo does not contain |
