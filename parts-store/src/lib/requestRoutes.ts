@@ -48,3 +48,20 @@ export function mailtoHref(items: RequestItem[], reference?: string | null): str
 export function telHref(): string {
   return `tel:${DESK_PHONE_TEL}`;
 }
+
+/**
+ * The "Email it" route for a Support Hub request: the customer's own draft,
+ * carrying the reference and what they typed, addressed to the desk. Like
+ * the request-list mailto it never touches the desk pipeline or the store.
+ */
+export function supportMailtoHref(title: string, reference: string | null, rows: [string, string][]): string {
+  const subject = reference ? `[${reference}] ${title}` : title;
+  const body = [
+    reference ? `Reference: ${reference}` : `Request: ${title}`,
+    "",
+    ...rows.slice(0, 20).map(([k, v]) => `${k}: ${String(v).replace(/\s+/g, " ").trim().slice(0, 300)}`),
+    "",
+    "Please confirm in writing.",
+  ].join("\n");
+  return `mailto:${DESK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}

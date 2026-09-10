@@ -82,7 +82,9 @@ await flow("a Support Hub form submits and the request reaches the ops inbox wit
   await page.check("#support-panel input[type=checkbox]");
   await page.click("#support-panel button[type=submit]");
   await page.waitForSelector(".ps-sent", { timeout: 10_000 });
-  const ref = (await page.locator(".ps-sent").innerText()).match(/RFQ-[0-9A-F]{8}/)?.[0];
+  // A support request is minted under REQ-, never RFQ-: the reorder path
+  // only accepts RFQ- references, so a manual request can never be "reordered".
+  const ref = (await page.locator(".ps-sent").innerText()).match(/REQ-[0-9A-F]{8}/)?.[0];
   ok(ref, "no reference shown");
   if (!OPS_TOKEN) return; // inbox check needs the server's token
   const login = await page.request.post(`${BASE}/api/ops/session`, { data: { token: OPS_TOKEN } });

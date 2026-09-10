@@ -89,3 +89,18 @@ test("saveRfq rejects when the data directory cannot exist, rather than silently
     else process.env.RFQ_DATA_DIR = previous;
   }
 });
+
+test("a support request is minted under REQ-, which the reorder path refuses", async () => {
+  const saved = await saveRfq({
+    contact: { company: "", name: "", email: "riley@example.com", serial: "SN-26218" },
+    items: [],
+    freight: false,
+    kind: "manual-request",
+    details: { model: "Goodstrong GMC-TC II 1650" },
+  });
+  assert.match(saved.ref, /^REQ-[0-9A-F]{8}$/);
+  const back = await getRfq(saved.ref);
+  assert.equal(back?.kind, "manual-request");
+  const { normalizeRef } = await import("../src/lib/reorder");
+  assert.equal(normalizeRef(saved.ref), null, "a REQ- reference is not a reorderable quote");
+});

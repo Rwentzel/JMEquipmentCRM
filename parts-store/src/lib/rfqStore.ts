@@ -190,7 +190,10 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
   return locked(async () => {
     const now = new Date().toISOString();
     const rfq: StoredRfq = {
-      ref: "RFQ-" + randomUUID().slice(0, 8).toUpperCase(),
+      // REQ- for a typed support request, RFQ- for a parts quote: the desk
+      // and the Worker contract tell them apart by prefix, and only RFQ-
+      // references pass the reorder check (lib/reorder.ts REF_RE).
+      ref: (input.kind ? "REQ-" : "RFQ-") + randomUUID().slice(0, 8).toUpperCase(),
       createdAt: now,
       updatedAt: now,
       status: "new",
