@@ -53,7 +53,7 @@ export default async function MachinePage({ params }: { params: Promise<{ sku: s
 
   return (
     <>
-      <MachineDetailClient machine={machine} detail={detail} related={related} />
+      <MachineDetailClient machine={machine} detail={detail} related={related} rail={catalog.machines.map((m) => ({ sku: m.sku, name: m.name }))} />
       <ProductJsonLd machine={machine} />
     </>
   );

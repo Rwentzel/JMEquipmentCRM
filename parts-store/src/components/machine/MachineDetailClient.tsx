@@ -33,14 +33,30 @@ const SECTIONS: [string, string][] = [
   ["resources", "Resources"],
 ];
 
+/** The reference's short tab names; anything unlisted shows its catalogue name. */
+const RAIL_LABEL: Record<string, string> = {
+  "GMC-TCII-1650": "1650",
+  "GMC-1600E": "1600-E",
+  "JME-VCS12-75": "Core Splitter",
+  "GMM-RS-RB": "Martin Rollstand",
+  "JME-RR-16": "RollRite",
+  "JME-GC-52": "Guillotine",
+  "JME-LD-12": "Linear Dancer",
+  "JME-AS-08": "Splicer",
+  "JME-DC-04": "Decurler",
+};
+
 export function MachineDetailClient({
   machine,
   detail,
   related,
+  rail,
 }: {
   machine: Machine;
   detail: MachineDetail;
   related: RelatedParts;
+  /** Every published machine, for the tab rail the reference carries across the top. */
+  rail: { sku: string; name: string }[];
 }) {
   const { add, count } = useRequestList();
   const { message, show } = useToast();
@@ -138,6 +154,22 @@ export function MachineDetailClient({
         ]}
       />
 
+      {/* Machine rail — the reference's tabs across the nine lines */}
+      <nav className="md-rail" aria-label="Machines">
+        <div className="md-rail__in">
+          {rail.map((m) => (
+            <Link
+              key={m.sku}
+              href={`/machine/${m.sku}`}
+              className={"md-rail__tab" + (m.sku === machine.sku ? " on" : "")}
+              aria-current={m.sku === machine.sku ? "page" : undefined}
+            >
+              {RAIL_LABEL[m.sku] ?? m.name}
+            </Link>
+          ))}
+        </div>
+      </nav>
+
       {/* Sub-nav with scroll spy */}
       <div className="md-subnav">
         <div className="md-subnav__in">
@@ -190,6 +222,7 @@ export function MachineDetailClient({
             </div>
             <div className="md-hero__meta">
               <StatusBand band={detail.badge.band} />
+              <span className="md-hero__bandnote">Configured quote, one business day</span>
             </div>
           </div>
           <div
@@ -339,6 +372,8 @@ export function MachineDetailClient({
                   <StatusBand band={detail.badge.band} />
                 </div>
                 <div className="jme-card__body">
+                  <p className="md-config__speclabel">Your spec</p>
+                  <p className="jme-mono md-config__spec">{[machine.sku, ...selection].join(" · ")}</p>
                   {selection.length === 0 ? (
                     <p className="md-config__default">
                       Standard configuration. Select options to refine your
@@ -531,9 +566,15 @@ export function MachineDetailClient({
                 <Tag tone="consult">PDF</Tag>
                 <h3>{d.t}</h3>
                 <p>{d.m}</p>
-                <p className="md-rescard__note">
-                  Available on request — sandbox build.
-                </p>
+                <p className="md-rescard__note">Sent by the parts desk on request.</p>
+                <Button
+                  as="a"
+                  size="sm"
+                  variant="ghost"
+                  href="/support?panel=manual"
+                >
+                  Request
+                </Button>
               </div>
             ))}
           </div>
