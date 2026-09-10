@@ -1198,6 +1198,76 @@
   color: var(--paper-dim);
 }
 
+.ps-sent--warn {
+  background: color-mix(in srgb, var(--jme-amber) 12%, transparent);
+  border-color: color-mix(in srgb, var(--jme-amber) 55%, transparent);
+}
+
+.ps-sent--warn b {
+  color: var(--jme-amber);
+}
+
+/* ---- The three routes: email / call / print ---- */
+.ps-routes {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: var(--bd-hair);
+  display: grid;
+  gap: var(--s-2);
+}
+
+.ps-sent .ps-routes {
+  margin-top: var(--s-3);
+  padding-top: var(--s-3);
+  border-top-color: color-mix(in srgb, var(--jme-green) 35%, transparent);
+}
+
+.ps-routes__honest {
+  font-size: var(--t-sm);
+  color: var(--paper-dim);
+}
+
+.ps-routes__honest b {
+  color: var(--paper);
+  font-family: var(--font-body);
+  text-transform: none;
+  letter-spacing: var(--track-body);
+}
+
+.ps-routes__lbl {
+  font-size: var(--t-2xs);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-tag);
+  color: var(--paper-faint);
+}
+
+.ps-routes__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-4);
+}
+
+.ps-routes__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: var(--fw-semi);
+  color: var(--jme-gold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.ps-routes__link:hover {
+  color: var(--paper);
+}
+
 /* ------------------------------------------------------------- FAQ --- */
 .ps-faq {
   display: grid;
