@@ -25,8 +25,8 @@ python3 build_portal.py \
 
 Expected output:
 ```
-✓ Loaded 1,901 active SKUs
-✓ 1,887 import-eligible (10 HOLD excluded)
+✓ Loaded 2,223 SKUs (full catalog — owner ruling 2026-09-10)
+✓ 2,223 import-eligible (10 HOLD listed as Quote Required, RFQ-only)
 ✓ 14 Tier 1 redactions applied
 ✓ 9 NAME_FIX substitutions loaded
 ✓ MD5 checksum: [matches baseline]
@@ -38,13 +38,14 @@ Abort if counts do not match; verify rev-2 workbook integrity.
 
 ```bash
 python3 export_woocommerce.py \
-  --catalog JME_Phase1_Remediated_Catalog.xlsx \
+  --source JME_Catalog_Full.xlsx \
+  --sheet "Webstore Catalog" \
   --allowlist redaction_allowlist.json \
   --output products.csv
 ```
 
 Produces:
-- `products.csv`: 1,887 rows (import-eligible SKUs, prices suppressed, categories mapped, meta populated)
+- `products.csv`: 2,223 rows (the full catalog; prices suppressed, categories mapped, meta populated; the 10 HOLD rows carry `_jme_price_status = hold` and list as Quote Required)
 - `validation_report.json`: split-scope validator results (cost/vendor/margin/wholesale scans)
 - `decisions_log_delta.txt`: governance decisions this session
 
@@ -53,8 +54,8 @@ Produces:
 ```bash
 python3 test_regression.py \
   --artifact products.csv \
-  --expect-sku-count 1887 \
-  --expect-hold-count 0 \
+  --expect-sku-count 2223 \
+  --expect-hold-count 10 \
   --expect-name-fix-applied 9 \
   --expect-serials-exact-match 90 \
   --expect-idempotence
@@ -183,7 +184,7 @@ wp import products.csv \
 ```
 
 Verify:
-- 1,887 products imported
+- 2,223 products imported (10 of them HOLD, listed as Quote Required)
 - Categories mapped correctly
 - No products have public prices
 - Machine pages linked to parts
@@ -394,7 +395,7 @@ wrangler deploy --env production
 | Issue | Diagnosis | Resolution |
 |-------|-----------|-----------|
 | Products import but prices are visible | NAME_FIX not applied | Rerun export_woocommerce.py with allowlist; verify _jme_price_status = quote_only |
-| HOLD SKUs appear in search | Import included all 1,901 rows | Verify 10 HOLD rows excluded; reimport with 1,887 count |
+| HOLD SKUs show anything but Quote Required | Export ran without the ruling's HOLD handling | Rerun export_woocommerce.py (HOLD rows flagged `hold`, listed as Quote Required); regression expects 10 flagged |
 | RFQ form doesn't submit | Worker endpoint unreachable | Check CORS origin, Worker deployment, secret values; test with curl |
 | FiboSearch not finding parts | Index stale | Manually rebuild index in WordPress admin; check indexing cron |
 | Console not loading | Design Component rendering issue | Clear browser cache; check for console errors; verify Support Bundle loaded |
@@ -407,9 +408,9 @@ All governance decisions are logged in DECISIONS_LOG.txt with timestamp, authori
 
 ```
 Version 1.0 — 2026-08-13
-  - Initial launch: 1,887 SKUs, 5 machines, RFQ-first
+  - Initial launch: 2,223 SKUs (full catalog), 9 machine lines, RFQ-first
   - 9 NAME_FIX redactions applied
-  - 10 HOLD SKUs deferred pending Seth's rulings
+  - 10 HOLD SKUs listed as Quote Required, price rulings pending
   - Cloudflare Worker live, Resend integration validated
 
 Version 1.1 — [TBD]

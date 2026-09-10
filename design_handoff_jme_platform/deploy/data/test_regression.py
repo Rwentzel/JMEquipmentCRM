@@ -1,16 +1,21 @@
-/**
- * test_regression.py
- * 
- * Regression suite for JME platform builds.
- * Ensures governance gates pass and exports are byte-idempotent.
- * 
- * Usage:
- *   python3 test_regression.py \
- *     --artifact products.csv \
- *     --expect-sku-count 1887 \
- *     --expect-hold-count 0 \
- *     --idempotence-test
- */
+"""
+test_regression.py
+
+Regression suite for JME platform builds.
+Ensures governance gates pass and exports are byte-idempotent.
+
+Usage:
+  python3 test_regression.py \
+    --artifact products.csv \
+    --expect-sku-count 2223 \
+    --expect-hold-count 10 \
+    --idempotence-test
+
+Owner ruling (2026-09-10, BUILD_PROMPT.md): the export carries the FULL
+catalog (2,223 today). HOLD SKUs are present, flagged _jme_price_status =
+hold and listed as Quote Required — EG-1 now checks they are flagged, not
+that they are absent.
+"""
 
 import csv
 import json
@@ -52,26 +57,40 @@ class RegressionSuite:
         print(f"  [{status}] SKU count: {actual} == {expected_count}")
         return status == 'PASS'
     
-    def test_hold_skus_absent(self, rows, expect_hold_zero=True):
-        """EG-1: Verify no HOLD SKUs in export."""
-        self.hold_count = sum(1 for r in rows if r.get('_jme_price_status') == 'hold')
-        status = 'PASS' if self.hold_count == 0 else 'FAIL'
+    def test_hold_skus_flagged(self, rows, expected_hold):
+        """EG-1: HOLD SKUs are present, flagged hold, and listed as Quote Required.
+
+        Nothing is dropped from the catalog for pricing reasons; a HOLD row is
+        RFQ-only like every other row, and the flag is what the Governance
+        Console's HOLD queue reads.
+        """
+        held = [r for r in rows if r.get('_jme_price_status') == 'hold']
+        self.hold_count = len(held)
+        unlabelled = [r.get('SKU') for r in held if 'Quote Required' not in (r.get('Description') or '')]
+        status = 'PASS' if self.hold_count == expected_hold and not unlabelled else 'FAIL'
         self.results.append({
-            'test': 'hold_skus_absent',
+            'test': 'hold_skus_flagged',
+            'expected': expected_hold,
             'hold_found': self.hold_count,
+            'hold_unlabelled': len(unlabelled),
             'status': status
         })
-        print(f"  [{status}] HOLD SKUs: {self.hold_count} == 0")
+        print(f"  [{status}] HOLD SKUs flagged: {self.hold_count} == {expected_hold}, unlabelled: {len(unlabelled)} == 0")
+        if unlabelled:
+            self.findings.extend({'sku': sku, 'issue': 'HOLD row not listed as Quote Required'} for sku in unlabelled)
         return status == 'PASS'
     
     def test_name_fix_applied(self, rows, allowlist_path):
         """EG-2: Verify no original (pre-redaction) names in export."""
         try:
             with open(allowlist_path, 'r') as f:
-                allowlist = json.load(f)
-        except:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
             print(f"  [SKIP] Allowlist not found")
             return True
+        # The file is {"redactions": [...], "metadata": {...}}; accept a bare list too.
+        allowlist = data.get('redactions', []) if isinstance(data, dict) else (data or [])
+        allowlist = [e for e in allowlist if isinstance(e, dict) and e.get('original')]
         
         originals_found = []
         for row in rows:
@@ -190,16 +209,18 @@ class RegressionSuite:
         print(f"  [{status}] Goodstrong/Martin separation: {len(violations)} violations == 0")
         return status == 'PASS'
     
+    UNPRICED = ('quote_only', 'hold')
+
     def test_price_suppression(self, rows):
-        """G1: Verify all prices suppressed to quote_only."""
-        non_quote = sum(1 for r in rows if r.get('_jme_price_status') != 'quote_only')
+        """G1: Verify every row is unpriced — quote_only, or hold (listed, awaiting a ruling)."""
+        non_quote = sum(1 for r in rows if r.get('_jme_price_status') not in self.UNPRICED)
         status = 'PASS' if non_quote == 0 else 'FAIL'
         self.results.append({
             'test': 'price_suppression',
             'non_quote_only': non_quote,
             'status': status
         })
-        print(f"  [{status}] Price suppression: {non_quote} non-quote-only == 0")
+        print(f"  [{status}] Price suppression: {non_quote} priced rows == 0")
         return status == 'PASS'
     
     def test_idempotence(self, artifact2_path=None):
@@ -248,8 +269,8 @@ def main():
     parser = argparse.ArgumentParser(description='Regression test suite')
     parser.add_argument('--artifact', required=True, help='Artifact CSV to test')
     parser.add_argument('--artifact2', help='Second artifact for idempotence check')
-    parser.add_argument('--expect-sku-count', type=int, default=1887)
-    parser.add_argument('--expect-hold-count', type=int, default=0)
+    parser.add_argument('--expect-sku-count', type=int, default=2223, help='Full catalog row count')
+    parser.add_argument('--expect-hold-count', type=int, default=10, help='HOLD rows present and flagged')
     parser.add_argument('--allowlist', default='redaction_allowlist.json')
     args = parser.parse_args()
     
@@ -263,7 +284,7 @@ def main():
     
     print("\n[Running Tests]")
     suite.test_sku_count(rows, args.expect_sku_count)
-    suite.test_hold_skus_absent(rows)
+    suite.test_hold_skus_flagged(rows, args.expect_hold_count)
     suite.test_name_fix_applied(rows, args.allowlist)
     suite.test_no_blank_names(rows)
     suite.test_no_confidential_data(rows)

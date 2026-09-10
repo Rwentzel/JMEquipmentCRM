@@ -2,22 +2,22 @@
 
 ## Prerequisites (Gate E1)
 
-- [ ] Stage A regression tests pass (idempotence, NAME_FIX applied, HOLD SKUs excluded)
+- [ ] Stage A regression tests pass (idempotence, NAME_FIX applied, HOLD SKUs present and flagged Quote Required)
 - [ ] Worker smoke tests pass (422/200/429/honeypot paths)
 - [ ] All Stage C gates pass (zero-console-error, axe, FiboSearch, RFQ flow)
 - [ ] Fuzz harness clean on portal v2 (3+ seeds × 140 steps)
 - [ ] Riley sign-off recorded
-- [ ] Seth's 5 price rulings either received (rerun Stage A) or explicitly deferred with 10 HOLD rows confirmed excluded
+- [ ] Seth's 5 price rulings either received (rerun Stage A) or explicitly deferred with the 10 HOLD rows confirmed listed as Quote Required
 
 ## Pre-Flight Checklist
 
 ### Data Integrity
-- [ ] Load JME_Phase1_Remediated_Catalog.xlsx rev 2 via openpyxl (read-only, data-only)
-- [ ] Verify counts: 1,901 active, 10 HOLD, 14 Tier 1 redactions, 1,887 import-eligible
+- [ ] Load the full catalog workbook (QuickBooks export, 2,223 rows) via openpyxl (read-only, data-only)
+- [ ] Verify counts: 2,223 SKUs, 10 HOLD (listed, flagged), 14 Tier 1 redactions, 2,223 import-eligible
 - [ ] NAME_FIX table loaded and substitution pipeline armed (9/9 entries)
 - [ ] Split-scope validator run: cost/vendor/margin/wholesale word scans + pattern scans on artifact payload
 - [ ] Regression: all 9 NAME_FIX originals confirmed absent from WooCommerce CSV
-- [ ] Regression: all 10 HOLD SKUs confirmed absent from WooCommerce CSV
+- [ ] Regression: all 10 HOLD SKUs present in the WooCommerce CSV with `_jme_price_status = hold` and Quote Required
 - [ ] Regression: 90 documented serials exact-match validated (pattern-match disabled)
 - [ ] Regression: suffix-collapse canaries asserted distinct (MB2G2011011 vs -OR, TBD-UCFLANGE vs -LESS)
 
@@ -41,7 +41,7 @@
 - [ ] Brand child theme applied on staging: colors (#A8353A primary, #7A1F23 hover, #1F1F1F charcoal, #FFFFFF canvas), Barlow Condensed / Barlow / JetBrains Mono
       NOTE: supersedes the earlier #AC1F24 + Oswald/Lato/Roboto Mono spec. The bound JME design system pixel-samples primary red from the logo (#A8353A); #A33238 and #8B3A3A are retired.
 - [ ] RFQ confirmation screen shows: reference ID, email copy, DEC-038 routes (email / call / print)
-- [ ] Import: 1,887 products from Stage A CSV
+- [ ] Import: 2,223 products from Stage A CSV
 - [ ] Verify: Product count, category tree (machine > section > assembly), Goodstrong/Martin never co-listed
 - [ ] Search: Exact SKU, spaced SKU (normalized), machine name queries all resolve
 - [ ] Verify: No prices or budgetary figures display anywhere on customer-facing surfaces
@@ -134,7 +134,7 @@ When NAME_FIX or price rulings are updated:
 
 # 3. Rerun Stage A: export_woocommerce.py
 #    Output: WooCommerce CSV + REST JSON
-#    Regression suite: all 9 originals absent, 10 HOLD SKUs absent, byte-idempotent
+#    Regression suite: all 9 originals absent, 10 HOLD SKUs flagged, byte-idempotent
 
 # 4. Staging import: reimport products
 
@@ -155,7 +155,7 @@ If a bad import lands or data corruption occurs:
 # 1. Identify last-good artifact (prior rev, checked into git)
 
 # 2. In WordPress admin:
-#    - Bulk delete all 1,887 products (Tools → Delete Products)
+#    - Bulk delete all 2,223 products (Tools → Delete Products)
 #    - Or: WP-CLI: wp post delete $(wp post list --post_type=product --format=ids)
 
 # 3. Re-import from last-good CSV
