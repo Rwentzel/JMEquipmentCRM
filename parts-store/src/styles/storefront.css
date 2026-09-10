@@ -583,9 +583,53 @@
   gap: var(--s-3);
 }
 
+.ps-stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  background: var(--field);
+}
+
+.ps-stepper__btn {
+  width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-md);
+  font-weight: var(--fw-bold);
+  color: var(--paper);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.ps-stepper__btn:hover:not(:disabled) {
+  background: var(--plate-hi);
+  color: var(--jme-gold);
+}
+
+.ps-stepper__btn:disabled {
+  color: var(--paper-faint);
+  cursor: default;
+}
+
+.ps-stepper__btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.ps-stepper .ps-qty {
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
 .ps-qty {
-  width: 64px;
-  height: 34px;
+  width: 56px;
+  height: 44px;
   text-align: center;
 }
 
@@ -597,8 +641,8 @@
 }
 
 .ps-rm {
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   font-size: var(--t-md);
