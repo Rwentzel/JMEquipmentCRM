@@ -440,3 +440,230 @@
     font-size: var(--t-2xl);
   }
 }
+
+/* ===================================================================
+   RFQ Flow (/how-quoting-works) — the explainer behind "no price tag".
+   =================================================================== */
+
+.rf {
+  min-height: 100vh;
+  padding: calc(var(--nav-h) + var(--s-12)) 0 var(--s-20);
+}
+
+.rf__hd {
+  max-width: 820px;
+  margin-bottom: var(--s-12);
+}
+
+.rf__hd .jme-eyebrow {
+  margin-bottom: var(--s-3);
+}
+
+.rf__hd h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  font-weight: var(--fw-black);
+  text-transform: uppercase;
+  letter-spacing: var(--track-display);
+  line-height: var(--lh-display);
+  color: var(--paper);
+  margin-bottom: var(--s-5);
+}
+
+.rf__hd p {
+  color: var(--paper-dim);
+  font-size: var(--t-md);
+  line-height: var(--lh-body);
+}
+
+.rf-steps {
+  list-style: none;
+  margin: 0 0 var(--s-12);
+  padding: 0;
+  display: grid;
+  gap: var(--s-4);
+}
+
+.rf-step {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: var(--s-5);
+  padding: var(--s-6);
+  background: var(--plate);
+  border: var(--bd-plate);
+  border-radius: var(--r-2);
+}
+
+.rf-step__n {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: var(--fw-black);
+  color: var(--jme-red-text);
+  line-height: 1;
+}
+
+.rf-step h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin-bottom: var(--s-2);
+}
+
+.rf-step p {
+  color: var(--paper-dim);
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
+}
+
+.rf-step__list {
+  list-style: none;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.rf-step__list li {
+  position: relative;
+  padding-left: var(--s-5);
+  color: var(--paper);
+  font-size: var(--t-sm);
+}
+
+.rf-step__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 12px;
+  height: 1px;
+  background: var(--jme-gold);
+}
+
+.rf-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-6);
+  margin-bottom: var(--s-12);
+}
+
+.rf-col {
+  padding: var(--s-6);
+  background: var(--ink-2);
+  border: var(--bd-hair);
+  border-left: 4px solid var(--jme-red);
+  border-radius: var(--r-2);
+}
+
+.rf-col--never {
+  border-left-color: var(--jme-gold);
+}
+
+.rf-col h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+  margin-bottom: var(--s-4);
+}
+
+.rf-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+
+.rf-col li {
+  position: relative;
+  padding-left: var(--s-4);
+  color: var(--paper-dim);
+  font-size: var(--t-sm);
+  line-height: var(--lh-body);
+}
+
+.rf-col li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: var(--jme-red);
+}
+
+.rf-col--never li::before {
+  background: var(--jme-gold);
+}
+
+.rf-faq {
+  margin-bottom: var(--s-12);
+}
+
+.rf-faq__hd {
+  margin-bottom: var(--s-6);
+}
+
+.rf-faq__hd h2,
+.rf-ready h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: var(--fw-black);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
+}
+
+.rf-faq__hd .jme-eyebrow {
+  margin-bottom: var(--s-2);
+}
+
+.rf-ready {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s-6);
+  align-items: center;
+  padding: var(--s-8);
+  background: var(--plate);
+  border: var(--bd-plate);
+  border-radius: var(--r-2);
+}
+
+.rf-ready p {
+  color: var(--paper-dim);
+  font-size: var(--t-base);
+  margin-top: var(--s-2);
+}
+
+.rf-ready__contact a {
+  color: var(--jme-gold);
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+}
+
+.rf-ready__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+@media (max-width: 760px) {
+  .rf__hd h1 {
+    font-size: var(--t-2xl);
+  }
+  .rf-step {
+    grid-template-columns: 1fr;
+    gap: var(--s-2);
+  }
+  .rf-cols,
+  .rf-ready {
+    grid-template-columns: 1fr;
+  }
+}

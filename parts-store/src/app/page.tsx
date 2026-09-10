@@ -972,7 +972,12 @@ function Faq() {
             <Eyebrow>Answers</Eyebrow>
             <h2 className="jme-h2">Common questions</h2>
           </div>
-          <p>How the parts desk works — pricing, lead time, fit, and freight.</p>
+          <p>
+            How the parts desk works — pricing, lead time, fit, and freight.
+            <a className="ps-comparelink" href="/how-quoting-works">
+              Read how quoting works, start to finish →
+            </a>
+          </p>
         </div>
         <div className="ps-faq">
           {qa.map(([q, a]) => (
