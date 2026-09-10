@@ -714,3 +714,69 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* Machine rail: the reference's tabs across the nine lines. Scrolls sideways
+   on phones rather than wrapping into a wall. */
+.md-rail {
+  border-bottom: var(--bd-hair);
+  background: var(--ink-2);
+}
+
+.md-rail__in {
+  display: flex;
+  gap: var(--s-2);
+  max-width: var(--wrap-max);
+  margin: 0 auto;
+  padding: var(--s-2) var(--wrap-pad);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.md-rail__tab {
+  flex: 0 0 auto;
+  padding: var(--s-2) var(--s-4);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-semi);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--paper-dim);
+  border: var(--bd-hair);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+
+.md-rail__tab:hover,
+.md-rail__tab:focus-visible {
+  color: var(--paper);
+  border-color: var(--paper-faint);
+}
+
+.md-rail__tab.on {
+  color: var(--paper);
+  background: var(--jme-red);
+  border-color: var(--jme-red);
+}
+
+.md-hero__bandnote {
+  margin-left: var(--s-3);
+  font-size: var(--t-xs);
+  color: var(--paper-faint);
+}
+
+.md-config__speclabel {
+  margin: 0 0 2px;
+  font-family: var(--font-mono);
+  font-size: var(--t-2xs);
+  letter-spacing: var(--track-tag);
+  text-transform: uppercase;
+  color: var(--paper-faint);
+}
+
+.md-config__spec {
+  margin: 0 0 var(--s-3);
+  font-size: var(--t-sm);
+  color: var(--jme-gold);
+  word-break: break-word;
+}
