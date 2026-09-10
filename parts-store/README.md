@@ -85,6 +85,8 @@ the environment — never in the repo.
 ## Structure
 - `src/components/ui/` — design-system primitives (Button, Badge, DataPlate, …)
 - `src/components/ops/` — internal ops desk UI
+- `src/components/support/` — Support Hub; `src/components/machine/` — Machine Platform, detail, compare, manuals; `SiteNav.tsx` — the one nav
+- `src/lib/supportRequest.ts` — the hub's form spec (renders, validates client- and server-side); `src/lib/machineParts.ts` — fitment tiers
 - `src/data/` — `catalog.ts`, `details.ts`, `faq.ts`, `types.ts`, `sanitize.ts` (public-safe fields only)
 - `src/lib/` — rate limit, validation, RFQ store, audit log, ops auth
 - `src/lib/agents/` + `src/lib/ai/` — agent engines and the env-gated AI provider
