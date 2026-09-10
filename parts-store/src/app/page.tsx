@@ -7,7 +7,7 @@ import { highlightRanges, partMatches, queryTokens } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import type { ReorderItem as ReorderLine } from "@/lib/reorder";
 import { goodstrongModels } from "@/data/goodstrong";
-import { NumberInput } from "@/components/NumberInput";
+import { QtyStepper } from "@/components/QtyStepper";
 import {
   Button,
   DataPlate,
@@ -876,14 +876,7 @@ function Request({
                     {i.source && <span className="ps-line__config">{i.source}</span>}
                   </div>
                   <div className="ps-line__right">
-                    <NumberInput
-                      className="jme-input ps-qty"
-                      integer
-                      min={1}
-                      value={i.qty}
-                      aria-label={`Quantity for ${i.sku}`}
-                      onChange={(n) => onQty(i.sku, Math.max(1, n))}
-                    />
+                    <QtyStepper value={i.qty} label={i.sku} onChange={(n) => onQty(i.sku, n)} />
                     <button className="ps-rm" onClick={() => onRemove(i.sku)} aria-label={`Remove ${i.sku}`}>
                       ×
                     </button>
