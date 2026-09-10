@@ -25,9 +25,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Power",
         type: "radio",
         choices: [
-          { v: "5 HP / 230V 1Ø", sku: "P1", note: "Standard" },
-          { v: "5 HP / 230V 3Ø", sku: "P3" },
-          { v: "5 HP / 460V 3Ø", sku: "P4" },
+          { v: "5 HP / 230V 1Ø", id: "P1", note: "Standard" },
+          { v: "5 HP / 230V 3Ø", id: "P3" },
+          { v: "5 HP / 460V 3Ø", id: "P4" },
         ],
       },
       {
@@ -35,8 +35,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Frame height",
         type: "radio",
         choices: [
-          { v: "75 in (12″ head)", sku: "F75", note: "Standard" },
-          { v: "90 in (16″ head)", sku: "F90", note: "Extended" },
+          { v: "75 in (12″ head)", id: "F75", note: "Standard" },
+          { v: "90 in (16″ head)", id: "F90", note: "Extended" },
         ],
       },
       {
@@ -44,8 +44,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Guarding",
         type: "radio",
         choices: [
-          { v: "Mesh cage + interlock", sku: "G1", note: "Standard" },
-          { v: "Light curtain", sku: "G2" },
+          { v: "Mesh cage + interlock", id: "G1", note: "Standard" },
+          { v: "Light curtain", id: "G2" },
         ],
       },
       {
@@ -53,10 +53,10 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Crating for freight", sku: "CR", note: "Recommended" },
-          { v: "Spare blade set (4)", sku: "SB" },
-          { v: "Discharge chute", sku: "DC" },
-          { v: "Casters + leveling feet", sku: "CF" },
+          { v: "Crating for freight", id: "CR", note: "Recommended" },
+          { v: "Spare blade set (4)", id: "SB" },
+          { v: "Discharge chute", id: "DC" },
+          { v: "Casters + leveling feet", id: "CF" },
         ],
       },
     ],
@@ -100,9 +100,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Trim width",
         type: "radio",
         choices: [
-          { v: "1650 mm (65 in)", sku: "W65", note: "Standard" },
-          { v: "1600 mm (63 in) E", sku: "W63", note: "Economy" },
-          { v: "1900 mm (75 in)", sku: "W75" },
+          { v: "1650 mm (65 in)", id: "W65", note: "Standard" },
+          { v: "1600 mm (63 in) E", id: "W63", note: "Economy" },
+          { v: "1900 mm (75 in)", id: "W75" },
         ],
       },
       {
@@ -110,8 +110,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Web stations",
         type: "radio",
         choices: [
-          { v: "2 web", sku: "B2", note: "Standard" },
-          { v: "4 web", sku: "B4" },
+          { v: "2 web", id: "B2", note: "Standard" },
+          { v: "4 web", id: "B4" },
         ],
       },
       {
@@ -119,10 +119,10 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Tidland-style slitters", sku: "SL" },
-          { v: "Motorized decurler", sku: "DC" },
-          { v: "Overlap / shingle table", sku: "OL" },
-          { v: "Non-stop pallet change", sku: "NS" },
+          { v: "Tidland-style slitters", id: "SL" },
+          { v: "Motorized decurler", id: "DC" },
+          { v: "Overlap / shingle table", id: "OL" },
+          { v: "Non-stop pallet change", id: "NS" },
         ],
       },
     ],
@@ -164,8 +164,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Web stations",
         type: "radio",
         choices: [
-          { v: "1 web", sku: "B1", note: "Standard" },
-          { v: "2 web", sku: "B2" },
+          { v: "1 web", id: "B1", note: "Standard" },
+          { v: "2 web", id: "B2" },
         ],
       },
       {
@@ -173,9 +173,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Slitter section", sku: "SL" },
-          { v: "Overlap / shingle table", sku: "OL" },
-          { v: "Stacker upgrade", sku: "ST" },
+          { v: "Slitter section", id: "SL" },
+          { v: "Overlap / shingle table", id: "OL" },
+          { v: "Stacker upgrade", id: "ST" },
         ],
       },
     ],
@@ -214,9 +214,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Web width",
         type: "radio",
         choices: [
-          { v: "To 40 in", sku: "W40" },
-          { v: "40–63 in", sku: "W63", note: "Common" },
-          { v: "Over 63 in", sku: "W63P" },
+          { v: "To 40 in", id: "W40" },
+          { v: "40–63 in", id: "W63", note: "Common" },
+          { v: "Over 63 in", id: "W63P" },
         ],
       },
       {
@@ -224,9 +224,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Line integration",
         type: "radio",
         choices: [
-          { v: "Ahead of sheeter", sku: "IS", note: "Most common" },
-          { v: "Ahead of slitter / laminator", sku: "IL" },
-          { v: "Other (describe in notes)", sku: "IO" },
+          { v: "Ahead of sheeter", id: "IS", note: "Most common" },
+          { v: "Ahead of slitter / laminator", id: "IL" },
+          { v: "Other (describe in notes)", id: "IO" },
         ],
       },
       {
@@ -234,9 +234,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Position feedback display", sku: "PF" },
-          { v: "Spare dancer roll", sku: "SR" },
-          { v: "Commissioning on site", sku: "CM", note: "Recommended" },
+          { v: "Position feedback display", id: "PF" },
+          { v: "Spare dancer roll", id: "SR" },
+          { v: "Commissioning on site", id: "CM", note: "Recommended" },
         ],
       },
     ],
@@ -276,10 +276,10 @@ export const details: Record<string, MachineDetail> = {
         label: "Core size",
         type: "radio",
         choices: [
-          { v: "4 in", sku: "C4", note: "Standard" },
-          { v: "3–6 in", sku: "C36" },
-          { v: "10–12 in", sku: "C1012" },
-          { v: "16 in", sku: "C16" },
+          { v: "4 in", id: "C4", note: "Standard" },
+          { v: "3–6 in", id: "C36" },
+          { v: "10–12 in", id: "C1012" },
+          { v: "16 in", id: "C16" },
         ],
       },
       {
@@ -287,8 +287,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Chucks",
         type: "radio",
         choices: [
-          { v: "Standard", sku: "CS", note: "Standard" },
-          { v: "Custom", sku: "CC" },
+          { v: "Standard", id: "CS", note: "Standard" },
+          { v: "Custom", id: "CC" },
         ],
       },
     ],
@@ -325,9 +325,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Chucks",
         type: "radio",
         choices: [
-          { v: "Ribbed expanding", sku: "CR", note: "Standard" },
-          { v: "Mechanical expanding", sku: "CM" },
-          { v: "Air-shaft", sku: "CA" },
+          { v: "Ribbed expanding", id: "CR", note: "Standard" },
+          { v: "Mechanical expanding", id: "CM" },
+          { v: "Air-shaft", id: "CA" },
         ],
       },
       {
@@ -335,8 +335,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Brake",
         type: "radio",
         choices: [
-          { v: "Pneumatic", sku: "BP", note: "Standard" },
-          { v: "Magnetic-particle", sku: "BM" },
+          { v: "Pneumatic", id: "BP", note: "Standard" },
+          { v: "Magnetic-particle", id: "BM" },
         ],
       },
       {
@@ -344,9 +344,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Powered web guide", sku: "WG" },
-          { v: "Load/unload arms", sku: "LA" },
-          { v: "Custom paint to brand color", sku: "PT" },
+          { v: "Powered web guide", id: "WG" },
+          { v: "Load/unload arms", id: "LA" },
+          { v: "Custom paint to brand color", id: "PT" },
         ],
       },
     ],
@@ -383,8 +383,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Cut width",
         type: "radio",
         choices: [
-          { v: "42 in", sku: "C42", note: "Standard" },
-          { v: "52 in", sku: "C52" },
+          { v: "42 in", id: "C42", note: "Standard" },
+          { v: "52 in", id: "C52" },
         ],
       },
       {
@@ -392,9 +392,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Air table", sku: "AT" },
-          { v: "Backgauge memory", sku: "BG" },
-          { v: "Side tables", sku: "ST" },
+          { v: "Air table", id: "AT" },
+          { v: "Backgauge memory", id: "BG" },
+          { v: "Side tables", id: "ST" },
         ],
       },
     ],
@@ -430,8 +430,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Web width",
         type: "radio",
         choices: [
-          { v: "1650 mm", sku: "W65", note: "Standard" },
-          { v: "1900 mm", sku: "W75" },
+          { v: "1650 mm", id: "W65", note: "Standard" },
+          { v: "1900 mm", id: "W75" },
         ],
       },
       {
@@ -439,9 +439,9 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Turret unwind", sku: "TU" },
-          { v: "Splice-detect sensor", sku: "SD" },
-          { v: "Dancer tension control", sku: "DT" },
+          { v: "Turret unwind", id: "TU" },
+          { v: "Splice-detect sensor", id: "SD" },
+          { v: "Dancer tension control", id: "DT" },
         ],
       },
     ],
@@ -477,8 +477,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Web width",
         type: "radio",
         choices: [
-          { v: "1650 mm", sku: "W65", note: "Standard" },
-          { v: "1900 mm", sku: "W75" },
+          { v: "1650 mm", id: "W65", note: "Standard" },
+          { v: "1900 mm", id: "W75" },
         ],
       },
       {
@@ -486,8 +486,8 @@ export const details: Record<string, MachineDetail> = {
         label: "Add-ons",
         type: "check",
         choices: [
-          { v: "Quick-release bars", sku: "QR" },
-          { v: "Operator scale / indicator", sku: "SC" },
+          { v: "Quick-release bars", id: "QR" },
+          { v: "Operator scale / indicator", id: "SC" },
         ],
       },
     ],

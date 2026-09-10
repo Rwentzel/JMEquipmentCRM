@@ -20,7 +20,7 @@ export function configLines(machineSku: string, chosen: Iterable<string>): strin
   const wanted = new Set(chosen);
   const lines: string[] = [];
   for (const opt of opts) {
-    const picked = opt.choices.filter((c) => wanted.has(c.sku));
+    const picked = opt.choices.filter((c) => wanted.has(c.id));
     if (picked.length > 0) lines.push(`${opt.label}: ${picked.map((c) => c.v).join(", ")}`);
   }
   return lines;

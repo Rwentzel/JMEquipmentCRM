@@ -4,6 +4,7 @@ import "@/styles/flow.css";
 import { Button, Eyebrow } from "@/components/ui";
 import { PolicyNav } from "@/components/PolicyNav";
 import { pageRobots } from "@/lib/launch";
+import { FAQ } from "@/data/faq";
 
 export const metadata: Metadata = {
   title: "How Quoting Works",
@@ -142,6 +143,22 @@ export default function HowQuotingWorksPage() {
             <Button as="a" variant="ghost" href="/parts/goodstrong">
               Open a manual
             </Button>
+          </div>
+        </section>
+
+        {/* Owner ruling (BUILD_PROMPT.md): the explainer carries the FAQ, so the
+            same answers the storefront and the assistant give live here too. */}
+        <section className="fl__faq" aria-labelledby="fl-faq">
+          <h2 id="fl-faq" className="fl__col-t">
+            Common questions
+          </h2>
+          <div className="ps-faq">
+            {FAQ.map((f) => (
+              <details className="ps-faq__item" key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
           </div>
         </section>
 

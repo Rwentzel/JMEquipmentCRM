@@ -76,7 +76,7 @@ test("a configured machine carries its options through to the stored item", () =
   const power = opts.find((o) => o.id === "power")!;
   const nonDefault = power.choices[2]!; // 460V 3Ø
 
-  const resolved = resolveOptionsForTest(machine, [nonDefault.sku]);
+  const resolved = resolveOptionsForTest(machine, [nonDefault.id]);
   assert.deepEqual(resolved, [`${power.label}: ${nonDefault.v}`]);
 });
 
@@ -97,7 +97,7 @@ test("multiple choices in one option group are listed together", () => {
   const check = opts.find((o) => o.type === "check");
   if (!check || check.choices.length < 2) return; // nothing multi-select to assert on
   const [a, b] = check.choices;
-  const resolved = resolveOptionsForTest("JME-VCS12-75", [a!.sku, b!.sku]);
+  const resolved = resolveOptionsForTest("JME-VCS12-75", [a!.id, b!.id]);
   assert.equal(resolved.length, 1);
   // Plain containment: choice text carries regex metacharacters of its own
   // (e.g. "Spare blade set (4)"), so building a pattern from it is a trap.

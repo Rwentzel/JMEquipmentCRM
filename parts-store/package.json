@@ -23,7 +23,8 @@
     "restore": "tsx scripts/restore.ts",
     "serve:standalone": "node scripts/serve-standalone.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "a11y": "node scripts/a11y-audit.mjs"
+    "a11y": "node scripts/a11y-audit.mjs",
+    "lcp": "node scripts/lcp.mjs"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",

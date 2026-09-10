@@ -51,7 +51,7 @@ export function MachineDetailClient({
   const [radio, setRadio] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     detail.options.forEach((o) => {
-      if (o.type === "radio") init[o.id] = o.choices[0]?.sku ?? "";
+      if (o.type === "radio") init[o.id] = o.choices[0]?.id ?? "";
     });
     return init;
   });
@@ -62,10 +62,10 @@ export function MachineDetailClient({
     const lines: string[] = [];
     detail.options.forEach((o) => {
       if (o.type === "radio") {
-        const sel = o.choices.find((c) => c.sku === radio[o.id]);
+        const sel = o.choices.find((c) => c.id === radio[o.id]);
         if (sel) lines.push(`${o.label}: ${sel.v}`);
       } else {
-        const picked = o.choices.filter((c) => checks.has(o.id + ":" + c.sku));
+        const picked = o.choices.filter((c) => checks.has(o.id + ":" + c.id));
         if (picked.length)
           lines.push(`${o.label}: ${picked.map((c) => c.v).join(", ")}`);
       }
@@ -85,11 +85,11 @@ export function MachineDetailClient({
     const ids: string[] = [];
     detail.options.forEach((o) => {
       if (o.type === "radio") {
-        const sel = o.choices.find((c) => c.sku === radio[o.id]);
-        if (sel) ids.push(sel.sku);
+        const sel = o.choices.find((c) => c.id === radio[o.id]);
+        if (sel) ids.push(sel.id);
       } else {
         o.choices.forEach((c) => {
-          if (checks.has(o.id + ":" + c.sku)) ids.push(c.sku);
+          if (checks.has(o.id + ":" + c.id)) ids.push(c.id);
         });
       }
     });
@@ -286,15 +286,15 @@ export function MachineDetailClient({
                     {o.choices.map((c) => {
                       const on =
                         o.type === "radio"
-                          ? radio[o.id] === c.sku
-                          : checks.has(o.id + ":" + c.sku);
+                          ? radio[o.id] === c.id
+                          : checks.has(o.id + ":" + c.id);
                       const toggle = () => {
                         if (o.type === "radio") {
-                          setRadio((r) => ({ ...r, [o.id]: c.sku }));
+                          setRadio((r) => ({ ...r, [o.id]: c.id }));
                         } else {
                           setChecks((prev) => {
                             const next = new Set(prev);
-                            const key = o.id + ":" + c.sku;
+                            const key = o.id + ":" + c.id;
                             if (next.has(key)) next.delete(key);
                             else next.add(key);
                             return next;
@@ -303,7 +303,7 @@ export function MachineDetailClient({
                       };
                       return (
                         <div
-                          key={c.sku}
+                          key={c.id}
                           className={"md-choice" + (on ? " on" : "")}
                           role={o.type === "radio" ? "radio" : "checkbox"}
                           aria-checked={on}
