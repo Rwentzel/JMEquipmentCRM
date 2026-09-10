@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/useToast";
 import { useUrlParam } from "@/hooks/useUrlParam";
 import { SUPPORT_FORMS, fieldErrors, type SupportForm, type SupportKind } from "@/lib/supportRequest";
 import { matchSerialToModel } from "@/data/goodstrong";
+import { supportMailtoHref } from "@/lib/requestRoutes";
 
 const PHONE = "(269) 659-0093";
 const TEL = "tel:+12696590093";
@@ -312,6 +313,11 @@ function SupportRequestForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState<{ ref: string | null; echo: Record<string, string>; held: { label: string; href: string } | null } | null>(null);
+  // Our side failed (5xx or no network). The entries stay; the other routes
+  // are offered in place rather than only in a toast that disappears.
+  const [failed, setFailed] = useState(false);
+  const echoRows = (echo: Record<string, string>): [string, string][] =>
+    form.fields.filter((f) => echo[f.key]).map((f) => [f.label, echo[f.key]!]);
 
   const set = (key: string) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setValues((v) => ({ ...v, [key]: e.target.value }));
@@ -325,6 +331,7 @@ function SupportRequestForm({
       return;
     }
     setSending(true);
+    setFailed(false);
     try {
       const res = await fetch("/api/support", {
         method: "POST",
@@ -343,11 +350,13 @@ function SupportRequestForm({
         });
         onNotice("Request logged — the desk replies in writing");
       } else if (res.status >= 500) {
+        setFailed(true);
         onNotice(data.error || `Our system is having trouble — please call ${PHONE}`);
       } else {
         onNotice(data.error || "Check the form and try again");
       }
     } catch {
+      setFailed(true);
       onNotice(CONTACT_PHONE_NOTE);
     }
     setSending(false);
@@ -383,10 +392,22 @@ function SupportRequestForm({
               </div>
             ))}
         </dl>
-        <div className="ps-actions">
-          <Button as="a" variant="ghost" href={TEL}>
+        {/* DEC-038: the three routes travel with the reference, so a customer
+            who prefers their own mail client, the phone, or paper has them here. */}
+        <span className="ps-routes__lbl">Other ways to get this to us</span>
+        <div className="ps-routes__links">
+          <a className="ps-routes__link" href={supportMailtoHref(form.title, done.ref, echoRows(done.echo))}>
+            Email a copy
+          </a>
+          <a className="ps-routes__link" href={TEL}>
             Call {PHONE}
-          </Button>
+            {done.ref ? " and quote the reference" : ""}
+          </a>
+          <button type="button" className="ps-routes__link" onClick={() => window.print()}>
+            Print it
+          </button>
+        </div>
+        <div className="ps-actions">
           <Button
             variant="ghost"
             onClick={() => {
@@ -470,6 +491,24 @@ function SupportRequestForm({
         <label htmlFor={`sf-${form.kind}-website`}>Website</label>
         <input id={`sf-${form.kind}-website`} name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} />
       </div>
+
+      {failed && (
+        <div className="ps-sent ps-sent--warn" role="alert">
+          <b>We couldn&rsquo;t log this.</b>
+          <span>
+            Nothing was sent from this screen. Your entries are kept — email them from your own mail client, call the
+            desk, or try again in a moment.
+          </span>
+          <div className="ps-routes__links">
+            <a className="ps-routes__link" href={supportMailtoHref(form.title, null, echoRows(values))}>
+              Email it
+            </a>
+            <a className="ps-routes__link" href={TEL}>
+              Call {PHONE}
+            </a>
+          </div>
+        </div>
+      )}
 
       <div className="ps-actions sh__actions">
         <Button type="submit" disabled={sending}>

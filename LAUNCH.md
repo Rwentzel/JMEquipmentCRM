@@ -95,6 +95,12 @@ desk's notification for the repeat is headed "Repeat of: RFQ-…" so it can be
 priced against what was quoted last time. The reference is not a credential
 on its own (wrong email → same 404 as an unknown reference).
 
+Support Hub requests (manual, service, fitment, EPC, sales) get a `REQ-`
+reference instead. They carry no line items and cannot be reordered — the
+reorder link and the reorder endpoint accept `RFQ-` only. Both confirmations
+offer the three routes beside the reference: email a copy from the customer's
+own mail client, call the desk and quote the reference, print.
+
 ## 4. Go live (indexing)
 
 Only after JM sign-off: set `JME_LAUNCH=live` and redeploy. The flag is

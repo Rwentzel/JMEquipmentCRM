@@ -55,3 +55,16 @@ test("the storefront wires the three routes and the honesty line, before and aft
   assert.match(src, /sendFailed && \(/, "the failure state offers the routes with the entries kept");
   assert.match(src, /<RequestRoutes items=\{items\} reference=\{reference\} onPrint=\{onPrint\} after \/>/);
 });
+
+import { supportMailtoHref } from "../src/lib/requestRoutes";
+
+test("the support 'Email it' route carries the reference and the typed fields, encoded", () => {
+  const href = supportMailtoHref("Request a manual", "REQ-ABCD1234", [["Machine serial number", "SN-26218"], ["Machine model", "Goodstrong GMC-TC II 1650"]]);
+  assert.ok(href.startsWith("mailto:parts@jmequipment.net?subject="));
+  const decoded = decodeURIComponent(href);
+  assert.match(decoded, /\[REQ-ABCD1234\] Request a manual/);
+  assert.match(decoded, /Reference: REQ-ABCD1234\n\nMachine serial number: SN-26218\nMachine model: Goodstrong GMC-TC II 1650/);
+  assert.ok(!href.includes("\n"));
+  const noRef = decodeURIComponent(supportMailtoHref("Contact sales", null, []));
+  assert.match(noRef, /Request: Contact sales/);
+});
