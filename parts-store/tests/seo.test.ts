@@ -64,3 +64,32 @@ test("robots.txt keeps crawlers off the staff consoles and customer quote links"
     assert.ok(src.includes(`"${p}"`), `robots.txt must disallow ${p}`);
   }
 });
+
+/**
+ * The sitemap, the canonical list above and the a11y audit's route list are
+ * three hand-kept lists of the same public pages. A page added to one and
+ * forgotten in another is invisible in review; keep them in step.
+ */
+function quotedList(src: string, name: string): string[] {
+  const m = src.match(new RegExp(`${name}\\s*=\\s*\\[([\\s\\S]*?)\\];`));
+  assert.ok(m, `could not find ${name}`);
+  return [...m![1]!.matchAll(/"([^"]*)"/g)].map((x) => x[1]!);
+}
+
+test("every static route in the sitemap is covered by the a11y audit", () => {
+  const sitemap = readFileSync(path.join(process.cwd(), "src", "app", "sitemap.ts"), "utf8");
+  const audit = readFileSync(path.join(process.cwd(), "scripts", "a11y-audit.mjs"), "utf8");
+  const routes = quotedList(sitemap, "const staticRoutes").map((r) => r || "/");
+  const audited = new Set(quotedList(audit, "const ROUTES"));
+  for (const r of routes) assert.ok(audited.has(r), `${r} is in the sitemap but not in the a11y audit's ROUTES`);
+});
+
+test("every static indexable page is in the sitemap", () => {
+  const sitemap = readFileSync(path.join(process.cwd(), "src", "app", "sitemap.ts"), "utf8");
+  const routes = new Set(quotedList(sitemap, "const staticRoutes"));
+  for (const [, canonical] of INDEXABLE) {
+    if (!canonical.startsWith('"')) continue; // dynamic pages are generated from data
+    const route = canonical.slice(1, -1);
+    assert.ok(routes.has(route), `${route} declares a canonical but is missing from the sitemap`);
+  }
+});
