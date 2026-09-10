@@ -10,6 +10,7 @@ import { matchReorder, normalizeRef } from "@/lib/reorder";
 import { details } from "@/data/details";
 import { randomUUID } from "node:crypto";
 import { evaluateQuote } from "@/lib/validateQuote";
+import { evaluateSupportRequest, isSupportType } from "@/lib/supportRequests";
 
 /**
  * Quote (RFQ) intake endpoint — hardened.
@@ -148,7 +149,14 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { contact?: Record<string, unknown>; items?: IncomingItem[]; mode?: unknown; reorderOf?: unknown };
+  let body: {
+    contact?: Record<string, unknown>;
+    items?: IncomingItem[];
+    mode?: unknown;
+    reorderOf?: unknown;
+    requestType?: unknown;
+    fields?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -156,6 +164,48 @@ export async function POST(req: Request) {
   }
 
   const contact = body.contact ?? {};
+
+  // Support Hub: a typed request (manual, service, fitment, EPC, sales) has no
+  // line items and its own per-type rules. It lands in the same store and the
+  // same desk inbox as a quote request, under a REQ- reference.
+  if (isSupportType(body.requestType)) {
+    const type = body.requestType;
+    const outcome = evaluateSupportRequest(type, contact, body.fields);
+    if (outcome.kind === "honeypot") {
+      audit("quote_honeypot", { keyHash: hashKey(key) });
+      return NextResponse.json({ ok: true, ref: "REQ-IGNORED" }, { status: 200 });
+    }
+    if (outcome.kind === "invalid") {
+      audit("quote_invalid", { keyHash: hashKey(key) });
+      return NextResponse.json({ ok: false, error: GENERIC_FAIL }, { status: 422 });
+    }
+    const contactBlock: StoredRfqContact = {
+      company: clean(contact.company, 200),
+      name: clean(contact.name, 200),
+      email: clean(contact.email, 320),
+      phone: clean(contact.phone, 40) || undefined,
+      serial: clean(contact.serial, 80) || undefined,
+      // No account question is asked on a support form, so the field stays
+      // unset: `false` would show the desk an "opted out" flag nobody chose.
+    };
+    const message = clean(contact.message, 4000) || undefined;
+    let rfq: StoredRfq;
+    try {
+      rfq = await saveRfq({ contact: contactBlock, items: [], message, freight: false, requestType: type, fields: outcome.fields });
+    } catch {
+      audit("quote_store_failed", { n: 0 });
+      console.error(`[quote] STORE WRITE FAILED type=${type}`);
+      return NextResponse.json(
+        { ok: false, stored: false, error: `We could not record your request. Please call ${JME_PHONE} or email ${JME_EMAIL} and we will pick it up right away.` },
+        { status: 503 },
+      );
+    }
+    void sendRfqNotification(rfq);
+    audit("quote_accepted", { n: 0 });
+    console.info(`[quote] accepted ref=${rfq.ref} type=${type}`);
+    return NextResponse.json({ ok: true, ref: rfq.ref, requestType: type });
+  }
+
   const items = Array.isArray(body.items) ? body.items : [];
   const messageOnly = body.mode === "message";
 

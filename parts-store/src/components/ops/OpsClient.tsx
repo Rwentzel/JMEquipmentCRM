@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { SUPPORT_SPECS, supportDetailLines } from "@/lib/supportRequests";
 import Link from "next/link";
 import { Diamond } from "@/components/ui";
 import type { RfqStatus, StoredRfq } from "@/lib/rfqStore";
@@ -207,6 +208,11 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                             : ""}
                         </small>
                       )}
+                      {r.requestType && (
+                        <small className="ops__addr">
+                          {supportDetailLines(r.requestType, r.fields ?? {}).join(" · ")}
+                        </small>
+                      )}
                       {r.message && <small className="ops__msg">&ldquo;{r.message}&rdquo;</small>}
                     </td>
                     <td>
@@ -216,7 +222,14 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
                         </span>
                       ))}
                     </td>
-                    <td>{r.freight && <span className="ops__flag">FREIGHT</span>}</td>
+                    <td>
+                      {r.freight && <span className="ops__flag">FREIGHT</span>}
+                      {r.requestType && (
+                        <span className="ops__flag" title={SUPPORT_SPECS[r.requestType].label}>
+                          {SUPPORT_SPECS[r.requestType].flag}
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <select
                         value={r.status}

@@ -21,6 +21,7 @@ export function PolicyNav({ children }: { children?: ReactNode }) {
           <Link href="/">Parts Store</Link>
           <Link href="/machines">Machines</Link>
           <Link href="/compare">Compare</Link>
+          <Link href="/support">Support</Link>
           <Link href="/how-quoting-works">How Quoting Works</Link>
         </div>
         {children}

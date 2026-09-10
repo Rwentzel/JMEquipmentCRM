@@ -17,6 +17,7 @@ import { mkdir, open, readFile, rename, unlink, writeFile } from "node:fs/promis
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { audit } from "@/lib/auditLog";
+import type { SupportFieldKey, SupportType } from "@/lib/supportRequests";
 
 export type RfqStatus = "new" | "reviewing" | "quoted" | "won" | "lost" | "archived";
 
@@ -85,6 +86,14 @@ export interface StoredRfq {
    * the submitting email — the browser's claim alone never reaches the desk.
    */
   reorderOf?: string;
+  /**
+   * Set on the Support Hub's typed requests (manual, service, fitment, EPC,
+   * sales). Absent on a parts quote request. The desk treats these as
+   * enquiries: no line items, no reorder link, worked from `fields`.
+   */
+  requestType?: SupportType;
+  /** Typed fields, resolved against our own option lists at intake. */
+  fields?: Partial<Record<SupportFieldKey, string>>;
 }
 
 function dataDir(): string {
@@ -169,6 +178,8 @@ export interface NewRfqInput {
   message?: string;
   freight: boolean;
   reorderOf?: string;
+  requestType?: SupportType;
+  fields?: Partial<Record<SupportFieldKey, string>>;
 }
 
 /** Persist a new RFQ and return its crypto-random reference. */
@@ -176,7 +187,9 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
   return locked(async () => {
     const now = new Date().toISOString();
     const rfq: StoredRfq = {
-      ref: "RFQ-" + randomUUID().slice(0, 8).toUpperCase(),
+      // REQ- for a typed support request, RFQ- for a parts quote: the desk
+      // tells them apart at a glance, and only RFQ- references can be reordered.
+      ref: (input.requestType ? "REQ-" : "RFQ-") + randomUUID().slice(0, 8).toUpperCase(),
       createdAt: now,
       updatedAt: now,
       status: "new",
@@ -185,6 +198,9 @@ export function saveRfq(input: NewRfqInput): Promise<StoredRfq> {
       message: input.message,
       freight: input.freight,
       ...(input.reorderOf ? { reorderOf: input.reorderOf } : {}),
+      // The type and its fields are what make a REQ- record a manual request
+      // rather than "a message"; every desk surface reads them from here.
+      ...(input.requestType ? { requestType: input.requestType, fields: input.fields ?? {} } : {}),
     };
     const all = await readAll();
     all.unshift(rfq);

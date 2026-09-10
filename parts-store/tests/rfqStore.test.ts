@@ -89,3 +89,18 @@ test("saveRfq rejects when the data directory cannot exist, rather than silently
     else process.env.RFQ_DATA_DIR = previous;
   }
 });
+
+test("a typed support request is stored with its type and fields under a REQ- reference", async () => {
+  const saved = await saveRfq({
+    contact: { company: "", name: "", email: "riley@example.com", serial: "SN-26218" },
+    items: [],
+    freight: false,
+    requestType: "manual-request",
+    fields: { machineModel: "Goodstrong GMC-TC II 1650", docType: "Service manual" },
+  });
+  assert.match(saved.ref, /^REQ-[0-9A-F]{8}$/);
+  const back = await getRfq(saved.ref);
+  assert.equal(back?.requestType, "manual-request");
+  assert.deepEqual(back?.fields, { machineModel: "Goodstrong GMC-TC II 1650", docType: "Service manual" });
+  assert.equal(back?.contact.wantsAccount, undefined, "no account question was asked");
+});

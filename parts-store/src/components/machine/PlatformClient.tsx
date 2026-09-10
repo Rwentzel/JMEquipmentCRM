@@ -213,7 +213,7 @@ export function PlatformClient({ machines, parts }: { machines: Machine[]; parts
                 serial off the data plate and the desk works from the manual.
               </p>
             </div>
-            <Button as="a" href="/#request">
+            <Button as="a" href="/support?panel=manual">
               Send us a serial
             </Button>
           </section>

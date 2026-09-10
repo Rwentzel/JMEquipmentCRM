@@ -1,4 +1,5 @@
 import type { StoredRfq } from "@/lib/rfqStore";
+import { supportDetailLines } from "@/lib/supportRequests";
 
 /**
  * RFQ book → CSV for the ops export (quoting, follow-up, QuickBooks entry).
@@ -40,6 +41,7 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     // Appended last: a column inserted mid-row would shift every column after
     // it and silently break any spreadsheet or import mapping keyed by position.
     "repeat_of",
+    "request_type", "request_details",
   ];
   const rows = rfqs.map((r) => [
     r.ref, r.createdAt, r.updatedAt, r.status, r.freight ? "yes" : "no",
@@ -47,7 +49,8 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     r.contact.phone ?? "", r.contact.phoneExt ?? "", r.contact.serial ?? "",
     r.contact.shipAddress ?? "",
     r.contact.billingSameAsShipping === false ? (r.contact.billingAddress ?? "") : "same as shipping",
-    r.contact.wantsAccount === false ? "no" : "yes",
+    // A support request never asked the account question.
+    r.requestType ? "" : r.contact.wantsAccount === false ? "no" : "yes",
     // Configuration rides with its own line item: a spreadsheet row that says
     // only the base SKU would have the desk quoting the standard build.
     r.items
@@ -61,6 +64,8 @@ export function rfqsToCsv(rfqs: StoredRfq[]): string {
     r.items.reduce((n, it) => n + it.qty, 0),
     r.message ?? "",
     r.reorderOf ?? "",
+    r.requestType ?? "parts-rfq",
+    r.requestType ? supportDetailLines(r.requestType, r.fields ?? {}).join("; ") : "",
   ]);
   return [header, ...rows].map((row) => row.map(csvField).join(",")).join("\r\n") + "\r\n";
 }

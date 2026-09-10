@@ -41,6 +41,7 @@ const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
 const ROUTES = [
   "/", "/compare", "/freight", "/terms", "/privacy",
   "/machines", "/machines?m=JME-DC-04", "/how-quoting-works",
+  "/support", "/support?panel=manual", "/support?panel=guides",
   "/machine/JME-VCS12-75", "/parts/goodstrong", "/parts/goodstrong/1600e",
 ];
 /** Staff surfaces. Gated by OPS_TOKEN, so they need a session cookie to reach. */

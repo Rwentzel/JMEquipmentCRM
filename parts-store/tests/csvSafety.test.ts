@@ -71,7 +71,8 @@ test("every leading character a spreadsheet treats as a formula is neutralised",
 
 test("the message field is covered too, not just the name columns", () => {
   const csv = rfqsToCsv([rfq({}, "=1+1")]);
-  assert.doesNotMatch(cells(csv).at(-1)!, FORMULA_START);
+  // message sits three from the end: repeat_of, request_type, request_details follow it.
+  assert.doesNotMatch(cells(csv).at(-4)!, FORMULA_START);
 });
 
 test("ordinary values are passed through untouched", () => {
@@ -86,9 +87,12 @@ test("RFC 4180 quoting still holds for commas, quotes and newlines", () => {
   const csv = rfqsToCsv([rfq({ company: 'Acme, "The" Co.' }, "line one\nline two")]);
   const c = cells(csv);
   assert.equal(c[5], 'Acme, "The" Co.');
-  // repeat_of is the last column (appended, so nothing keyed by position moved); the message sits before it.
-  assert.equal(c.at(-2), "line one\nline two");
-  assert.equal(c.at(-1), "", "a first order repeats nothing");
+  // Columns are only ever appended, so nothing keyed by position moved: the
+  // message is followed by repeat_of, request_type, request_details.
+  assert.equal(c.at(-4), "line one\nline two");
+  assert.equal(c.at(-3), "", "a first order repeats nothing");
+  assert.equal(c.at(-2), "parts-rfq");
+  assert.equal(c.at(-1), "", "a parts RFQ has no typed details");
 });
 
 test("the header row is not disturbed", () => {

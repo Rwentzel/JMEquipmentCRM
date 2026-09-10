@@ -22,6 +22,7 @@ const INDEXABLE: [string, string][] = [
   ["compare/page.tsx", '"/compare"'],
   ["machines/page.tsx", '"/machines"'],
   ["how-quoting-works/page.tsx", '"/how-quoting-works"'],
+  ["support/page.tsx", '"/support"'],
   ["terms/page.tsx", '"/terms"'],
   ["privacy/page.tsx", '"/privacy"'],
   ["parts/goodstrong/page.tsx", '"/parts/goodstrong"'],
