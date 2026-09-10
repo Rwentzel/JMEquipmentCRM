@@ -1,0 +1,12 @@
+name = "jme-rfq-worker"
+main = "rfq-worker.js"
+compatibility_date = "2024-11-01"
+
+[env.production]
+route = "jmequipment.net/api/rfq/*"
+zone_id = "YOUR_CLOUDFLARE_ZONE_ID"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_KV_NAMESPACE_ID_PREVIEW"

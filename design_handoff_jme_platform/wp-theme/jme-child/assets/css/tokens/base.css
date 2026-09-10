@@ -1,0 +1,59 @@
+/* ============================================================
+   JME — Base element defaults & a few global helpers.
+   Kept light: components carry their own styling. These are the
+   document-level defaults the brand assumes.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body{
+  font-family: var(--font-body);
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'tnum' 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display headings: condensed, uppercase, tight */
+.jme-h1, .jme-h2, .jme-h3{
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  line-height: var(--lh-heading);
+  font-weight: var(--fw-bold);
+  margin: 0;
+}
+.jme-h1{ font-size: var(--t-2xl); letter-spacing: var(--track-display); font-weight: var(--fw-x); }
+.jme-h2{ font-size: var(--t-xl);  letter-spacing: var(--track-heading); }
+.jme-h3{ font-size: var(--t-lg);  letter-spacing: var(--track-heading); }
+
+/* Eyebrow: tiny all-caps label with a red rule */
+.jme-eyebrow{
+  font-family: var(--font-body);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--track-eyebrow);
+  text-transform: uppercase;
+  color: var(--jme-red);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.jme-eyebrow::before{
+  content:""; width:26px; height:2px; background: var(--jme-red);
+}
+.jme-eyebrow.gold{ color: var(--jme-gold); }
+.jme-eyebrow.gold::before{ background: var(--jme-gold); }
+
+/* Mono data: SKUs, serials, dimensions */
+.jme-mono{
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+/* Tabular figures helper */
+.jme-tnum{ font-variant-numeric: tabular-nums; }
+
+::selection{ background: var(--jme-red); color:#fff; }

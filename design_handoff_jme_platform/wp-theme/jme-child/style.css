@@ -1,0 +1,228 @@
+/*
+Theme Name:   JME Child
+Theme URI:    https://jmequipment.net
+Description:  JM Equipment brand child theme for Storefront + WooCommerce. Every color, font, radius and shadow is a token from the JME design system (assets/css/tokens/*). Dark digital surface, RFQ-first, no prices.
+Author:       JM Equipment
+Template:     storefront
+Version:      1.0.0
+Requires at least: 6.4
+Tested up to: 6.6
+Requires PHP: 7.4
+Text Domain:  jme-child
+*/
+
+/* Token files, components.css and Google Fonts are enqueued by functions.php
+   in this order: fonts → colors → typography → spacing → effects → base → components → this file.
+   This file only maps Storefront / WooCommerce / YITH / FiboSearch markup onto those tokens.
+   Nothing below introduces a new color literal. */
+
+/* ============================================================
+   0. Additive tokens (not in the DS yet)
+   ============================================================ */
+:root{
+  --jme-red-text: #E08A8E;   /* red used AS TEXT on dark fields — 4.6:1 on --field. Never use --jme-red for 11–13px text on dark. */
+}
+
+/* ============================================================
+   1. Page shell — dark digital surface
+   ============================================================ */
+html{ background:var(--ink); }
+body, .site, .site-content, .content-area, .hentry .entry-content{
+  background:var(--ink) !important; color:var(--paper);
+  font-family:var(--font-body); font-size:var(--t-base); line-height:var(--lh-body);
+}
+.col-full{ max-width:var(--wrap-max); padding-left:var(--wrap-pad); padding-right:var(--wrap-pad); }
+a{ color:var(--paper); text-decoration:underline; text-decoration-color:var(--jme-red); text-decoration-thickness:2px; text-underline-offset:3px; }
+a:hover, a:focus{ color:var(--paper); text-decoration-color:var(--jme-red-bright); text-decoration-thickness:3px; outline:none; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{ outline:var(--focus-ring); outline-offset:2px; }
+hr{ border:0; border-top:1px solid var(--line); }
+::selection{ background:var(--jme-red); color:#fff; }
+
+/* Headings: display face, uppercase, tight */
+h1,h2,h3,h4,.entry-title,.page-title,.woocommerce-products-header__title,.product_title{
+  font-family:var(--font-display); text-transform:uppercase; line-height:var(--lh-heading);
+  font-weight:var(--fw-bold); color:var(--paper); margin:0 0 var(--s-4);
+}
+h1,.page-title,.woocommerce-products-header__title{ font-size:var(--t-2xl); letter-spacing:var(--track-display); font-weight:var(--fw-x); }
+h2{ font-size:var(--t-xl); letter-spacing:var(--track-heading); }
+h3,.product_title{ font-size:var(--t-lg); letter-spacing:var(--track-heading); }
+h4{ font-size:var(--t-md); letter-spacing:var(--track-heading); }
+
+/* Machine data: SKUs, serials, dimensions */
+.sku, .sku_wrapper, .woocommerce-product-attributes td, code, kbd, .jme-mono{
+  font-family:var(--font-mono); font-variant-numeric:tabular-nums; letter-spacing:.02em;
+}
+
+/* ============================================================
+   2. Header / navigation (Storefront)
+   ============================================================ */
+.site-header{
+  background:rgba(16,16,16,.94) !important; border-bottom:1px solid var(--line);
+  padding-top:0; padding-bottom:0; position:sticky; top:0; z-index:100;
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+.site-header .col-full{ display:flex; align-items:center; gap:22px; min-height:var(--nav-h); }
+.site-header .site-branding{ margin:0; flex:none; }
+.site-header .site-branding img, .site-header .custom-logo{ height:32px; width:auto; background:#fff; padding:3px 7px; border-radius:var(--r-1); display:block; }
+.site-header .site-title, .site-header .site-description{ display:none; }
+.storefront-primary-navigation{ background:transparent !important; border:0; }
+.main-navigation ul li a{
+  font-family:var(--font-display); font-size:13px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--paper-dim); text-decoration:none; padding:0 var(--s-3);
+}
+.main-navigation ul li a:hover, .main-navigation ul li.current-menu-item > a{ color:var(--paper); }
+.main-navigation ul.menu ul.sub-menu{ background:var(--charcoal); border:1px solid var(--line); border-radius:var(--r-2); box-shadow:var(--sh-card); }
+.main-navigation ul.menu ul.sub-menu li a{ color:var(--paper-dim); }
+.main-navigation ul.menu ul.sub-menu li a:hover{ color:var(--paper); background:var(--plate); }
+.site-header-cart, .site-search{ display:none !important; }             /* no cart — RFQ-first (YITH replaces Add to Cart) */
+
+/* Contact bar injected by functions.php (jme_header_contact) */
+.jme-header-contact{ margin-left:auto; display:flex; align-items:center; gap:14px; font-family:var(--font-mono); font-size:12px; color:var(--paper-dim); }
+.jme-header-contact a{ font-family:var(--font-mono); font-size:12px; }
+.jme-header-contact .jme-btn--ghost{ font-size:12px; padding:7px 13px; color:var(--paper); text-decoration:none; }
+
+/* Handheld footer bar (Storefront mobile) */
+.storefront-handheld-footer-bar{ background:var(--ink-2); border-top:1px solid var(--line); }
+.storefront-handheld-footer-bar ul li > a{ color:var(--paper-dim); }
+.storefront-handheld-footer-bar ul li.cart{ display:none; }
+
+/* ============================================================
+   3. Buttons — Storefront / Woo / YITH / Gutenberg
+   ============================================================ */
+.button, button.button, input[type="submit"], .wp-block-button__link, .added_to_cart,
+.yith-wcqa-add-to-quote .button, .add-request-quote-button, .yith-ywraq-add-to-quote .button{
+  display:inline-flex !important; align-items:center; gap:10px;
+  font-family:var(--font-display) !important; font-size:17px !important; font-weight:var(--fw-bold) !important;
+  letter-spacing:.08em; text-transform:uppercase;
+  padding:13px 26px !important;
+  border:1px solid var(--jme-red-deep) !important;
+  background:var(--grad-red-btn) !important; color:#fff !important;
+  text-decoration:none; border-radius:var(--r-1) !important; cursor:pointer; white-space:nowrap;
+  box-shadow:0 1px 0 rgba(255,255,255,.18) inset, 0 1px 2px rgba(0,0,0,.25);
+  transition:filter var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.button:hover, input[type="submit"]:hover, .wp-block-button__link:hover{ filter:brightness(.92); }
+.button:active, input[type="submit"]:active{ transform:translateY(1px); }
+.button.alt, .button.ghost, .wp-block-button.is-style-outline .wp-block-button__link{
+  background:transparent !important; color:var(--paper) !important; border-color:var(--line-lt) !important; box-shadow:none;
+}
+.button.alt:hover, .button.ghost:hover{ border-color:var(--jme-red) !important; background:rgba(168,53,58,.12) !important; filter:none; }
+.button:disabled, .button.disabled{ opacity:.45; cursor:not-allowed; }
+
+/* ============================================================
+   4. Forms — inputs, selects, textareas, FiboSearch
+   ============================================================ */
+label, .form-row label{ font-size:10.5px; font-weight:var(--fw-bold); letter-spacing:.2em; text-transform:uppercase; color:var(--paper-dim); margin-bottom:6px; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="search"], input[type="number"], input[type="password"], select, textarea,
+.dgwt-wcas-search-input, .select2-container--default .select2-selection--single{
+  width:100%; font-family:var(--font-body); font-size:14px;
+  background:var(--field) !important; border:1px solid var(--line-lt) !important;
+  color:var(--paper) !important; padding:9px 11px; border-radius:var(--r-1) !important; box-shadow:none;
+}
+input::placeholder, textarea::placeholder, .dgwt-wcas-search-input::placeholder{ color:var(--paper-faint); }
+input:focus, select:focus, textarea:focus, .dgwt-wcas-search-input:focus{ outline:2px solid var(--jme-red); outline-offset:0; border-color:var(--jme-red) !important; }
+select{ appearance:none; padding-right:30px;
+  background-image:linear-gradient(45deg,transparent 50%,var(--paper-dim) 50%),linear-gradient(135deg,var(--paper-dim) 50%,transparent 50%) !important;
+  background-position:calc(100% - 16px) center,calc(100% - 11px) center !important; background-size:5px 5px,5px 5px !important; background-repeat:no-repeat !important; }
+
+/* FiboSearch suggestions panel */
+.dgwt-wcas-suggestions-wrapp{ background:var(--charcoal) !important; border:1px solid var(--line) !important; border-radius:var(--r-2); box-shadow:var(--sh-toast); }
+.dgwt-wcas-suggestion{ color:var(--paper); border-color:var(--line) !important; }
+.dgwt-wcas-suggestion:hover, .dgwt-wcas-suggestion-selected{ background:var(--plate) !important; }
+.dgwt-wcas-sp, .dgwt-wcas-sku, .dgwt-wcas-st-breadcrumbs{ font-family:var(--font-mono); color:var(--paper-dim) !important; }
+.dgwt-wcas-sd{ color:var(--paper-dim) !important; }
+.dgwt-wcas-sp .price, .dgwt-wcas-suggestion .price{ display:none !important; }   /* data boundary */
+
+/* ============================================================
+   5. Product grid (ul.products) — card pattern from the catalog screen
+   ============================================================ */
+ul.products li.product{
+  background:var(--charcoal); border:1px solid var(--line); border-radius:var(--r-2);
+  overflow:hidden; box-shadow:none; transition:border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+ul.products li.product:hover, ul.products li.product:focus-within{ border-color:var(--line-lt); box-shadow:var(--sh-card); }
+ul.products li.product .woocommerce-loop-product__link img, ul.products li.product img{
+  aspect-ratio:4/3; width:100%; object-fit:cover; background:var(--ink-2); margin:0; border-bottom:1px solid var(--line);
+}
+ul.products li.product .woocommerce-loop-product__title, ul.products li.product h2{
+  font-family:var(--font-display); text-transform:uppercase; font-size:var(--t-lg); letter-spacing:var(--track-heading);
+  color:var(--paper); padding:var(--s-4) var(--s-5) 0; margin:0;
+}
+ul.products li.product .woocommerce-loop-category__title{ font-family:var(--font-display); text-transform:uppercase; color:var(--paper); }
+ul.products li.product .button{ margin:var(--s-4) var(--s-5) var(--s-5); font-size:14px !important; padding:9px 16px !important; }
+ul.products li.product .jme-sku{ display:block; padding:6px var(--s-5) 0; font-family:var(--font-mono); font-size:var(--t-xs); color:var(--paper-faint); letter-spacing:.06em; }
+ul.products li.product .star-rating, .woocommerce-product-rating{ display:none; }   /* no reviews on industrial parts */
+
+/* ============================================================
+   6. Single product — RFQ-first
+   ============================================================ */
+.single-product div.product .woocommerce-product-gallery{ background:var(--ink-2); border:1px solid var(--line); border-radius:var(--r-2); overflow:hidden; }
+.single-product div.product .woocommerce-product-gallery img{ object-fit:contain; background:#f3f3f1; }
+.single-product div.product .product_title{ font-size:var(--t-2xl); letter-spacing:var(--track-display); font-weight:var(--fw-x); }
+.single-product .product_meta{ font-family:var(--font-mono); font-size:var(--t-sm); color:var(--paper-dim); border-top:1px solid var(--line); padding-top:var(--s-4); }
+.single-product .product_meta .sku{ color:var(--paper); }
+.woocommerce-tabs ul.tabs li a{ font-family:var(--font-display); text-transform:uppercase; letter-spacing:.06em; color:var(--paper-dim); }
+.woocommerce-tabs ul.tabs li.active a{ color:var(--paper); border-bottom:2px solid var(--jme-red); }
+.woocommerce-tabs .panel{ color:var(--paper-dim); }
+table.woocommerce-product-attributes th{ font-size:var(--t-xs); text-transform:uppercase; letter-spacing:.14em; color:var(--paper-dim); }
+table.woocommerce-product-attributes td, table.woocommerce-product-attributes th{ border-color:var(--line); }
+
+/* Availability → the seven approved status bands. WooCommerce stock text is hidden;
+   functions.php prints a .jme-badge from the _jme_status_band meta instead. */
+.single-product .stock, ul.products li.product .stock{ display:none !important; }
+
+/* ============================================================
+   7. DATA BOUNDARY — no prices, no sale flashes, no cart anywhere
+   (functions.php also removes the hooks; this is belt-and-braces)
+   ============================================================ */
+.price, .woocommerce-Price-amount, .amount, .onsale, .cart-contents, .site-header-cart, .widget_shopping_cart,
+.woocommerce-mini-cart, .wc-block-price-filter, .widget_price_filter, .yith-ywraq-quote-total, .ywraq-price, .quote-total{
+  display:none !important;
+}
+
+/* ============================================================
+   8. Messages / notices / RFQ confirmation (DEC-038)
+   ============================================================ */
+.woocommerce-message, .woocommerce-info, .woocommerce-error, .yith-ywraq-mail-message{
+  background:var(--charcoal) !important; color:var(--paper) !important; border:1px solid var(--line);
+  border-left:3px solid var(--jme-red); border-radius:0 var(--r-2) var(--r-2) 0; box-shadow:none;
+}
+.woocommerce-message::before, .woocommerce-info::before, .woocommerce-error::before{ display:none; }
+.woocommerce-info{ border-left-color:var(--jme-gold); }
+.woocommerce-error{ border-left-color:var(--jme-red-bright); }
+.jme-reference{ font-family:var(--font-mono); font-size:var(--t-lg); letter-spacing:.04em; color:var(--paper); }
+
+/* ============================================================
+   9. Tables, breadcrumbs, pagination, footer
+   ============================================================ */
+table, .shop_table{ border:1px solid var(--line); border-radius:var(--r-2); overflow:hidden; }
+table th{ background:var(--plate); color:var(--paper-dim); font-size:var(--t-xs); text-transform:uppercase; letter-spacing:.14em; }
+table td, table th{ border-color:var(--line); }
+table tbody tr:nth-child(2n) td{ background:var(--ink-2); }
+.woocommerce-breadcrumb{ font-family:var(--font-mono); font-size:var(--t-xs); color:var(--paper-faint); text-transform:uppercase; letter-spacing:.08em; }
+.woocommerce-breadcrumb a{ color:var(--paper-dim); text-decoration:none; }
+.woocommerce-pagination .page-numbers li .page-numbers{ background:var(--charcoal); border:1px solid var(--line); color:var(--paper-dim); border-radius:var(--r-1); font-family:var(--font-mono); }
+.woocommerce-pagination .page-numbers li .page-numbers.current{ background:var(--jme-red); border-color:var(--jme-red-deep); color:#fff; }
+.woocommerce-result-count, .woocommerce-ordering select{ color:var(--paper-dim); font-size:var(--t-sm); }
+
+.site-footer{ background:var(--ink-2) !important; color:var(--paper-dim); border-top:1px solid var(--line); padding-top:var(--s-12); }
+.site-footer a{ color:var(--paper-dim); text-decoration-thickness:1px; }
+.site-footer a:hover{ color:var(--paper); }
+.site-footer .widget-title{ font-family:var(--font-display); text-transform:uppercase; letter-spacing:.06em; color:var(--paper); font-size:var(--t-sm); }
+.site-info{ font-family:var(--font-mono); font-size:var(--t-xs); color:var(--paper-faint); border-top:1px solid var(--line); }
+
+/* ============================================================
+   10. Governance / internal surfaces use the LIGHT system
+   (body.jme-console is added by functions.php on /console/*)
+   ============================================================ */
+body.jme-console, body.jme-console .site, body.jme-console .site-content{ background:var(--canvas-tint) !important; color:var(--ink-text); }
+body.jme-console h1, body.jme-console h2, body.jme-console h3{ color:var(--ink-text); }
+body.jme-console a{ color:var(--ink-text); }
+body.jme-console .site-header{ background:var(--canvas) !important; border-bottom:1px solid var(--hairline); }
+body.jme-console .main-navigation ul li a{ color:var(--muted); }
+body.jme-console table th{ background:var(--panel); color:var(--muted); }
+body.jme-console table td, body.jme-console table th, body.jme-console table{ border-color:var(--hairline); }
+body.jme-console table tbody tr:nth-child(2n) td{ background:var(--canvas); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){ *, *::before, *::after{ transition-duration:0s !important; animation-duration:0s !important; } }

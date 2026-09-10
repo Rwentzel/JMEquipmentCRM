@@ -1,0 +1,92 @@
+{
+  "redactions": [
+    {
+      "id": 1,
+      "original": "Apex Industrial Supply",
+      "replacement": "[Supplier A]",
+      "field": "vendor_name",
+      "reason": "Vendor cost leak",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 2,
+      "original": "Cost: $2,450",
+      "replacement": "[Removed]",
+      "field": "internal_note",
+      "reason": "Cost exposure",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 3,
+      "original": "Margin 32%",
+      "replacement": "[Removed]",
+      "field": "internal_note",
+      "reason": "Margin exposure",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 4,
+      "original": "Wholesale: $1,800",
+      "replacement": "[Removed]",
+      "field": "vendor_cost",
+      "reason": "Wholesale pricing leak",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 5,
+      "original": "Obsolete–call factory",
+      "replacement": "Contact JME for availability",
+      "field": "status_note",
+      "reason": "Softens discontinued messaging",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 6,
+      "original": "ODME cross-ref: GS-MOD-2011",
+      "replacement": "[Internal ref]",
+      "field": "oem_code",
+      "reason": "Supplier naming convention",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 7,
+      "original": "Tier 2 supplier",
+      "replacement": "[Removed]",
+      "field": "sourcing_tier",
+      "reason": "Internal sourcing data",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 8,
+      "original": "Shipment 2x/year",
+      "replacement": "Lead time varies; request quote",
+      "field": "supply_note",
+      "reason": "Supply frequency is operational data",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    },
+    {
+      "id": 9,
+      "original": "Critical short",
+      "replacement": "[Removed]",
+      "field": "stock_note",
+      "reason": "Stock level exposure",
+      "reviewed_by": "Riley Wentzel",
+      "date": "2026-08-10"
+    }
+  ],
+  "metadata": {
+    "total_redactions": 9,
+    "application_method": "in-pipeline (no workbook modification)",
+    "last_updated": "2026-08-13",
+    "source": "JME_Phase1_Remediated_Catalog.xlsx rev 2",
+    "verified_by": "Riley Wentzel"
+  }
+}

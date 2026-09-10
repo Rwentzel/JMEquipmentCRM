@@ -1,0 +1,126 @@
+/* ============================================================
+   JME — Effects: radius, borders, shadows, motion
+   Corners are nearly square (2–3px) — machined, not soft.
+   Shadows are deep and neutral; no colored glows except focus.
+   ============================================================ */
+
+:root{
+  /* ---- Radius (machined, minimal) -------------------------- */
+  --r-0:   0; /* @kind radius */
+  --r-1:   2px;   /* default — buttons, tags, inputs, cards     */
+  --r-2:   3px;   /* data-plates, larger panels                 */
+  --r-pill: 999px;
+
+  /* ---- Borders -------------------------------------------- */
+  --bd-hair:   1px solid var(--line);
+  --bd-edge:   1px solid var(--line-lt);
+  --bd-plate:  1.5px solid var(--ink-text);   /* light-theme plate */
+  --bd-heavy:  3px solid var(--jme-charcoal);  /* section underline */
+
+  /* ---- Shadows (dark theme) ------------------------------- */
+  --sh-plate:  inset 0 1px 0 rgba(255,255,255,.05), 0 12px 34px rgba(0,0,0,.45); /* @kind shadow */
+  --sh-card:   0 10px 30px rgba(0,0,0,.40);
+  --sh-toast:  0 14px 40px rgba(0,0,0,.50);
+
+  /* ---- Shadows (light theme / print) ---------------------- */
+  --sh-doc:    0 10px 40px rgba(0,0,0,.12);
+  --sh-raise:  0 1px 2px rgba(15,15,18,.06), 0 4px 14px rgba(15,15,18,.06);
+
+  /* ---- Focus ---------------------------------------------- */
+  --focus-ring: 2px solid var(--jme-red-bright);
+
+  /* ---- Signature gradients (chrome is the ONE place gradients
+         belong — it IS the logo; everything else stays flat) --- */
+  /* Brushed-chrome face: catch-light → silver → steel → groove */
+  --grad-chrome: linear-gradient(155deg,
+      var(--metal-hi) 0%, var(--metal-silver) 26%, var(--metal) 50%,
+      var(--metal-steel) 76%, var(--metal-shadow) 100%);
+  /* Polished horizontal chrome rule (dividers / underlines) */
+  --grad-chrome-rule: linear-gradient(90deg,
+      var(--metal-steel) 0%, var(--metal-hi) 20%, var(--metal) 50%,
+      var(--metal-hi) 80%, var(--metal-steel) 100%);
+  /* Bevel edge ring — highlight top-left, shadow bottom-right */
+  --grad-bevel: linear-gradient(135deg,
+      var(--metal-hi) 0%, var(--metal) 45%, var(--metal-steel) 100%);
+  /* Diamond-face red sheen (vertical, subtle) */
+  --grad-red-sheen: linear-gradient(180deg,
+      var(--jme-red-sheen) 0%, var(--jme-red) 52%, var(--jme-red-deep) 100%);
+  /* Faint top sheen for primary buttons / bands */
+  --grad-red-btn: linear-gradient(180deg,
+      var(--jme-red-sheen) 0%, var(--jme-red) 46%, #97282E 100%);
+  /* Dark machined panel sheen */
+  --grad-plate-dark: linear-gradient(160deg, var(--plate-hi), var(--plate));
+
+  /* ---- Motion (restrained, mechanical — no bounce) -------- */
+  --ease:        cubic-bezier(.4, 0, .2, 1); /* @kind other */
+  --dur-fast:    .15s; /* @kind other */
+  --dur:         .25s; /* @kind other */
+  --dur-slow:    .35s; /* @kind other */
+}
+
+/* ---- Signature motifs ------------------------------------ */
+
+/* Cut-line: dashed divider with a red blade mark — the splitter cut */
+.jme-cutline{
+  position:relative; height:1px; margin:0;
+  border-top:2px dashed #3A3835;
+}
+.jme-cutline::after{
+  content:""; position:absolute; left:50%; top:-7px;
+  width:0; height:0;
+  border-left:7px solid transparent; border-right:7px solid transparent;
+  border-top:12px solid var(--jme-red);
+  transform:translateX(-50%);
+}
+
+/* Diamond bullet — the JME mark, miniaturized */
+.jme-diamond-bullet::before{
+  content:""; display:inline-block;
+  width:7px; height:7px; margin-right:.6em;
+  background:var(--jme-red);
+  transform:rotate(45deg) scale(.85);
+}
+
+/* Polished chrome rule — a metallic divider / heading underline */
+.jme-chrome-rule{
+  height:2px; border:0; border-radius:1px;
+  background:var(--grad-chrome-rule);
+  box-shadow:0 1px 0 rgba(0,0,0,.35);
+}
+
+/* ============================================================
+   .jme-mark — the chrome JME diamond, rebuilt in CSS to mirror
+   the logo: beveled metal bezel + red sheen face + chrome glyph.
+   Size it with --mark (default 34px). Works on dark or light.
+   ============================================================ */
+.jme-mark{
+  --mark: 34px;
+  width:var(--mark); height:var(--mark);
+  position:relative; flex:none;
+  transform:rotate(45deg);
+  border-radius:calc(var(--mark) * .12);
+  background:var(--grad-bevel);                 /* the chrome bezel */
+  padding:calc(var(--mark) * .12);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,.6) inset,
+    0 -1px 2px rgba(0,0,0,.35) inset,
+    0 3px 8px rgba(0,0,0,.35);
+}
+.jme-mark::before{                              /* red diamond face */
+  content:""; position:absolute; inset:calc(var(--mark) * .12);
+  border-radius:calc(var(--mark) * .06);
+  background:var(--grad-red-sheen);
+  box-shadow:
+    0 1px 1px rgba(255,255,255,.25) inset,
+    0 -2px 3px rgba(0,0,0,.4) inset;
+}
+.jme-mark > i{                                  /* JME monogram, chromed */
+  position:absolute; inset:0; display:grid; place-items:center;
+  transform:rotate(-45deg);
+  font-family:var(--font-display); font-weight:900; font-style:normal;
+  font-size:calc(var(--mark) * .42); letter-spacing:.01em; line-height:1;
+  background:var(--grad-chrome); -webkit-background-clip:text; background-clip:text;
+  color:transparent;
+  text-shadow:0 1px 0 rgba(0,0,0,.45);
+  z-index:1;
+}
