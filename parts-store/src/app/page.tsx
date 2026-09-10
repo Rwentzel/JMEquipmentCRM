@@ -113,10 +113,6 @@ function Hero({
             <br />
             Machinery Solutions
           </h1>
-          <p className="ps-hero__lead">
-            Sheeters, rollstands, and the JME core splitter — built, rebuilt, and parts-supported under one roof in{" "}
-            {D.contact.city} since {D.contact.est}.
-          </p>
           {/* Search first: the reference puts the catalog search in the hero
               because most visitors arrive from an order confirmation with a
               part in mind. Submitting filters the catalog below and scrolls
@@ -144,6 +140,13 @@ function Hero({
               Search parts
             </Button>
           </form>
+          {/* Owner ruling (BUILD_PROMPT.md, 2026-09-10): the "3× the cores" claim
+              stays the lead paragraph, with the search box above it. */}
+          <p className="ps-hero__lead">
+            <b className="ps-hero__claim">3&times; the cores. Same pallet.</b> The JME core splitter densifies spent
+            cores so freight and disposal both drop &mdash; and sheeters, rollstands, and the splitter are built,
+            rebuilt, and parts-supported under one roof in {D.contact.city} since {D.contact.est}.
+          </p>
           <div className="ps-hero__links">
             <a href="#machines" onClick={(e) => { e.preventDefault(); onJump("machines"); }}>
               Browse machines

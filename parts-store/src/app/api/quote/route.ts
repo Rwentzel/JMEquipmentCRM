@@ -87,7 +87,7 @@ function resolveOptions(machineSku: string, raw: unknown): { config: string[]; o
   // Keep only the ids this machine actually offers, in the catalogue's own
   // order — the same filter configLines applies — so what is stored is what
   // was resolved, and a reorder can hand exactly that back to the browser.
-  const offered = new Set((details[machineSku]?.options ?? []).flatMap((opt) => opt.choices.map((c) => c.sku)));
+  const offered = new Set((details[machineSku]?.options ?? []).flatMap((opt) => opt.choices.map((c) => c.id)));
   const optionIds = config.length ? wanted.filter((id, i) => offered.has(id) && wanted.indexOf(id) === i) : [];
   return { config, optionIds };
 }

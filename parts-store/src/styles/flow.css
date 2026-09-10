@@ -166,6 +166,10 @@
   flex: 0 0 auto;
 }
 
+.fl__faq {
+  margin-top: var(--s-10);
+}
+
 .fl__more {
   margin-top: var(--s-8);
   font-size: var(--t-sm);

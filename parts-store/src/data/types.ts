@@ -191,7 +191,14 @@ export interface GoodstrongModel {
 
 export interface DetailChoice {
   v: string;
-  sku: string;
+  /**
+   * The choice's identifier inside this machine's option set ("P1", "W65").
+   * Not a part number: no coined code is ever shown to a customer or stored
+   * as a SKU. A request item carries the machine's real model number as its
+   * sku and the chosen options as descriptive text; the ids travel only so a
+   * reorder can re-select the same choices (BUILD_PROMPT.md, 2026-09-10).
+   */
+  id: string;
   note?: string;
 }
 

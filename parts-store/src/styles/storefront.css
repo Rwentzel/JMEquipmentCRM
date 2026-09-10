@@ -2429,8 +2429,23 @@
 .ps-hero__search {
   display: flex;
   gap: var(--s-2);
-  margin-top: var(--s-6);
+  margin-top: var(--s-5);
   max-width: 520px;
+}
+
+.ps-hero__search + .ps-hero__lead {
+  margin-top: var(--s-5);
+}
+
+.ps-hero__claim {
+  display: block;
+  margin-bottom: var(--s-1);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--track-heading);
+  color: var(--paper);
 }
 
 .ps-hero__search input {
