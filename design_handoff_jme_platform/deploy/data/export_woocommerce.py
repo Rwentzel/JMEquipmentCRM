@@ -1,17 +1,24 @@
-/**
- * export_woocommerce.py
- * 
- * Exports JME_Phase1_Remediated_Catalog.xlsx rev 2 to WooCommerce product CSV.
- * Applies NAME_FIX redactions in-pipeline.
- * Enforces governance gates: RFQ-first pricing, split-scope validation, suffix exactness.
- * 
- * Usage:
- *   python3 export_woocommerce.py \
- *     --source JME_Phase1_Remediated_Catalog.xlsx \
- *     --allowlist redaction_allowlist.json \
- *     --output products.csv \
- *     --report validation_report.json
- */
+"""
+export_woocommerce.py
+
+Exports the full catalog workbook to WooCommerce product CSV.
+Applies NAME_FIX redactions in-pipeline.
+Enforces governance gates: RFQ-first pricing, split-scope validation, suffix exactness.
+
+Owner ruling (2026-09-10, BUILD_PROMPT.md): catalog truth is the FULL
+catalog — every part the QuickBooks export contains (2,223 today), not the
+1,887-row remediated subset. HOLD rows stay listed, RFQ-only, flagged
+"Quote Required" with _jme_price_status = hold, until the price rulings
+land. Pass --exclude-hold to reproduce the earlier subset export.
+
+Usage:
+  python3 export_woocommerce.py \
+    --source JME_Catalog_Full.xlsx \
+    --sheet "Webstore Catalog" \
+    --allowlist redaction_allowlist.json \
+    --output products.csv \
+    --report validation_report.json
+"""
 
 import json
 import sys
@@ -70,6 +77,13 @@ class SplitScopeValidator:
             'status': 'PASS' if len(self.findings) == 0 else 'FAIL'
         }
 
+def allowlist_entries(data):
+    """The NAME_FIX entries from redaction_allowlist.json, whatever the wrapper."""
+    if isinstance(data, dict):
+        data = data.get('redactions', [])
+    return [e for e in (data or []) if isinstance(e, dict) and e.get('original')]
+
+
 class NameFixRedactor:
     """Applies in-pipeline substitutions from allowlist."""
     
@@ -78,13 +92,18 @@ class NameFixRedactor:
         self.applied = 0
     
     def _load_allowlist(self, path):
-        """Load redaction_allowlist.json."""
+        """Load redaction_allowlist.json.
+
+        The file is an object — {"redactions": [...], "metadata": {...}} — so
+        the entries live under "redactions". A bare list is accepted too.
+        """
         try:
             with open(path, 'r') as f:
-                return json.load(f)
+                data = json.load(f)
         except FileNotFoundError:
             print(f"Warning: allowlist not found at {path}. Continuing without NAME_FIX.")
             return []
+        return allowlist_entries(data)
     
     def apply(self, text):
         """Replace original with reviewed name if found."""
@@ -98,10 +117,16 @@ class NameFixRedactor:
         
         return text
 
-def load_catalog(source_path):
-    """Load catalog with governance checks."""
+def load_catalog(source_path, sheet='Webstore Catalog', exclude_hold=False):
+    """Load catalog with governance checks.
+
+    HOLD rows are kept (ruling 2, 2026-09-10): they ship as Quote Required,
+    RFQ-only, so nothing is dropped from the catalog for pricing reasons —
+    pricing never displays anyway. `exclude_hold=True` restores the earlier
+    subset behaviour for comparison runs.
+    """
     wb = load_workbook(source_path, read_only=True, data_only=True, keep_vba=False)
-    ws = wb['Webstore Catalog']
+    ws = wb[sheet]
     
     # Parse header
     headers = {}
@@ -114,18 +139,22 @@ def load_catalog(source_path):
         sku = row[headers.get('SKU', 0)]
         status = row[headers.get('Status', 0)] or ''
         
-        # Exclude HOLD rows (EG-1 gate)
-        if status == 'HOLD':
-            print(f"  [EXCLUDED] Row {row_idx}: SKU={sku}, Status=HOLD")
+        hold = status == 'HOLD'
+        if hold and exclude_hold:
+            print(f"  [EXCLUDED] Row {row_idx}: SKU={sku}, Status=HOLD (--exclude-hold)")
             continue
-        
+        if hold:
+            print(f"  [HOLD → Quote Required] Row {row_idx}: SKU={sku}")
+
         rows.append({
             'sku': sku,
+            'hold': hold,
             'name': row[headers.get('Part Name', 0)] or '[No Name]',
             'machine': row[headers.get('Machine', 0)] or 'General',
             'category': row[headers.get('Category', 0)] or 'Uncategorized',
             'type': row[headers.get('Type', 0)] or 'Part',
-            'status': row[headers.get('Availability Status', 0)] or 'Quote Required',
+            # A HOLD row is listed under the RFQ-only band whatever its sheet says.
+            'status': 'Quote Required' if hold else (row[headers.get('Availability Status', 0)] or 'Quote Required'),
             'lead_time': row[headers.get('Lead Time', 0)] or 'Contact',
             'cost': row[headers.get('Cost', 0)],  # For validation only, never exported
             'vendor': row[headers.get('Vendor', 0)],  # For validation only
@@ -183,15 +212,20 @@ def export_to_csv(rows, output_path, redactor, validator):
                 '_jme_category': row['category'],
                 '_jme_type': row['type'],
                 '_jme_lead_time': row['lead_time'],
-                '_jme_price_status': 'quote_only',  # G1: RFQ-first
+                # G1: RFQ-first. 'hold' marks a row awaiting a price ruling; it
+                # is still listed and still quote-only, never priced.
+                '_jme_price_status': 'hold' if row.get('hold') else 'quote_only',
                 '_jme_fitment_status': 'auto' if 'fitment' not in row['category'].lower() else 'confirm'
             })
     
-    print(f"✓ Exported {len(rows)} products to {output_path}")
+    held = sum(1 for r in rows if r.get('hold'))
+    print(f"✓ Exported {len(rows)} products to {output_path} ({held} HOLD rows listed as Quote Required)")
 
 def main():
     parser = argparse.ArgumentParser(description='Export catalog to WooCommerce CSV')
-    parser.add_argument('--source', required=True, help='JME_Phase1_Remediated_Catalog.xlsx path')
+    parser.add_argument('--source', required=True, help='Catalog workbook path (full QuickBooks-derived catalog)')
+    parser.add_argument('--sheet', default='Webstore Catalog', help='Worksheet holding the catalog rows')
+    parser.add_argument('--exclude-hold', action='store_true', help='Drop HOLD rows (pre-ruling subset behaviour)')
     parser.add_argument('--allowlist', default='redaction_allowlist.json', help='NAME_FIX allowlist JSON')
     parser.add_argument('--output', default='products.csv', help='Output CSV path')
     parser.add_argument('--report', default='validation_report.json', help='Validation report path')
@@ -202,8 +236,8 @@ def main():
     print(f"  Allowlist: {args.allowlist}")
     
     # Load catalog
-    rows = load_catalog(args.source)
-    print(f"✓ Loaded {len(rows)} import-eligible SKUs")
+    rows = load_catalog(args.source, sheet=args.sheet, exclude_hold=args.exclude_hold)
+    print(f"✓ Loaded {len(rows)} SKUs ({sum(1 for r in rows if r.get('hold'))} HOLD, listed as Quote Required)")
     
     # Initialize validators
     redactor = NameFixRedactor(args.allowlist)

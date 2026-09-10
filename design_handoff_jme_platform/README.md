@@ -78,7 +78,7 @@ Reads `localStorage["jme-request-list"]`. Table: SKU (mono), name, origin/config
 Explainer: why JME quotes instead of listing prices. Four numbered steps in a row (numerals Barlow Condensed 48px red), data-boundary table (what we publish / what we confirm at quote), the seven status bands with definitions, FAQ accordion (buttons with `aria-expanded`). Built from `README.md` and `DATA_BOUNDARIES.md` in the repo.
 
 ### 9. Governance Console — `JME Governance Console.html` (internal)
-Left sidebar 240px (`var(--ink-2) #0F0F12`), views: Critical (HOLD queue — 5 Seth rulings), Price verification, Fitment classification, Redaction allowlist (9/9 NAME_FIX), Decision log delta, Catalog status (1,901 active / 10 HOLD / 14 Tier 1 / 1,887 eligible). Queue actions are real state with undo: approve/hold flips `_jme_price_status`, classify sets machine-specific vs confirmation-required, every action appends a timestamped Decision Log row stamped with `operator`. Not linked from customer nav; deploy behind Cloudflare Access with `noindex`.
+Left sidebar 240px (`var(--ink-2) #0F0F12`), views: Critical (HOLD queue — 5 Seth rulings), Price verification, Fitment classification, Redaction allowlist (9/9 NAME_FIX), Decision log delta, Catalog status (2,223 active / 10 HOLD listed as Quote Required / 14 Tier 1 / 2,223 eligible — full-catalog figures per BUILD_PROMPT ruling 2). Queue actions are real state with undo: approve/hold flips `_jme_price_status`, classify sets machine-specific vs confirmation-required, every action appends a timestamped Decision Log row stamped with `operator`. Not linked from customer nav; deploy behind Cloudflare Access with `noindex`.
 **Props:** `defaultView`, `operator`.
 
 ## Interactions and behavior (cross-cutting)
