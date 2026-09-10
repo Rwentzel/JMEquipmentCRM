@@ -295,3 +295,11 @@ test("security agent counts the Support Hub's intake toward the same signals as 
   assert.ok(findings.some((f) => f.severity === "warn" && /bot/i.test(f.title)), "12 honeypot hits across both forms should warn");
   assert.ok(findings.some((f) => /invalid-submission/i.test(f.title)), "20 invalid support submissions with none accepted should warn");
 });
+
+test("maintenance agent reports fitment coverage without failing the health panel", () => {
+  const c = catalogChecks().find((x) => x.name === "fitment coverage");
+  assert.ok(c && c.ok, "coverage is informational");
+  assert.match(c!.detail, /of \d+ machines have confirmed-fit parts/);
+  // The RollRite has no confirmed parts in the catalogue today; it must be named.
+  assert.match(c!.detail, /JME-RR-16/);
+});

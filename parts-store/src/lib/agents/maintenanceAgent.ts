@@ -11,6 +11,7 @@ import { details } from "@/data/details";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import { STATUS_BANDS } from "@/data/types";
 import { listRfqs } from "@/lib/rfqStore";
+import { partsForMachine } from "@/lib/machineParts";
 
 export interface HealthCheck {
   name: string;
@@ -66,6 +67,18 @@ export function catalogChecks(): HealthCheck[] {
     boundaryDetail = err instanceof Error ? err.message : String(err);
   }
   checks.push({ name: "data-boundary sweep", ok: boundaryOk, detail: boundaryDetail });
+
+  // 5. Fitment coverage: which machines the platform and detail pages can
+  // show confirmed-fit parts for. A gap is a curation job for the desk, not
+  // a fault in the data, so this check informs rather than fails.
+  const uncovered = catalog.machines.filter((m) => partsForMachine(m.sku).fits.length === 0).map((m) => m.sku);
+  checks.push({
+    name: "fitment coverage",
+    ok: true,
+    detail: uncovered.length
+      ? `${catalog.machines.length - uncovered.length} of ${catalog.machines.length} machines have confirmed-fit parts; none published yet for ${uncovered.join(", ")} — those pages show family parts as "confirm fitment"`
+      : `all ${catalog.machines.length} machines have confirmed-fit parts`,
+  });
 
   // 5. Description-content sweep: generated part names must never carry
   // price/cost values, vendor refs, or internal aliases (a generator scrub
