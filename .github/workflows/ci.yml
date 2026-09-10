@@ -62,3 +62,31 @@ jobs:
       # a browser bundle — regardless of which page they were imported from.
       - name: Client-bundle data-boundary check
         run: npm run verify:bundles
+
+      # The customer flows, driven through the runner's Chrome against the
+      # build above: hero search, a quote request, a Support Hub form landing
+      # in the ops inbox, the Machine Platform, the fitment hand-off, the
+      # assistant, the phone menu — then the WCAG 2.1 AA audit over every
+      # public and staff page state. The token is for this throwaway server
+      # only; the RFQ store is a temp directory.
+      - name: Start the built app
+        env:
+          PORT: "3100"
+          OPS_TOKEN: ci-smoke-only-token
+        run: |
+          node scripts/serve-standalone.mjs > standalone.log 2>&1 &
+          for i in $(seq 1 60); do
+            if grep -q READY standalone.log; then break; fi
+            sleep 1
+          done
+          grep -q READY standalone.log || { cat standalone.log; exit 1; }
+
+      - name: Browser smoke flows
+        env:
+          OPS_TOKEN: ci-smoke-only-token
+        run: npm run smoke -- http://127.0.0.1:3100
+
+      - name: Accessibility audit (WCAG 2.1 AA)
+        env:
+          OPS_TOKEN: ci-smoke-only-token
+        run: npm run a11y -- http://127.0.0.1:3100

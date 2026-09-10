@@ -101,7 +101,13 @@ the environment — never in the repo.
 - `npm run verify:bundles` — proves no Quote Center dealer pricing or client
   records reach a browser bundle (runs in CI after the build; `.next/static` is
   served without auth, so page-level gating is not by itself a control)
-- `node scripts/a11y-audit.mjs [baseUrl]` — WCAG 2.1 AA audit via axe-core over
+- `npm run build && npm run serve:standalone` — serve the production build the
+  way the container does (copies static assets into the standalone output,
+  temp RFQ store, waits for `/api/health`); `npm run smoke -- <baseUrl>` — the
+  customer flows through a real Chromium (hero search, quote request, Support
+  Hub form → ops inbox, Machine Platform, fitment hand-off, unmatched serial,
+  assistant, phone menu). CI runs both after the build.
+- `npm run a11y -- [baseUrl]` (`scripts/a11y-audit.mjs`) — WCAG 2.1 AA audit via axe-core over
   a running server, covering interactive states as well as static routes.
   Needs a browser: `npm i --no-save playwright-core axe-core` first.
 

@@ -11,7 +11,7 @@
  * Install on demand instead.
  *
  *   npm run build && npm start &          # or: PORT=3000 npm start
- *   npm i --no-save playwright-core axe-core
+ *   npm ci (playwright-core and axe-core are dev dependencies)
  *   node scripts/a11y-audit.mjs [baseUrl]   # default http://localhost:3000
  *
  * Set OPS_TOKEN to the running server's token and the staff surfaces — the ops
@@ -28,12 +28,12 @@ import { createRequire } from "node:module";
 const BASE = process.argv[2] || process.env.A11Y_BASE || "http://localhost:3000";
 const require = createRequire(import.meta.url);
 
-let chromium, axeSource;
+let launchBrowser, axeSource;
 try {
-  ({ chromium } = await import("playwright-core"));
+  ({ launchBrowser } = await import("./browser.mjs"));
   axeSource = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 } catch {
-  console.error("Missing tooling. Run:  npm i --no-save playwright-core axe-core");
+  console.error("Missing tooling. Run:  npm ci (playwright-core and axe-core are dev dependencies)");
   process.exit(2);
 }
 
@@ -53,9 +53,7 @@ const STAFF_ROUTES = [
 const DESKTOP = { width: 1440, height: 1000 };
 const MOBILE = { width: 390, height: 844 };
 
-const browser = await chromium.launch({
-  executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium",
-});
+const browser = await launchBrowser();
 
 let failures = 0;
 
