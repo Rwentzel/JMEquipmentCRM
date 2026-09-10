@@ -30,6 +30,7 @@ import { FAQ } from "@/data/faq";
 import { AssistantWidget } from "@/components/AssistantWidget";
 import { ReorderPanel } from "@/components/ReorderPanel";
 import { rememberRequest } from "@/lib/recentRequests";
+import { mailtoHref, telHref, DESK_PHONE_DISPLAY } from "@/lib/requestRoutes";
 import { useUrlParam } from "@/hooks/useUrlParam";
 import { toPublicMachine, toPublicPart } from "@/data/sanitize";
 import type { Machine, Part } from "@/data/types";
@@ -171,6 +172,9 @@ function Machines({ onAdd }: { onAdd: (it: { sku: string; name: string }) => voi
             Factory-direct Goodstrong sheeters, Datien guillotines, rollstands built and rebuilt in Sturgis, and the
             JME core splitter. Every machine states who it&rsquo;s for and what it does — quoted individually, in
             writing.
+            <a className="ps-comparelink" href="/machines">
+              Pick your machine → only the parts that fit it
+            </a>{" "}
             <a className="ps-comparelink" href="/compare">
               Compare the full line →
             </a>
@@ -671,6 +675,7 @@ function Request({
   errors,
   onBlur,
   sent,
+  sendFailed,
   reference,
   onQty,
   onRemove,
@@ -685,6 +690,8 @@ function Request({
   errors: Partial<Record<keyof ContactForm, string>>;
   onBlur: (k: "company" | "name" | "email") => () => void;
   sent: boolean;
+  /** The last send hit our side's failure — keep the entries, offer the other routes. */
+  sendFailed: boolean;
   reference: string | null;
   onQty: (sku: string, qty: number) => void;
   onRemove: (sku: string) => void;
@@ -839,19 +846,32 @@ function Request({
                       </span>
                     ) : null}
                   </span>
+                  <RequestRoutes items={items} reference={reference} onPrint={onPrint} after />
                 </div>
               ) : (
-                <div className="ps-actions">
-                  <Button onClick={() => onSend("quote")} disabled={items.length === 0}>
-                    Get a Quote
-                  </Button>
-                  <Button variant="ghost" onClick={() => onSend("message")} disabled={!contact.message.trim()}>
-                    Send a Message
-                  </Button>
-                  <Button variant="ghost" onClick={onPrint}>
-                    Print summary
-                  </Button>
-                </div>
+                <>
+                  {sendFailed && (
+                    <div className="ps-sent ps-sent--warn" role="alert">
+                      <b>We couldn&rsquo;t send this.</b>
+                      <span>
+                        Your entries are kept. Email the list from your own mail client or call the desk, and
+                        nothing needs retyping — or try again in a moment.
+                      </span>
+                    </div>
+                  )}
+                  <div className="ps-actions">
+                    <Button onClick={() => onSend("quote")} disabled={items.length === 0}>
+                      Get a Quote
+                    </Button>
+                    <Button variant="ghost" onClick={() => onSend("message")} disabled={!contact.message.trim()}>
+                      Send a Message
+                    </Button>
+                    <Button variant="ghost" onClick={onPrint}>
+                      Print summary
+                    </Button>
+                  </div>
+                  <RequestRoutes items={items} reference={null} onPrint={onPrint} />
+                </>
               )}
               <p className="ps-fine">
                 Quotations confirmed in writing before processing · No minimum order · FOB Sturgis, MI · Tax per ship-to
@@ -862,6 +882,51 @@ function Request({
         </div>
       </div>
     </section>
+  );
+}
+
+/* --------------------------------------------------------------- Routes --- */
+/**
+ * The three off-line routes — email, call, print — sit beside the send
+ * button, not behind it. Before sending, the honesty line says plainly that
+ * nothing has left the browser; after sending, the same routes carry the
+ * reference so a customer who prefers the phone can read it out.
+ */
+function RequestRoutes({
+  items,
+  reference,
+  onPrint,
+  after = false,
+}: {
+  items: ReturnType<typeof useRequestList>["items"];
+  reference: string | null;
+  onPrint: () => void;
+  after?: boolean;
+}) {
+  const label = after ? "Other ways to reach the desk" : "Prefer your own mail client or the phone?";
+  return (
+    <div className="ps-routes" aria-label="Other ways to send this request">
+      {!after && (
+        <p className="ps-routes__honest">
+          Nothing has left your browser yet — <b>Get a Quote</b> sends this list to the parts desk.
+        </p>
+      )}
+      <span className="ps-routes__lbl">{label}</span>
+      <div className="ps-routes__links">
+        <a className="ps-routes__link" href={mailtoHref(items, reference)}>
+          {after ? "Email a copy" : "Email this list"}
+        </a>
+        <a className="ps-routes__link" href={telHref()}>
+          Call {DESK_PHONE_DISPLAY}
+          {reference ? " and quote the reference" : ""}
+        </a>
+        {after && (
+          <button type="button" className="ps-routes__link" onClick={onPrint}>
+            Print summary
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1085,6 +1150,7 @@ export default function StorefrontPage() {
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ContactForm, string>>>({});
   const [sent, setSent] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
 
   const setContact = (c: ContactForm) => {
@@ -1220,6 +1286,7 @@ export default function StorefrontPage() {
       show("Check the highlighted fields");
       return;
     }
+    setSendFailed(false);
     try {
       const res = await fetch("/api/quote", {
         method: "POST",
@@ -1238,11 +1305,13 @@ export default function StorefrontPage() {
         // send them round a loop they cannot win, so pass on the server's own
         // wording (it carries the phone number and whether the desk was
         // emailed) and keep their entries so nothing has to be retyped.
+        setSendFailed(true);
         show(data.error || `Our system is having trouble — please call ${CONTACT_PHONE}`);
       } else {
         show(data.error || "Check the form and try again");
       }
     } catch {
+      setSendFailed(true);
       show("Could not send — check your connection, or call " + CONTACT_PHONE);
     }
   }
@@ -1268,6 +1337,7 @@ export default function StorefrontPage() {
         errors={formErrors}
         onBlur={blurField}
         sent={sent}
+        sendFailed={sendFailed}
         reference={reference}
         onQty={setQty}
         onRemove={remove}

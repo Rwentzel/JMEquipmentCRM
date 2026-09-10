@@ -20,6 +20,7 @@ const read = (...p: string[]) => readFileSync(path.join(APP, ...p), "utf8");
 const INDEXABLE: [string, string][] = [
   ["freight/page.tsx", '"/freight"'],
   ["compare/page.tsx", '"/compare"'],
+  ["machines/page.tsx", '"/machines"'],
   ["terms/page.tsx", '"/terms"'],
   ["privacy/page.tsx", '"/privacy"'],
   ["parts/goodstrong/page.tsx", '"/parts/goodstrong"'],
