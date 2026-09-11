@@ -26,6 +26,7 @@
  */
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { mintQuotePath, staffCookie } from "./quoteLink.mjs";
 
 const BASE = process.argv[2] || process.env.A11Y_BASE || "http://localhost:3000";
 const require = createRequire(import.meta.url);
@@ -204,23 +205,10 @@ await audit("request list populated", "/", async (page) => {
  * endpoint removes the duplicated crypto altogether: there is no second
  * implementation left to drift. assertAuthed stays as the backstop.
  */
-async function staffCookie() {
-  const res = await fetch(`${BASE}/api/ops/session`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token: process.env.OPS_TOKEN }),
-  });
-  if (!res.ok) throw new Error(`ops login failed (${res.status}) — is OPS_TOKEN the one the server was started with?`);
-  const setCookie = res.headers.getSetCookie?.().find((c) => c.startsWith("jme_ops=")) ?? "";
-  const value = setCookie.split(";")[0]?.slice("jme_ops=".length);
-  if (!value) throw new Error("ops login returned no jme_ops cookie");
-  return value;
-}
-
 // Staff surfaces.
 if (process.env.OPS_TOKEN) {
   try {
-    const cookie = await staffCookie();
+    const cookie = await staffCookie(BASE, process.env.OPS_TOKEN);
     for (const route of STAFF_ROUTES) await audit(`route ${route}`, route, assertAuthed, DESKTOP, cookie);
   } catch (err) {
     failures += 1;
@@ -236,33 +224,10 @@ if (process.env.OPS_TOKEN) {
 // send. Without the token, pass a path from a server that has one:
 //   A11Y_QUOTE_PATH=/q/<id>/<token> node scripts/a11y-audit.mjs
 // It is the page the buyer opens and prints, so it is worth the extra step.
-async function mintQuotePath(cookie) {
-  const json = { "Content-Type": "application/json" };
-  const staff = { ...json, cookie: `jme_ops=${cookie}` };
-  const rfqRes = await fetch(`${BASE}/api/quote`, {
-    method: "POST",
-    headers: json,
-    body: JSON.stringify({
-      contact: { company: "Accessibility audit", name: "Axe run", email: "a11y@example.test", consent: true },
-      items: [{ sku: "JME-VCS-BLD-001", qty: 1 }],
-    }),
-  });
-  const rfq = await rfqRes.json().catch(() => ({}));
-  if (!rfqRes.ok || !rfq.ref) throw new Error(`storefront request failed (${rfqRes.status})`);
-  const conv = await fetch(`${BASE}/api/qc/from-rfq`, { method: "POST", headers: staff, body: JSON.stringify({ ref: rfq.ref }) });
-  const made = await conv.json().catch(() => ({}));
-  if (!conv.ok || !made.id) throw new Error(`from-rfq failed (${conv.status})`);
-  const stateRes = await fetch(`${BASE}/api/qc/state`, { headers: staff });
-  const { state } = await stateRes.json();
-  const quote = state?.quotes?.find((q) => q.id === made.id);
-  if (!quote?.token) throw new Error("minted quote carries no share token");
-  return `/q/${made.id}/${quote.token}`;
-}
-
 let quotePath = process.env.A11Y_QUOTE_PATH || null;
 if (!quotePath && process.env.OPS_TOKEN) {
   try {
-    quotePath = await mintQuotePath(await staffCookie());
+    quotePath = await mintQuotePath(BASE, await staffCookie(BASE, process.env.OPS_TOKEN), "Accessibility audit");
   } catch (err) {
     failures += 1;
     console.log(`ERROR client quote page — could not mint a quote to audit: ${err.message}`);

@@ -107,7 +107,7 @@ wrangler secret put RESEND_KEY
 # Paste: [your Resend API key]
 
 wrangler secret put ALLOW_ORIGIN
-# Paste: https://jmequipment.net,https://<track-a-host>
+# Paste: https://jmequipment.net,https://parts.jmequipment.net
 # (comma-separated, one entry per host: the Worker serves both tracks and
 #  echoes the request's Origin only when it is on this list)
 ```

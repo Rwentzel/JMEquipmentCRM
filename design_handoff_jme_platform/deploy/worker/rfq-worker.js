@@ -7,7 +7,7 @@
  *   RFQ_TO: parts@jmequipment.net
  *   RFQ_FROM: noreply@jmequipment.net
  *   RESEND_KEY: your Resend API key
- *   ALLOW_ORIGIN: https://jmequipment.net,https://<track-a-host> (CORS whitelist;
+ *   ALLOW_ORIGIN: https://jmequipment.net,https://parts.jmequipment.net (CORS whitelist;
  *                 comma-separated, one entry per host — one Worker serves both
  *                 tracks. The first entry is the default for unknown origins.)
  *

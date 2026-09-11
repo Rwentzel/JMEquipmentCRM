@@ -13,6 +13,7 @@
  * the walk saves, deletes and sends whatever it can reach.
  */
 import { launchBrowser } from "./browser.mjs";
+import { mintQuotePath, staffCookie } from "./quoteLink.mjs";
 
 const args = process.argv.slice(2);
 const BASE = (args.find((a) => !a.startsWith("--")) || process.env.FUZZ_BASE || "http://localhost:3000").replace(/\/$/, "");
@@ -71,19 +72,14 @@ async function mark(page, selector, draw) {
   );
 }
 
-async function staffCookie() {
-  const res = await fetch(`${BASE}/api/ops/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: OPS_TOKEN }) });
-  if (!res.ok) throw new Error(`ops login failed (${res.status})`);
-  const value = (res.headers.getSetCookie?.().find((c) => c.startsWith("jme_ops=")) ?? "").split(";")[0].slice("jme_ops=".length);
-  if (!value) throw new Error("no jme_ops cookie");
-  return value;
-}
-
 const origin = new URL(BASE).origin;
 const browser = await launchBrowser();
 let failed = 0;
-const cookie = OPS_TOKEN ? await staffCookie() : null;
-const SURFACES = cookie ? [...CUSTOMER, ...STAFF] : CUSTOMER;
+const cookie = OPS_TOKEN ? await staffCookie(BASE, OPS_TOKEN) : null;
+// With the desk's token the walk also gets a real customer quote link — the
+// page a buyer opens, with its typed-signature accept flow — and the staff
+// surfaces behind the login.
+const SURFACES = cookie ? [...CUSTOMER, await mintQuotePath(BASE, cookie, "Fuzz harness"), ...STAFF] : CUSTOMER;
 
 for (let seed = FIRST_SEED; seed < FIRST_SEED + SEEDS; seed++) {
   const r = rng(seed);
