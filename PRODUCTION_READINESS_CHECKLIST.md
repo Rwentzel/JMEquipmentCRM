@@ -30,18 +30,18 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 3. Public / internal data separation
 - ✅ Only public fields modeled and rendered
-- ⬜ Document the public-field allowlist as policy; enforce in code review
+- ✅ Public-field allowlist documented as policy in `DATA_BOUNDARIES.md`; enforced in CI, not just review — `verify:bundles` (client bundles), `scan:artifacts` (every rendered customer page), the Track B `test_regression.py` gates on the WooCommerce CSV, and the maintenance agent's data-boundary sweep over every catalog record
 
 ### 4. Vendor / cost / margin protection
 - ✅ None present in repo
 - 🔒 Confirm no internal export feeds the web build pipeline
 
 ### 5. SKU / title / category cleanup
-- ⬜ Normalize SKU formatting; ⬜ dedupe; ⬜ finalize category taxonomy (5 demo categories today)
+- ✅ SKUs normalized to the `JME-XXX-NNNN` web-reference scheme and unique (maintenance agent: 2,232 unique across parts and machines); ✅ deduped; ✅ taxonomy: 2,223 parts across 10 categories with machine › subsystem paths (`Machinery › Goodstrong / Martin / JME › category` in the Track B export); 🟡 JM to spot-check category placements as orders come in
 
 ### 6. Image readiness
 - 🟡 Branded placeholder in place; ⬜ approved product photography pipeline (no stock/unapproved images)
-- ⬜ Alt-text policy for every product image
+- ✅ Alt-text policy: every image carries `alt` — product and machine photos name the machine and the view (`SmartImg`), the brand mark names the company, purely decorative art is `alt=""` — and the axe `image-alt` rule across all 27 audited page states fails CI on any exception
 
 ### 7. Pricing policy
 - ✅ **RFQ-first: no public prices** (supersedes the budgetary-price build)
@@ -125,7 +125,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Privacy-respecting analytics (none today); 🔒 choose vendor + consent posture
 
 ### 20. Backups
-- ⬜ Source data versioned in git (✅ for demo data)
+- ✅ Source data versioned in git: the full catalog (`src/data/catalog.ts`, 2,223 parts), machine details, manual data and the Track B allowlists all live in the repository; the private QuickBooks workbook stays off-repo by design (`DATA_BOUNDARIES.md`)
 - ✅ Backup/restore for the submissions store: `npm run backup` / `npm run restore`
   (verified archives, atomic writes, dry-run restore, pre-restore safety copy,
   14 unit tests incl. a full disaster drill). Runbook in LAUNCH.md §5.
