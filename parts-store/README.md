@@ -114,8 +114,14 @@ the environment — never in the repo.
 - `npm run lcp -- <baseUrl>` — mobile LCP on Lighthouse's slow-4G profile with 4× CPU
   slowdown, one row per customer page, exit 1 over 2.5 s (the brief's gate; CI reports it).
 - `npm run a11y -- [baseUrl]` (`scripts/a11y-audit.mjs`) — WCAG 2.1 AA audit via axe-core over
-  a running server, covering interactive states as well as static routes.
+  a running server, covering interactive states as well as static routes, plus a
+  44 px tap-target check on every customer route in a phone touch context. With
+  `OPS_TOKEN` it also mints a quote and audits the customer's share-link page.
   Needs a browser: `npm i --no-save playwright-core axe-core` first.
+- `npm run fuzz -- <baseUrl> --seeds=3 --steps=140` (`scripts/fuzz.mjs`) — launch gate E1's
+  fuzz harness: seeded random walks over the customer surfaces (and the staff ones with
+  `OPS_TOKEN`), failing on any page or console error. Same seed, same walk: replay a CI
+  failure with `--seed=<n> --seeds=1`. Point it at a server with a throwaway `RFQ_DATA_DIR`.
 
 ## Data protection
 Only customer-safe fields exist in the public data model (SKU, name, description,

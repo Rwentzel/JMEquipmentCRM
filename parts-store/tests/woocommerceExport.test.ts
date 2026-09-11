@@ -41,3 +41,10 @@ test("the CSV has the handoff's columns in its order and neutralises formulas", 
   assert.equal(header, WOO_COLUMNS.join(","));
   assert.ok(!/,=HYPERLINK/.test(row!), "a leading = must not survive into a spreadsheet cell");
 });
+
+test("the export is idempotent — two runs produce byte-identical CSV (gate E1)", () => {
+  const a = wooCsv(buildWooExport().rows);
+  const b = wooCsv(buildWooExport().rows);
+  assert.equal(a, b);
+  assert.ok(a.length > 100_000, "the CSV is implausibly small");
+});

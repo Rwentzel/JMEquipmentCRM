@@ -109,6 +109,14 @@ jobs:
           OPS_TOKEN: ci-smoke-only-token
         run: npm run a11y -- http://127.0.0.1:3100
 
+      # Launch gate E1: seeded random walks over the customer and staff
+      # surfaces; any page error or console error fails. Replay a seed locally
+      # with --seed=<n> --seeds=1. The server's RFQ_DATA_DIR is a temp dir.
+      - name: Fuzz harness (3 seeds x 140 steps)
+        env:
+          OPS_TOKEN: ci-smoke-only-token
+        run: npm run fuzz -- http://127.0.0.1:3100 --seeds=3 --steps=140
+
       # Mobile LCP on the slow-4G profile. Runner timings vary, so this
       # reports rather than gates; read it when a page grows.
       - name: Mobile LCP (report only)

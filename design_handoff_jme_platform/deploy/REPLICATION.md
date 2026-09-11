@@ -305,10 +305,14 @@ python3 export_woocommerce.py --catalog ... --output v1.csv
 python3 export_woocommerce.py --catalog ... --output v2.csv
 cmp v1.csv v2.csv
 # Should exit 0 (files identical)
+# (A1-alt: tests/woocommerceExport.test.ts asserts the same for the
+#  catalogue-driven export on every npm test run.)
 
-# Fuzz harness on JME Client Portal v2
-npm run fuzz:portal --seeds=3 --steps=140
-# Expected: clean exit, no crash
+# Fuzz harness (in parts-store; the app's counterpart of the portal walk —
+# seeded random interactions over every customer and staff surface, failing
+# on any page or console error; CI runs it on every push)
+OPS_TOKEN=<token> npm run fuzz -- http://127.0.0.1:3000 --seeds=3 --steps=140
+# Expected: clean exit, no crash. Replay a seed with --seed=<n> --seeds=1.
 
 # Worker smoke test (from Stage B3)
 # All tests pass

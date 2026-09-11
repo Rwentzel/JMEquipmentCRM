@@ -28,6 +28,11 @@ async function flow(name, fn, viewport) {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
+  // Stage C gate: zero console errors. A hydration mismatch, a failed
+  // resource or a React warning-as-error all land here, not in pageerror.
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(`console: ${m.text().split("\n")[0].slice(0, 160)}`);
+  });
   try {
     await fn(page, context);
     if (errors.length) throw new Error(`page errors: ${errors.join(" | ")}`);
