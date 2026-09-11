@@ -63,6 +63,12 @@ jobs:
       - name: Client-bundle data-boundary check
         run: npm run verify:bundles
 
+      # Every prerendered customer page is read as a customer would read it
+      # (scripts and styles dropped) and scanned for price, cost, vendor,
+      # margin, bin or quantity language (BUILD_PROMPT.md data boundaries).
+      - name: Customer-page data-boundary scan
+        run: npm run scan:artifacts
+
       # The customer flows, driven through the runner's Chrome against the
       # build above: hero search, a quote request, a Support Hub form landing
       # in the ops inbox, the Machine Platform, the fitment hand-off, the
