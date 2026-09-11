@@ -54,6 +54,18 @@ jobs:
       - name: Maintenance agent (catalog integrity)
         run: npm run agent:maintenance
 
+      # Track B, Stage A, from this app's catalogue: the WooCommerce CSV the
+      # WordPress track imports, gated by the handoff's own regression suite.
+      - name: Track B export from the catalogue
+        run: npm run export:woocommerce -- --out /tmp/track-b/products.csv
+
+      - name: Track B regression gates (handoff suite)
+        working-directory: design_handoff_jme_platform/deploy/data
+        run: >
+          python3 test_regression.py --artifact /tmp/track-b/products.csv
+          --expect-sku-count 2223 --expect-hold-count 0
+          --allowlist redaction_allowlist.json
+
       - name: Production build
         run: npm run build
 
