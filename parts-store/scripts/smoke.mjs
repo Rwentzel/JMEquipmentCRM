@@ -207,6 +207,23 @@ await flow("the RFQ Flow explainer walks four steps, answers its FAQ, and routes
   ok((await page.locator(".ps-row").count()) > 0, "the catalog did not load after the explainer's call to action");
 });
 
+await flow("a modal makes the page behind it inert, closes on Escape, and hands focus back", async (page) => {
+  await page.goto(`${BASE}/parts/goodstrong`, { waitUntil: "networkidle" });
+  const trigger = page.locator("text=I know my serial number");
+  await trigger.click();
+  const dialog = page.locator("[role=dialog][aria-modal=true]");
+  await dialog.waitFor({ timeout: 5_000 });
+  ok(await page.evaluate(() => document.activeElement?.closest("[role=dialog]") !== null), "focus did not move into the dialog");
+  ok(
+    await page.evaluate(() => [...document.body.children].filter((c) => c.getAttribute("role") !== "dialog" && c.tagName !== "SCRIPT").every((c) => c.inert)),
+    "the page behind the dialog is not inert",
+  );
+  await page.keyboard.press("Escape");
+  ok((await dialog.count()) === 0, "Escape did not close the dialog");
+  ok(await page.evaluate(() => [...document.body.children].every((c) => !c.inert)), "the page stayed inert after the dialog closed");
+  ok(await trigger.evaluate((el) => el === document.activeElement), "focus did not return to the button that opened the dialog");
+});
+
 await flow("the phone menu starts closed and opens from the burger", async (page) => {
   await page.goto(`${BASE}/machines`, { waitUntil: "networkidle" });
   ok(!(await page.locator(".ps-nav__links").isVisible()), "menu open on load");
