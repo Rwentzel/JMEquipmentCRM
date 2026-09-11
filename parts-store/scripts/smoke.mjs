@@ -193,6 +193,20 @@ await flow("the assistant answers with links and never a price", async (page) =>
   ok((await last.locator(".ps-ask__links a").count()) >= 1, "no links under the answer");
 });
 
+await flow("the RFQ Flow explainer walks four steps, answers its FAQ, and routes to the catalog", async (page) => {
+  await page.goto(`${BASE}/how-quoting-works`, { waitUntil: "networkidle" });
+  ok((await page.locator(".fl__step").count()) === 4, "the explainer does not show four steps");
+  const faq = page.locator(".fl__faq details");
+  ok((await faq.count()) >= 4, "the FAQ accordion is missing");
+  ok(!(await faq.first().evaluate((d) => d.open)), "the first FAQ item starts open");
+  await faq.first().locator("summary").click();
+  ok(await faq.first().evaluate((d) => d.open), "the FAQ item did not open");
+  ok(!/\$\s?\d/.test(await page.locator("body").innerText()), "a price appeared on the explainer");
+  await page.click("text=Browse the catalog");
+  await page.waitForURL(/\/#parts$/, { timeout: 10_000 });
+  ok((await page.locator(".ps-row").count()) > 0, "the catalog did not load after the explainer's call to action");
+});
+
 await flow("the phone menu starts closed and opens from the burger", async (page) => {
   await page.goto(`${BASE}/machines`, { waitUntil: "networkidle" });
   ok(!(await page.locator(".ps-nav__links").isVisible()), "menu open on load");
