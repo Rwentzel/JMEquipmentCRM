@@ -239,6 +239,8 @@ if (!quotePath && process.env.OPS_TOKEN) {
 if (quotePath) {
   await audit("client quote link", quotePath);
   await audit("client quote link (mobile)", quotePath, null, MOBILE);
+  // The buyer opens this on a phone as often as not: the 44 px floor applies.
+  await auditTargets(quotePath);
 } else {
   console.log("\nSKIP  client quote page — set OPS_TOKEN (the audit mints a quote) or A11Y_QUOTE_PATH=/q/<id>/<token>.");
 }
@@ -252,5 +254,5 @@ if (failures > 0) {
 const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
 const quoteCount = quotePath ? 2 : 0;
 console.log(
-  `\nPASS  no WCAG 2.2 AA or best-practice violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states; tap targets 44 px on ${ROUTES.length} customer routes.`,
+  `\nPASS  no WCAG 2.2 AA or best-practice violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states; tap targets 44 px on ${ROUTES.length + (quotePath ? 1 : 0)} customer routes.`,
 );
