@@ -24,8 +24,8 @@ function chipStyle(active: boolean): React.CSSProperties {
     borderRadius: "var(--r-1)",
     cursor: "pointer",
     border: "1px solid " + (active ? "var(--jme-red)" : "var(--hairline-2)"),
-    background: active ? "var(--jme-red)" : "#fff",
-    color: active ? "#fff" : "var(--muted)",
+    background: active ? "var(--jme-red)" : "var(--canvas)",
+    color: active ? "var(--canvas)" : "var(--muted)",
     display: "inline-flex",
     alignItems: "center",
     gap: "7px",
@@ -87,7 +87,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
   return (
     <div
       style={{
-        background: "#fff",
+        background: "var(--canvas)",
         border: "1px solid var(--hairline)",
         borderRadius: "var(--r-2)",
         boxShadow: "var(--sh-raise)",
@@ -108,7 +108,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
         e.currentTarget.style.boxShadow = "var(--sh-raise)";
       }}
     >
-      <div style={{ height: "184px", background: "#fbfbfa", borderBottom: "1px solid var(--hairline)", position: "relative", overflow: "hidden" }}>
+      <div style={{ height: "184px", background: "var(--canvas-wash)", borderBottom: "1px solid var(--hairline)", position: "relative", overflow: "hidden" }}>
         <span
           className="jme-tag"
           style={{
@@ -116,7 +116,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
             top: "12px",
             left: "12px",
             zIndex: 2,
-            background: "#fff",
+            background: "var(--canvas)",
             whiteSpace: "nowrap",
             color: "var(--muted)",
             borderColor: "var(--hairline-2)",
@@ -126,7 +126,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
           {m.badge}
         </span>
         {photo ? (
-          <div style={{ width: "100%", height: "184px", display: "flex", alignItems: "center", justifyContent: "center", background: "#fbfbfa" }}>
+          <div style={{ width: "100%", height: "184px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--canvas-wash)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photo}
@@ -150,7 +150,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
               alignItems: "center",
               justifyContent: "center",
               gap: "8px",
-              background: "#fbfbfa",
+              background: "var(--canvas-wash)",
             }}
           >
             <span style={{ width: "9px", height: "9px", background: "var(--jme-red)", transform: "rotate(45deg)", display: "block" }}></span>

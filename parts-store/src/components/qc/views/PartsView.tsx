@@ -22,8 +22,8 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
   borderRadius: "var(--r-1)",
   cursor: "pointer",
   border: "1px solid " + (active ? "var(--jme-red)" : "var(--hairline-2)"),
-  background: active ? "var(--jme-red)" : "#fff",
-  color: active ? "#fff" : "var(--muted)",
+  background: active ? "var(--jme-red)" : "var(--canvas)",
+  color: active ? "var(--canvas)" : "var(--muted)",
   display: "inline-flex",
   alignItems: "center",
   gap: "7px",
@@ -79,7 +79,7 @@ export function PartsView({ app }: { app: QcApp }) {
         </div>
       </div>
       <div style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "12px" }}>{countNote}</div>
-      <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
+      <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
         <div className="jq-tbl scroll" style={{ "--minw": "700px", "--cols": "126px minmax(0,1.5fr) minmax(0,1fr) 108px 72px 72px" } as React.CSSProperties}>
           <div className="jq-tr head"><div>SKU</div><div>Part</div><div>Fits</div><div>Availability</div><div className="r">Price</div><div className="r">Add</div></div>
           <div className="jq-body">

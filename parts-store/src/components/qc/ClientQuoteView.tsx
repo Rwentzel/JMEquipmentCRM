@@ -61,11 +61,11 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#33312e" }} data-screen-label="Client Quote View">
+    <div style={{ minHeight: "100vh", background: "var(--qc-backdrop)" }} data-screen-label="Client Quote View">
       <div
         data-print-hide
         className="qc-clienthead"
-        style={{ background: "var(--ink-2)", color: "#fff", padding: "13px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 6, borderBottom: "1px solid #000" }}
+        style={{ background: "var(--ink-2)", color: "var(--canvas)", padding: "13px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 6, borderBottom: "1px solid var(--black)" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -113,7 +113,7 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
             className="on-light"
             style={{ background: "var(--canvas)", borderRadius: "var(--r-2)", maxWidth: "440px", width: "100%", boxShadow: "var(--sh-doc)", overflow: "hidden" }}
           >
-            <div style={{ background: "var(--jme-charcoal)", color: "#fff", padding: "18px 24px" }}>
+            <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", padding: "18px 24px" }}>
               <div className="jme-eyebrow" style={{ color: "var(--jme-red-bright)" }}>Accept Quotation</div>
               <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "22px", letterSpacing: ".04em", marginTop: "8px" }}>{doc.number}</div>
             </div>

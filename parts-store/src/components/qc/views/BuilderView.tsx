@@ -37,8 +37,8 @@ function cfgChipStyle(active: boolean): React.CSSProperties {
     borderRadius: "var(--r-1)",
     cursor: "pointer",
     border: "1px solid " + (active ? "var(--jme-red)" : "var(--hairline-2)"),
-    background: active ? "var(--jme-red)" : "#fff",
-    color: active ? "#fff" : "var(--ink-text)",
+    background: active ? "var(--jme-red)" : "var(--canvas)",
+    color: active ? "var(--canvas)" : "var(--ink-text)",
     minWidth: "54px",
   };
 }
@@ -141,7 +141,7 @@ export function BuilderView({ app }: { app: QcApp }) {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "392px 1fr", height: "100vh" }} data-screen-label="Quote Builder">
-      <aside style={{ background: "#fff", borderRight: "1px solid var(--hairline)", overflow: "auto", height: "100vh" }}>
+      <aside style={{ background: "var(--canvas)", borderRight: "1px solid var(--hairline)", overflow: "auto", height: "100vh" }}>
         <div
           style={{
             display: "flex",
@@ -152,7 +152,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             borderBottom: "1px solid var(--hairline)",
             position: "sticky",
             top: 0,
-            background: "#fff",
+            background: "var(--canvas)",
             zIndex: 2,
           }}
         >
@@ -625,7 +625,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             position: "sticky",
             bottom: 0,
             background: "var(--jme-charcoal)",
-            borderTop: "1px solid #000",
+            borderTop: "1px solid var(--black)",
             padding: "13px 18px",
             display: "flex",
             flexDirection: "column",
@@ -645,7 +645,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             >
               Total Quote
             </span>
-            <span className="jme-mono" style={{ fontSize: "22px", fontWeight: 700, color: "#fff" }}>{totalStr}</span>
+            <span className="jme-mono" style={{ fontSize: "22px", fontWeight: 700, color: "var(--canvas)" }}>{totalStr}</span>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             <button className="jme-btn jme-btn--sm" onClick={() => app.saveQuote()} style={{ flex: 1 }}>Save</button>
@@ -673,7 +673,7 @@ export function BuilderView({ app }: { app: QcApp }) {
         tabIndex={0}
         role="region"
         aria-label="Quote preview"
-        style={{ background: "#33312e", overflow: "auto", height: "100vh" }}
+        style={{ background: "var(--qc-backdrop)", overflow: "auto", height: "100vh" }}
       >
         <div style={{ minHeight: "100%", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: "26px 18px 60px" }}>
           <div id="builderPreviewStage" ref={stageRef} style={{ width: "790px", flex: "none" }}>

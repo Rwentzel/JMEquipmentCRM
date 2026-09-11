@@ -1225,7 +1225,7 @@ function ScrollToTop() {
 }
 
 /* --------------------------------------------------------------- Tweaks --- */
-const ACCENTS: Record<string, string> = { Maroon: "#A8353A", Steel: "#3B5566", Graphite: "#3A3A3E" };
+const ACCENTS: Record<string, string> = { Maroon: "var(--accent-maroon)", Steel: "var(--accent-steel)", Graphite: "var(--accent-graphite)" };
 interface Tw {
   accent: string;
   density: string;
@@ -1293,7 +1293,7 @@ export default function StorefrontPage() {
     rawReorder && /^RFQ-[A-Za-z0-9]{8}$/.test(rawReorder.trim()) ? rawReorder.trim().toUpperCase() : null;
   const { message, show } = useToast();
   const [twOpen, setTwOpen] = useState(false);
-  const [tw, setTw] = useState<Tw>({ accent: "#A8353A", density: "Comfortable", stats: "Show" });
+  const [tw, setTw] = useState<Tw>({ accent: ACCENTS.Maroon, density: "Comfortable", stats: "Show" });
   const [contact, setContactRaw] = useState<ContactForm>({
     company: "",
     name: "",
@@ -1364,7 +1364,7 @@ export default function StorefrontPage() {
 
   useEffect(() => {
     const r = document.documentElement.style;
-    if (tw.accent !== "#A8353A") r.setProperty("--jme-red", tw.accent);
+    if (tw.accent !== ACCENTS.Maroon) r.setProperty("--jme-red", tw.accent);
     else r.removeProperty("--jme-red");
     document.body.dataset.density = tw.density;
   }, [tw]);

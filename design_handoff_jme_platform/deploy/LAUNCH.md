@@ -25,7 +25,7 @@
 - [ ] `wrangler secret put RFQ_TO` → parts@jmequipment.net
 - [ ] `wrangler secret put RFQ_FROM` → noreply@jmequipment.net
 - [ ] `wrangler secret put RESEND_KEY` → [Resend API key]
-- [ ] `wrangler secret put ALLOW_ORIGIN` → https://jmequipment.net
+- [ ] `wrangler secret put ALLOW_ORIGIN` → https://jmequipment.net,https://<track-a-host> (comma-separated: one Worker serves both tracks)
 - [ ] Deploy: `wrangler deploy`
 - [ ] Smoke test: POST /api/rfq with valid/invalid/honeypot payloads
 - [ ] Smoke test each request_type: parts-rfq, manual-request, service-request, fitment-check, epc-lookup, sales-inquiry (missing-field payloads must 422 with per-type details)

@@ -63,11 +63,11 @@ export function DashView({ app }: { app: QcApp }) {
 
   return (
     <div style={{ padding: "34px 40px" }} data-screen-label="Dashboard">
-      <div style={{ background: "var(--jme-charcoal)", color: "#fff", borderRadius: "var(--r-2)", padding: "30px 34px", marginBottom: "20px", boxShadow: "var(--sh-card)" }}>
+      <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", borderRadius: "var(--r-2)", padding: "30px 34px", marginBottom: "20px", boxShadow: "var(--sh-card)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "30px", flexWrap: "wrap" }}>
           <div style={{ maxWidth: "600px" }}>
             <div className="jme-eyebrow" style={{ color: "var(--jme-red-bright)" }}>JM Equipment · Quote Center</div>
-            <h2 className="jme-h2" style={{ color: "#fff", fontSize: "40px", margin: "13px 0 0" }}>Built here. Quoted here.</h2>
+            <h2 className="jme-h2" style={{ color: "var(--canvas)", fontSize: "40px", margin: "13px 0 0" }}>Built here. Quoted here.</h2>
             <p style={{ fontSize: "14.5px", color: "var(--paper-dim)", lineHeight: 1.6, margin: "11px 0 0" }}>
               Configure, send, and track firm written quotations for the full converting line — dual rotary sheeters, Martin rollstands, the JME-VCS core splitter, and the 24/7 parts desk. One floor in Sturgis, Michigan.
             </p>
@@ -76,21 +76,21 @@ export function DashView({ app }: { app: QcApp }) {
               <button className="jme-btn jme-btn--ghost jme-btn--sm jme-btn--on-dark" onClick={() => app.go("equipment")}>Browse Equipment</button>
             </div>
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", border: "1px solid #3a3835", borderRadius: "var(--r-1)", overflow: "hidden", flex: "0 1 auto" }}>
-            <div style={{ textAlign: "center", padding: "15px 22px", borderRight: "1px solid #3a3835" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "#fff", lineHeight: 1 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", border: "1px solid var(--qc-line)", borderRadius: "var(--r-1)", overflow: "hidden", flex: "0 1 auto" }}>
+            <div style={{ textAlign: "center", padding: "15px 22px", borderRight: "1px solid var(--qc-line)" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "var(--canvas)", lineHeight: 1 }}>
                 37<span style={{ fontSize: "15px", color: "var(--jme-red-bright)" }}> yr</span>
               </div>
               <div style={{ fontSize: "8.5px", letterSpacing: ".16em", textTransform: "uppercase", color: "var(--paper-dim)", marginTop: "7px" }}>Since 1989</div>
             </div>
-            <div style={{ textAlign: "center", padding: "15px 22px", borderRight: "1px solid #3a3835" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "#fff", lineHeight: 1 }}>
+            <div style={{ textAlign: "center", padding: "15px 22px", borderRight: "1px solid var(--qc-line)" }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "var(--canvas)", lineHeight: 1 }}>
                 3<span style={{ fontSize: "19px", color: "var(--jme-red-bright)" }}>×</span>
               </div>
               <div style={{ fontSize: "8.5px", letterSpacing: ".16em", textTransform: "uppercase", color: "var(--paper-dim)", marginTop: "7px" }}>Cores / pallet</div>
             </div>
             <div style={{ textAlign: "center", padding: "15px 22px" }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "#fff", lineHeight: 1 }}>24/7</div>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: "30px", fontWeight: 800, color: "var(--canvas)", lineHeight: 1 }}>24/7</div>
               <div style={{ fontSize: "8.5px", letterSpacing: ".16em", textTransform: "uppercase", color: "var(--paper-dim)", marginTop: "7px" }}>Parts desk</div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export function DashView({ app }: { app: QcApp }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: "14px", marginBottom: "20px" }}>
         {stats.map((s) => (
-          <div key={s.label} style={{ background: "#fff", border: "1px solid var(--hairline)", borderTop: "3px solid var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "19px 22px", boxShadow: "var(--sh-raise)" }}>
+          <div key={s.label} style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderTop: "3px solid var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "19px 22px", boxShadow: "var(--sh-raise)" }}>
             <span style={{ display: "flex", alignItems: "center", fontSize: "10px", fontWeight: 700, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--muted)" }}>
               <span className="jme-diamond-bullet"></span>
               {s.label}
@@ -112,7 +112,7 @@ export function DashView({ app }: { app: QcApp }) {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1.55fr 1fr", gap: "16px", alignItems: "start" }}>
-        <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
+        <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "18px 22px", borderBottom: "1px solid var(--hairline)" }}>
             <h3 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Recent Quotes</h3>
             <a onClick={() => app.go("pipeline")} style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "12px", letterSpacing: ".06em", color: "var(--jme-red)", cursor: "pointer" }}>View Pipeline →</a>
@@ -134,7 +134,7 @@ export function DashView({ app }: { app: QcApp }) {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-          <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
+          <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
               <h3 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "16px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Follow-ups</h3>
               <span className="jme-mono" style={{ fontSize: "11px", color: "var(--muted)" }}>{fu.length}</span>
@@ -152,7 +152,7 @@ export function DashView({ app }: { app: QcApp }) {
               {fu.length === 0 && <div style={{ padding: "22px 20px", textAlign: "center", color: "var(--subtle)", fontSize: "13px" }}>No follow-ups due. Pipeline is current.</div>}
             </div>
           </div>
-          <div style={{ background: "var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "20px 22px", color: "#fff" }}>
+          <div style={{ background: "var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "20px 22px", color: "var(--canvas)" }}>
             <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "14px", letterSpacing: ".08em", color: "var(--paper-dim)", marginBottom: "14px" }}>Quick Start</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "9px" }}>
               <button className="jme-btn jme-btn--sm jme-btn--block" onClick={() => app.startQuote()}>New Equipment Quote</button>

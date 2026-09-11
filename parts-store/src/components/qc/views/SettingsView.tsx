@@ -14,7 +14,7 @@ import type { QcSettings } from "@/lib/qc/types";
 import { NumberInput } from "@/components/NumberInput";
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--canvas)",
   border: "1px solid var(--hairline)",
   borderRadius: "var(--r-2)",
   boxShadow: "var(--sh-raise)",

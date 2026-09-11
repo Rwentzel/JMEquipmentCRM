@@ -28,7 +28,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
       className="on-light"
       style={{ maxWidth: "790px", margin: "0 auto", background: "var(--canvas)", boxShadow: "var(--sh-doc)", color: "var(--ink-text)", fontFamily: "var(--font-body)" }}
     >
-      <div style={{ background: "var(--jme-charcoal)", color: "#fff", padding: "22px 38px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
+      <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", padding: "22px 38px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "44px", height: "auto", display: "block" }} />
@@ -39,7 +39,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ fontSize: "10px", letterSpacing: ".22em", textTransform: "uppercase", color: "var(--paper-dim)" }}>Quotation</div>
-          <div className="jme-mono" style={{ fontSize: "21px", color: "#fff", letterSpacing: ".05em", marginTop: "3px" }}>{doc.number}</div>
+          <div className="jme-mono" style={{ fontSize: "21px", color: "var(--canvas)", letterSpacing: ".05em", marginTop: "3px" }}>{doc.number}</div>
         </div>
       </div>
 
@@ -52,12 +52,12 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
         <div style={{ fontSize: "14px", color: "var(--muted)", letterSpacing: ".01em" }}>{doc.machineSubtitle} · {doc.sku}</div>
 
         {doc.hasPhoto && (
-          <div style={{ margin: "24px 0 8px", height: "270px", display: "grid", placeItems: "center", background: "#fbfbfa", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)", overflow: "hidden" }}>
+          <div style={{ margin: "24px 0 8px", height: "270px", display: "grid", placeItems: "center", background: "var(--canvas-wash)", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)", overflow: "hidden" }}>
             <div style={photoStyle(doc.photo)}></div>
           </div>
         )}
         {!doc.hasPhoto && (
-          <div style={{ margin: "24px 0 8px", height: "200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", background: "#fbfbfa", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)" }}>
+          <div style={{ margin: "24px 0 8px", height: "200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", background: "var(--canvas-wash)", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "74px", opacity: 0.5, display: "block" }} />
             <span style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "11px", letterSpacing: ".2em", color: "var(--subtle)" }}>Photography available on request</span>
@@ -153,7 +153,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
         </div>
         {doc.roi.show && (
           <>
-            <div style={{ margin: "6px 0 14px", background: "#fbfbfa", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)", padding: "14px 16px", display: "flex", alignItems: "center", gap: "18px", breakInside: "avoid" }}>
+            <div style={{ margin: "6px 0 14px", background: "var(--canvas-wash)", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)", padding: "14px 16px", display: "flex", alignItems: "center", gap: "18px", breakInside: "avoid" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/images/pallet-before-after.png" alt="Core densification — 3x cores per pallet" style={{ height: "118px", maxWidth: "52%", objectFit: "contain", display: "block" }} />
               <div>
@@ -161,12 +161,12 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
                 <p style={{ fontSize: "12.5px", color: "var(--muted)", lineHeight: 1.55, margin: "7px 0 0" }}>The JME-VCS densifies spent cores so one pallet ships what used to take three — cutting freight and disposal on every load.</p>
               </div>
             </div>
-            <div style={{ background: "var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "22px 26px", color: "#fff", margin: "6px 0 20px", breakInside: "avoid" }}>
+            <div style={{ background: "var(--jme-charcoal)", borderRadius: "var(--r-2)", padding: "22px 26px", color: "var(--canvas)", margin: "6px 0 20px", breakInside: "avoid" }}>
               <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "13px", letterSpacing: ".1em", color: "var(--paper-dim)", marginBottom: "16px" }}>{doc.roi.head}</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "20px" }}>
-                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "#fff", display: "block", lineHeight: 1 }}>{doc.roi.annual}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>Est. Annual Savings</span></div>
-                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "#fff", display: "block", lineHeight: 1 }}>{doc.roi.payback}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>Payback Period</span></div>
-                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "#fff", display: "block", lineHeight: 1 }}>{doc.roi.net5}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>5-Year Net</span></div>
+                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "var(--canvas)", display: "block", lineHeight: 1 }}>{doc.roi.annual}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>Est. Annual Savings</span></div>
+                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "var(--canvas)", display: "block", lineHeight: 1 }}>{doc.roi.payback}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>Payback Period</span></div>
+                <div><b className="jme-mono" style={{ fontSize: "30px", fontWeight: 800, color: "var(--canvas)", display: "block", lineHeight: 1 }}>{doc.roi.net5}</b><span style={{ fontSize: "10px", letterSpacing: ".15em", textTransform: "uppercase", color: "var(--jme-red-bright)", display: "block", marginTop: "8px" }}>5-Year Net</span></div>
               </div>
             </div>
           </>
@@ -220,7 +220,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
             )}
           </div>
         </div>
-        <div style={{ background: "var(--jme-charcoal)", color: "#fff", borderRadius: "var(--r-1)", marginTop: "28px", padding: "18px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
+        <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", borderRadius: "var(--r-1)", marginTop: "28px", padding: "18px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "30px", display: "block" }} />

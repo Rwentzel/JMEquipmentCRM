@@ -66,7 +66,7 @@ export function ClientsView({ app }: { app: QcApp }) {
               onClick={() => app.selectClient(c.id)}
               style={{
                 textAlign: "left",
-                background: "#fff",
+                background: "var(--canvas)",
                 border: "1px solid " + c.borderColor,
                 borderRadius: "var(--r-2)",
                 boxShadow: "var(--sh-raise)",
@@ -89,8 +89,8 @@ export function ClientsView({ app }: { app: QcApp }) {
           ))}
         </div>
         {selC && (
-          <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
-            <div style={{ background: "var(--jme-charcoal)", color: "#fff", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
+            <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <div className="jme-eyebrow" style={{ color: "var(--jme-red-bright)" }}>Client Record</div>
                 <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "24px", letterSpacing: ".03em", marginTop: "8px" }}>{selC.company}</div>
@@ -99,7 +99,7 @@ export function ClientsView({ app }: { app: QcApp }) {
                 onClick={() => app.deleteClient(selC.id)}
                 style={{
                   background: "none",
-                  border: "1px solid #4a3537",
+                  border: "1px solid var(--qc-red-line)",
                   color: "var(--paper-dim)",
                   borderRadius: "var(--r-1)",
                   cursor: "pointer",
@@ -168,7 +168,7 @@ export function ClientsView({ app }: { app: QcApp }) {
           </div>
         )}
         {!selC && (
-          <div style={{ background: "#fff", border: "1px dashed var(--hairline-2)", borderRadius: "var(--r-2)", padding: "50px", textAlign: "center", color: "var(--subtle)", fontSize: "14px" }}>
+          <div style={{ background: "var(--canvas)", border: "1px dashed var(--hairline-2)", borderRadius: "var(--r-2)", padding: "50px", textAlign: "center", color: "var(--subtle)", fontSize: "14px" }}>
             Select a client to view details and their quotes.
           </div>
         )}
