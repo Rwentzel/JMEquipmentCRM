@@ -3,7 +3,7 @@
 ## Prerequisites (Gate E1)
 
 - [ ] Stage A regression tests pass (idempotence, NAME_FIX applied, HOLD SKUs present and flagged Quote Required)
-- [ ] Worker smoke tests pass (422/200/429/honeypot paths)
+- [ ] Worker smoke tests pass (422/200/429/honeypot paths) — `parts-store/tests/rfqWorker.test.ts` drives the Worker module in-process on every CI run (all six request types, CORS list, Resend failure); re-run against the deployed URL after `wrangler deploy`
 - [ ] All Stage C gates pass (zero-console-error, axe, FiboSearch, RFQ flow)
 - [ ] Fuzz harness clean on portal v2 (3+ seeds × 140 steps)
 - [ ] Riley sign-off recorded
@@ -25,7 +25,7 @@
 - [ ] `wrangler secret put RFQ_TO` → parts@jmequipment.net
 - [ ] `wrangler secret put RFQ_FROM` → noreply@jmequipment.net
 - [ ] `wrangler secret put RESEND_KEY` → [Resend API key]
-- [ ] `wrangler secret put ALLOW_ORIGIN` → https://jmequipment.net
+- [ ] `wrangler secret put ALLOW_ORIGIN` → https://jmequipment.net,https://parts.jmequipment.net (comma-separated: one Worker serves both tracks)
 - [ ] Deploy: `wrangler deploy`
 - [ ] Smoke test: POST /api/rfq with valid/invalid/honeypot payloads
 - [ ] Smoke test each request_type: parts-rfq, manual-request, service-request, fitment-check, epc-lookup, sales-inquiry (missing-field payloads must 422 with per-type details)

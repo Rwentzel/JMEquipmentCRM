@@ -12,7 +12,7 @@ import { cashTotal, stageProb, statusMeta, usd, weightedTotal } from "@/lib/qc/l
 import type { QcStatus } from "@/lib/qc/types";
 
 const card: React.CSSProperties = {
-  background: "#fff",
+  background: "var(--canvas)",
   border: "1px solid var(--hairline)",
   borderRadius: "var(--r-2)",
   boxShadow: "var(--sh-raise)",

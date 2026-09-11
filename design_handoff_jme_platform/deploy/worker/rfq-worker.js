@@ -7,7 +7,9 @@
  *   RFQ_TO: parts@jmequipment.net
  *   RFQ_FROM: noreply@jmequipment.net
  *   RESEND_KEY: your Resend API key
- *   ALLOW_ORIGIN: https://jmequipment.net (CORS whitelist)
+ *   ALLOW_ORIGIN: https://jmequipment.net,https://parts.jmequipment.net (CORS whitelist;
+ *                 comma-separated, one entry per host — one Worker serves both
+ *                 tracks. The first entry is the default for unknown origins.)
  *
  * Bindings required:
  *   RATE_LIMIT_KV (KV namespace)
@@ -138,15 +140,23 @@ const formatEmail = (refID, typeKey, data) => {
   return lines.join('\n');
 };
 
+// ALLOW_ORIGIN may list several hosts, comma-separated; the request's Origin
+// is echoed back only when it is one of them, else the first entry is sent.
+const allowOriginFor = (origin, configured) => {
+  const list = String(configured || 'https://jmequipment.net').split(',').map((s) => s.trim()).filter(Boolean);
+  return list.includes(origin) ? origin : list[0];
+};
+
 const cors = (origin, allowedOrigin) => ({
   'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': origin === allowedOrigin ? origin : allowedOrigin
+  'Access-Control-Allow-Origin': origin === allowedOrigin ? origin : allowedOrigin,
+  'Vary': 'Origin'
 });
 
 export default {
   async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin');
-    const allowedOrigin = env.ALLOW_ORIGIN || 'https://jmequipment.net';
+    const allowedOrigin = allowOriginFor(origin, env.ALLOW_ORIGIN);
     const headers = cors(origin, allowedOrigin);
 
     if (request.method === 'OPTIONS') {
@@ -154,6 +164,7 @@ export default {
         status: 204,
         headers: {
           'Access-Control-Allow-Origin': origin === allowedOrigin ? origin : allowedOrigin,
+          'Vary': 'Origin',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',
           'Access-Control-Max-Age': '86400'

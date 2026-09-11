@@ -31,14 +31,14 @@ const NAV_GROUPS: { label: string; items: { n: string; label: string; id: QcView
 ];
 
 const SHELL_CSS = `
-.qc-nav-it{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;font-family:var(--font-display);text-transform:uppercase;font-size:15px;font-weight:600;letter-spacing:.04em;color:#b0b0b6;padding:9px 10px;border-radius:var(--r-1);cursor:pointer;margin-bottom:1px;}
-.qc-nav-it:hover{background:#1c1c20;color:#fff;}
-.qc-nav-it.on{background:var(--jme-red);color:#fff;}
-.qc-nav-it.on:hover{background:var(--jme-red);color:#fff;}
-.qc-nav-num{font-family:var(--font-mono);font-size:10px;color:#5c5c61;letter-spacing:0;flex:none;min-width:16px;}
+.qc-nav-it{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;font-family:var(--font-display);text-transform:uppercase;font-size:15px;font-weight:600;letter-spacing:.04em;color:var(--qc-side-nav);padding:9px 10px;border-radius:var(--r-1);cursor:pointer;margin-bottom:1px;}
+.qc-nav-it:hover{background:var(--qc-side-well);color:var(--canvas);}
+.qc-nav-it.on{background:var(--jme-red);color:var(--canvas);}
+.qc-nav-it.on:hover{background:var(--jme-red);color:var(--canvas);}
+.qc-nav-num{font-family:var(--font-mono);font-size:10px;color:var(--qc-side-faint);letter-spacing:0;flex:none;min-width:16px;}
 .qc-nav-it.on .qc-nav-num{color:rgba(255,255,255,.7);}
-.qc-search-trigger:hover{border-color:#3a3a40 !important;color:#c8c8cc !important;}
-.qc-sort-head:hover{color:#fff !important;}
+.qc-search-trigger:hover{border-color:var(--qc-side-line-3) !important;color:var(--qc-side-text) !important;}
+.qc-sort-head:hover{color:var(--canvas) !important;}
 `;
 
 function LossModal({ app }: { app: QcApp }) {
@@ -56,7 +56,7 @@ function LossModal({ app }: { app: QcApp }) {
         className="on-light"
         style={{ background: "var(--canvas)", borderRadius: "var(--r-2)", maxWidth: "440px", width: "100%", boxShadow: "var(--sh-doc)", overflow: "hidden" }}
       >
-        <div style={{ background: "var(--jme-charcoal)", color: "#fff", padding: "18px 24px" }}>
+        <div style={{ background: "var(--jme-charcoal)", color: "var(--canvas)", padding: "18px 24px" }}>
           <div className="jme-eyebrow" style={{ color: "var(--jme-red-bright)" }}>Mark Quote Lost</div>
           <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "22px", letterSpacing: ".04em", marginTop: "8px" }}>{lossNumber}</div>
         </div>
@@ -103,23 +103,23 @@ export function QuoteCenterApp({
           className="qc-sidebar"
           style={{
             background: "var(--ink-2)",
-            color: "#c8c8cc",
+            color: "var(--qc-side-text)",
             padding: "22px 16px",
             position: "sticky",
             top: 0,
             height: "100vh",
             display: "flex",
             flexDirection: "column",
-            borderRight: "1px solid #000",
+            borderRight: "1px solid var(--black)",
             overflow: "auto",
           }}
         >
-          <div className="qc-brand" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "2px 8px 20px", borderBottom: "1px solid #2a2a2e", marginBottom: "18px" }}>
+          <div className="qc-brand" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "2px 8px 20px", borderBottom: "1px solid var(--qc-side-line)", marginBottom: "18px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "34px", height: "auto", display: "block" }} />
             <div>
-              <b style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".05em", color: "#fff", display: "block", lineHeight: 1 }}>JM Equipment</b>
-              <small style={{ fontSize: "8px", letterSpacing: ".24em", textTransform: "uppercase", color: "#7d7d82", display: "block", marginTop: "4px" }}>Quote Center</small>
+              <b style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".05em", color: "var(--canvas)", display: "block", lineHeight: 1 }}>JM Equipment</b>
+              <small style={{ fontSize: "8px", letterSpacing: ".24em", textTransform: "uppercase", color: "var(--qc-side-dim)", display: "block", marginTop: "4px" }}>Quote Center</small>
             </div>
           </div>
           <button
@@ -130,10 +130,10 @@ export function QuoteCenterApp({
               alignItems: "center",
               gap: "9px",
               width: "100%",
-              background: "#1c1c20",
-              border: "1px solid #2a2a2e",
+              background: "var(--qc-side-well)",
+              border: "1px solid var(--qc-side-line)",
               borderRadius: "var(--r-1)",
-              color: "#8a8a90",
+              color: "var(--qc-side-muted)",
               padding: "9px 11px",
               cursor: "pointer",
               marginBottom: "18px",
@@ -145,11 +145,11 @@ export function QuoteCenterApp({
               <path d="m20 20-3.2-3.2"></path>
             </svg>
             <span style={{ flex: 1, fontSize: "13px", letterSpacing: ".01em" }}>Search…</span>
-            <span className="jme-mono" style={{ fontSize: "9px", letterSpacing: ".06em", color: "#5c5c61", border: "1px solid #33333a", borderRadius: "3px", padding: "2px 5px" }}>⌘K</span>
+            <span className="jme-mono" style={{ fontSize: "9px", letterSpacing: ".06em", color: "var(--qc-side-faint)", border: "1px solid var(--qc-side-line-2)", borderRadius: "3px", padding: "2px 5px" }}>⌘K</span>
           </button>
           {NAV_GROUPS.map((g) => (
             <div key={g.label} className="qc-navgroup" style={{ marginBottom: "16px" }}>
-              <div className="qc-navgroup-label" style={{ fontSize: "9px", fontWeight: 700, letterSpacing: ".22em", textTransform: "uppercase", color: "#5c5c61", padding: "0 8px 8px" }}>{g.label}</div>
+              <div className="qc-navgroup-label" style={{ fontSize: "9px", fontWeight: 700, letterSpacing: ".22em", textTransform: "uppercase", color: "var(--qc-side-faint)", padding: "0 8px 8px" }}>{g.label}</div>
               {g.items.map((it) => (
                 <button
                   key={it.id}
@@ -165,11 +165,11 @@ export function QuoteCenterApp({
               ))}
             </div>
           ))}
-          <div className="qc-sidefoot" style={{ marginTop: "auto", padding: "14px 8px 0", borderTop: "1px solid #2a2a2e", display: "flex", flexDirection: "column", gap: "4px" }}>
+          <div className="qc-sidefoot" style={{ marginTop: "auto", padding: "14px 8px 0", borderTop: "1px solid var(--qc-side-line)", display: "flex", flexDirection: "column", gap: "4px" }}>
             <button onClick={() => app.startQuote()} className="jme-btn jme-btn--sm jme-btn--block" style={{ marginBottom: "8px" }}>+ New Quote</button>
-            <div style={{ fontSize: "8.5px", letterSpacing: ".14em", textTransform: "uppercase", color: "#7d7d82", lineHeight: 1.5, marginBottom: "3px" }}>Converting Machinery Solutions</div>
+            <div style={{ fontSize: "8.5px", letterSpacing: ".14em", textTransform: "uppercase", color: "var(--qc-side-dim)", lineHeight: 1.5, marginBottom: "3px" }}>Converting Machinery Solutions</div>
             <span className="jme-mono" style={{ fontSize: "9.5px", color: "var(--jme-gold)", letterSpacing: ".08em" }}>Sturgis, MI · Est. 1989</span>
-            <span style={{ fontSize: "9.5px", color: "#838389", letterSpacing: ".04em" }}>(269) 659-0093 · sales@jmequipment.net</span>
+            <span style={{ fontSize: "9.5px", color: "var(--qc-side-muted-2)", letterSpacing: ".04em" }}>(269) 659-0093 · sales@jmequipment.net</span>
           </div>
         </nav>
 

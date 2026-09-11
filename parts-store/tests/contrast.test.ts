@@ -168,13 +168,15 @@ test("Quote Center status badges meet AA on the pipeline's white rows", () => {
 });
 
 test("the nav rail's 9-10px labels meet AA on the near-black rail", () => {
-  const railText = "#838389";
+  const railText = token(tokens, "qc-side-muted-2");
+  assert.equal(railText, "#838389", "the rail text token lost its corrected colour");
   assert.ok(contrast(railText, token(tokens, "ink-2")) >= AA_NORMAL);
   // The rail footer's phone number is set at the element; same colour, and the
-  // one line on that screen someone reads in order to dial it.
+  // one line on that screen someone reads in order to dial it. Markup carries
+  // the token, never the hex (tests/noHexInMarkup.test.ts).
   assert.match(qc, /\.qc-sidefoot span \{ color: #838389; \}/);
   assert.ok(
-    readFileSync(path.join(STYLES, "..", "components", "qc", "QuoteCenterApp.tsx"), "utf8").includes("#838389"),
+    readFileSync(path.join(STYLES, "..", "components", "qc", "QuoteCenterApp.tsx"), "utf8").includes("var(--qc-side-muted-2)"),
     "the rail footer's contact line lost its corrected colour",
   );
 });

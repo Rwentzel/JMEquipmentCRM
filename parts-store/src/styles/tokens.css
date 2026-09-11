@@ -54,6 +54,30 @@
   --hairline: #e5e5e8;
   --hairline-2: #d9d6cf;
 
+  /* ---- Absolutes ---- */
+  --black: #000000;
+  --canvas-wash: #fbfbfa;
+
+  /* ---- Quote Center chrome (staff sidebar, preview backdrop) ---- */
+  --qc-backdrop: #33312e;
+  --qc-line: #3a3835;
+  --qc-red-line: #4a3537;
+  --qc-side-line: #2a2a2e;
+  --qc-side-line-2: #33333a;
+  --qc-side-line-3: #3a3a40;
+  --qc-side-well: #1c1c20;
+  --qc-side-text: #c8c8cc;
+  --qc-side-nav: #b0b0b6;
+  --qc-side-muted: #8a8a90;
+  --qc-side-muted-2: #838389;
+  --qc-side-dim: #7d7d82;
+  --qc-side-faint: #5c5c61;
+
+  /* ---- Storefront theme-tweaker accents ---- */
+  --accent-maroon: #a8353a;
+  --accent-steel: #3b5566;
+  --accent-graphite: #3a3a3e;
+
   /* ---- Text on dark ---- */
   --ink-text: #0f0f12;
   --muted: #6b6b72;

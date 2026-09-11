@@ -107,8 +107,18 @@ wrangler secret put RESEND_KEY
 # Paste: [your Resend API key]
 
 wrangler secret put ALLOW_ORIGIN
-# Paste: https://jmequipment.net
+# Paste: https://jmequipment.net,https://parts.jmequipment.net
+# (comma-separated, one entry per host: the Worker serves both tracks and
+#  echoes the request's Origin only when it is on this list)
 ```
+
+Before deploying, the same handler is exercised in-process by
+`parts-store/tests/rfqWorker.test.ts` (part of `npm test` and CI): 405/400,
+422 with per-type details for all six `request_type`s, honeypot, 429 on the
+eleventh request in the hour, 200 with an `RFQ-`/`REQ-` reference and one
+Resend call, 500 when Resend fails, and the comma-separated `ALLOW_ORIGIN`
+list. Deploy only when it is green; then repeat the smoke against the live URL.
+
 
 ### B2. Deploy
 
@@ -295,10 +305,14 @@ python3 export_woocommerce.py --catalog ... --output v1.csv
 python3 export_woocommerce.py --catalog ... --output v2.csv
 cmp v1.csv v2.csv
 # Should exit 0 (files identical)
+# (A1-alt: tests/woocommerceExport.test.ts asserts the same for the
+#  catalogue-driven export on every npm test run.)
 
-# Fuzz harness on JME Client Portal v2
-npm run fuzz:portal --seeds=3 --steps=140
-# Expected: clean exit, no crash
+# Fuzz harness (in parts-store; the app's counterpart of the portal walk —
+# seeded random interactions over every customer and staff surface, failing
+# on any page or console error; CI runs it on every push)
+OPS_TOKEN=<token> npm run fuzz -- http://127.0.0.1:3000 --seeds=3 --steps=140
+# Expected: clean exit, no crash. Replay a seed with --seed=<n> --seeds=1.
 
 # Worker smoke test (from Stage B3)
 # All tests pass

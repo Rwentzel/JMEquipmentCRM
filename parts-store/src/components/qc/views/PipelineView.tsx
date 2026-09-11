@@ -22,8 +22,8 @@ const chipStyle = (active: boolean): React.CSSProperties => ({
   borderRadius: "var(--r-1)",
   cursor: "pointer",
   border: "1px solid " + (active ? "var(--jme-red)" : "var(--hairline-2)"),
-  background: active ? "var(--jme-red)" : "#fff",
-  color: active ? "#fff" : "var(--muted)",
+  background: active ? "var(--jme-red)" : "var(--canvas)",
+  color: active ? "var(--canvas)" : "var(--muted)",
   display: "inline-flex",
   alignItems: "center",
   gap: "7px",
@@ -37,7 +37,7 @@ const pipeHeadStyle = (align: string, sortable: boolean, active: boolean): React
   justifyContent: align === "right" ? "flex-end" : "flex-start",
   cursor: sortable ? "pointer" : "default",
   userSelect: "none",
-  color: active ? "#fff" : "rgba(255,255,255,.66)",
+  color: active ? "var(--canvas)" : "rgba(255,255,255,.66)",
 });
 
 const actBtnStyle: React.CSSProperties = {
@@ -160,7 +160,7 @@ export function PipelineView({ app }: { app: QcApp }) {
           </button>
         ))}
       </div>
-      <div style={{ background: "#fff", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
+      <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
         {/* Actions column is 264px (not the design's 194px) because this port adds a
             fifth action, Delete — at 194px the row overflowed under the status select. */}
         <div className="jq-tbl scroll" style={{ "--minw": "930px", "--cols": "104px minmax(0,1fr) minmax(0,0.9fr) 90px 80px 110px 264px" } as React.CSSProperties}>

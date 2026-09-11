@@ -30,18 +30,18 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 
 ### 3. Public / internal data separation
 - ✅ Only public fields modeled and rendered
-- ⬜ Document the public-field allowlist as policy; enforce in code review
+- ✅ Public-field allowlist documented as policy in `DATA_BOUNDARIES.md`; enforced in CI, not just review — `verify:bundles` (client bundles), `scan:artifacts` (every rendered customer page), the Track B `test_regression.py` gates on the WooCommerce CSV, and the maintenance agent's data-boundary sweep over every catalog record
 
 ### 4. Vendor / cost / margin protection
 - ✅ None present in repo
 - 🔒 Confirm no internal export feeds the web build pipeline
 
 ### 5. SKU / title / category cleanup
-- ⬜ Normalize SKU formatting; ⬜ dedupe; ⬜ finalize category taxonomy (5 demo categories today)
+- ✅ SKUs normalized to the `JME-XXX-NNNN` web-reference scheme and unique (maintenance agent: 2,232 unique across parts and machines); ✅ deduped; ✅ taxonomy: 2,223 parts across 10 categories with machine › subsystem paths (`Machinery › Goodstrong / Martin / JME › category` in the Track B export); 🟡 JM to spot-check category placements as orders come in
 
 ### 6. Image readiness
 - 🟡 Branded placeholder in place; ⬜ approved product photography pipeline (no stock/unapproved images)
-- ⬜ Alt-text policy for every product image
+- ✅ Alt-text policy: every image carries `alt` — product and machine photos name the machine and the view (`SmartImg`), the brand mark names the company, purely decorative art is `alt=""` — and the axe `image-alt` rule across all 27 audited page states fails CI on any exception
 
 ### 7. Pricing policy
 - ✅ **RFQ-first: no public prices** (supersedes the budgetary-price build)
@@ -99,9 +99,15 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ✅ Contrast decisions locked by `tests/contrast.test.ts` — token-level WCAG
   maths in the normal test run (no browser), so a palette edit that pushes body
   text back under 4.5:1 fails CI with the exact pair and ratio named
-- ✅ **WCAG 2.1 AA audit passing** — axe-core over a real browser, 13 page states
-  (8 routes + mobile + assistant widget, category rail, mobile nav, populated
-  request list): **0 violations**. Reproduce with `node scripts/a11y-audit.mjs`.
+- ✅ **WCAG 2.1 AA audit passing** — axe-core over a real browser, 27 page states
+  (every customer route + mobile + assistant widget, category rail, mobile nav,
+  populated request list, `/ops` and the Quote Center screens, and the
+  customer's quote share link the audit mints for itself): **0 violations**.
+  The same run measures every tap target on the 11 customer routes in a phone
+  touch context and fails under 44 px (`styles/touch.css` delivers the size on
+  coarse pointers only, so the desktop reference proportions are untouched).
+  Reproduce with `OPS_TOKEN=<token> node scripts/a11y-audit.mjs`; CI runs it on
+  every push.
 - Contrast fixes made to reach it: an AA-safe `--jme-red-text` token for red type
   on dark surfaces (the fill-weight `--jme-red-bright` was 3.08:1 as body text),
   light-surface overrides for badges/eyebrows inside the paper-background parts
@@ -119,7 +125,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ⬜ Privacy-respecting analytics (none today); 🔒 choose vendor + consent posture
 
 ### 20. Backups
-- ⬜ Source data versioned in git (✅ for demo data)
+- ✅ Source data versioned in git: the full catalog (`src/data/catalog.ts`, 2,223 parts), machine details, manual data and the Track B allowlists all live in the repository; the private QuickBooks workbook stays off-repo by design (`DATA_BOUNDARIES.md`)
 - ✅ Backup/restore for the submissions store: `npm run backup` / `npm run restore`
   (verified archives, atomic writes, dry-run restore, pre-restore safety copy,
   14 unit tests incl. a full disaster drill). Runbook in LAUNCH.md §5.
@@ -163,4 +169,4 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
 - ✅ Accessibility baseline: skip link, focusable nav, mobile menu, ARIA, aria-live, reduced-motion
 - ✅ 404 (`not-found.tsx`) + loading (`loading.tsx`) states
 - ✅ `npm audit`: **0 vulnerabilities** (postcss override + brace-expansion patch); audit now gates CI on every push/PR (`--audit-level=moderate`)
-- ✅ Full WCAG 2.1 AA contrast audit — 0 violations across 13 page states (`scripts/a11y-audit.mjs`)
+- ✅ Full WCAG 2.1 AA contrast audit — 0 violations across 27 page states (`scripts/a11y-audit.mjs`)

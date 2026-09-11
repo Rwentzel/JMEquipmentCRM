@@ -1,0 +1,119 @@
+/* ------------------------------------------------------------------ Touch ---
+ * 44 px targets on coarse pointers (phones and tablets), the brief's floor.
+ *
+ * Scoped to (pointer: coarse) so the desktop layout keeps the reference
+ * proportions exactly: a 34 px "sm" button under a mouse stays 34 px. On a
+ * phone the same button grows to 44 px. Standalone text links keep their
+ * type size and position; their hit area is widened with a pseudo-element
+ * instead, so nothing in the layout moves.
+ *
+ * Inline links inside running text are exempt (WCAG 2.5.8 exempts them too)
+ * and the audit (scripts/a11y-audit.mjs) skips them the same way.
+ */
+@media (pointer: coarse) {
+  .jme-btn,
+  .jme-btn--sm,
+  .jme-btn--ghost,
+  .ps-cat__more .jme-btn {
+    min-height: 44px;
+  }
+
+  .jme-input,
+  .jme-select,
+  .ps-cat__search,
+  .ps-cat__sort,
+  .ps-cat__railtoggle,
+  .ps-cat__crumb button,
+  .ps-reorder__toggle {
+    min-height: 44px;
+  }
+
+  .ps-cat__stock {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .ps-nav__burger,
+  .sh__close,
+  .ps-rm,
+  .ps-stepper__btn,
+  .md-gallery__arr,
+  .ps-totop {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .ps-skip {
+    min-height: 44px;
+  }
+
+  /* Tabs and sub-navigation: the row grows, the type does not. */
+  .md-rail__tab,
+  .md-back,
+  .mp__else-link,
+  .ps-comparelink,
+  .cmp-name-link,
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* Footer link columns are stacked block links; keep them stacked. */
+  .ps-foot__grid a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .md-subnav__links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Standalone text links: same box on screen, a 44 px tall hit area.
+   * ::after, because the hero links draw their diamond with ::before. */
+  .ps-machine__link,
+  .ps-hero__links a,
+  .ps-split__cta,
+  .ps-desk__cta,
+  .sh__tile-v,
+  .sh__tile-btn,
+  .ps-link--gold,
+  .ps-skip:focus {
+    position: relative;
+  }
+
+  .ps-machine__link::after,
+  .ps-hero__links a::after,
+  .ps-split__cta::after,
+  .ps-desk__cta::after,
+  .sh__tile-v::after,
+  .sh__tile-btn::after,
+  .ps-link--gold::after,
+  .ps-skip:focus::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 44px;
+    transform: translateY(-50%);
+  }
+
+  /* Consent rows: the whole label is the target, and it is 44 px tall. */
+  .ps-check {
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .ps-check input {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+  }
+}

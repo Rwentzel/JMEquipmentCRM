@@ -141,8 +141,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {IS_PREVIEW && (
           <div
             style={{
-              background: "#b8920a",
-              color: "#141414",
+              background: "var(--jme-gold)",
+              color: "var(--ink)",
               textAlign: "center",
               fontWeight: 700,
               padding: "0.5rem 1rem",
