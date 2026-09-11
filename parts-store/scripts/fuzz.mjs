@@ -30,6 +30,7 @@ const MOBILE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile
 // Off-site hand-offs are not the app's to survive: mail, phone, downloads,
 // new tabs. Everything else on the page is fair game.
 const TARGETS = "a[href]:not([href^='mailto:']):not([href^='tel:']):not([target='_blank']):not([download]), button:not([disabled]), input:not([type=hidden]):not([disabled]), select:not([disabled]), textarea:not([disabled]), [role=button], [role=tab], summary";
+const FIELDS = "input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([disabled]), textarea:not([disabled])";
 const WORDS = ["blade", "1650", "SN-26218", "JME-VCS-BLD-001", "bearing", "", "<script>x</script>", "'; drop", "999999", "pat@example.test", "Ω≈ç√", "0", "-1", "Goodstrong"];
 
 function rng(seed) {
@@ -43,6 +44,32 @@ function rng(seed) {
   };
 }
 const pick = (r, list) => list[Math.floor(r() * list.length)];
+
+/**
+ * Pick one visible element matching `selector` in a single round trip: the
+ * page filters and chooses (with the harness's random draw), tags it
+ * data-fuzz, and returns its tag name — or null when nothing is visible.
+ * One evaluate instead of one isVisible() per candidate, which on the
+ * catalog page was a few hundred round trips per step.
+ */
+async function mark(page, selector, draw) {
+  return page.evaluate(
+    ([sel, d]) => {
+      document.querySelectorAll("[data-fuzz]").forEach((e) => e.removeAttribute("data-fuzz"));
+      const visible = [...document.querySelectorAll(sel)].filter((e) => {
+        const cs = getComputedStyle(e);
+        if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false;
+        const b = e.getBoundingClientRect();
+        return b.width > 0 && b.height > 0;
+      });
+      if (!visible.length) return null;
+      const el = visible[Math.floor(d * visible.length)];
+      el.setAttribute("data-fuzz", "1");
+      return el.tagName;
+    },
+    [selector, draw],
+  );
+}
 
 async function staffCookie() {
   const res = await fetch(`${BASE}/api/ops/session`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: OPS_TOKEN }) });
@@ -87,22 +114,17 @@ for (let seed = FIRST_SEED; seed < FIRST_SEED + SEEDS; seed++) {
         } else if (roll < 0.2) {
           await page.mouse.wheel(0, Math.round((r() - 0.3) * 1600));
         } else if (roll < 0.4) {
-          const fields = await page.$$("input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([disabled]), textarea:not([disabled])");
-          const visible = [];
-          for (const f of fields) if (await f.isVisible()) visible.push(f);
-          if (visible.length) {
-            const f = pick(r, visible);
+          if (await mark(page, FIELDS, r())) {
+            const f = page.locator("[data-fuzz]");
             await f.fill(pick(r, WORDS), { timeout: 1500 });
             if (r() < 0.3) await f.press("Enter", { timeout: 1500 });
           }
         } else {
-          const els = await page.$$(TARGETS);
-          const visible = [];
-          for (const el of els) if (await el.isVisible()) visible.push(el);
-          if (visible.length) {
-            const el = pick(r, visible);
-            if ((await el.evaluate((e) => e.tagName)) === "SELECT") {
-              const opts = await el.$$eval("option", (os) => os.map((o) => o.value));
+          const tag = await mark(page, TARGETS, r());
+          if (tag) {
+            const el = page.locator("[data-fuzz]");
+            if (tag === "SELECT") {
+              const opts = await el.locator("option").evaluateAll((os) => os.map((o) => o.value));
               if (opts.length) await el.selectOption(pick(r, opts), { timeout: 1500 });
             } else {
               await el.click({ timeout: 1500, force: r() < 0.2 });
