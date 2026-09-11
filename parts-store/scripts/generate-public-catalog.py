@@ -16,8 +16,10 @@ Usage:
 The web reference sequence is deterministic (sorted by family, category,
 part number), so re-running on the same export yields identical refs.
 """
-import json, re, csv, sys
+import json, re, csv, sys, os
 from collections import Counter
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from public_name_scrub import scrub_codes  # vendor / OEM codes never ship in a public name
 
 if len(sys.argv) != 3:
     sys.exit(__doc__)
@@ -93,6 +95,9 @@ def clean(desc):
     s = re.sub(r'\(\s*\)', '', s)                  # empty parens
     s = re.sub(r'\s+([,;.)])', r'\1', s)
     s = re.sub(r'\s{2,}', ' ', s).strip(' ,;-@')
+    # Vendor / OEM style codes inside the description (BTBA11002C5, 60235K59)
+    # are cross-references the web-reference scheme exists to keep private.
+    s = scrub_codes(s)
     if len(s) > 90:
         s = s[:87].rstrip(' ,;-') + '…'
     # drop any unmatched trailing '(' fragment left by scrubbing or truncation

@@ -31,3 +31,4 @@ yarn-error.log*
 private/
 crosswalk*.csv
 parts-data*.ts.private
+__pycache__/
