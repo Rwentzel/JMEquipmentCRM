@@ -31,7 +31,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
       <div style={{ background: "var(--jme-charcoal)", color: "#fff", padding: "22px 38px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "44px", height: "auto", display: "block" }} />
+          <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "44px", height: "auto", display: "block" }} />
           <div>
             <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "21px", letterSpacing: ".05em", lineHeight: 1, fontWeight: 700 }}>JM Equipment Inc.</div>
             <div style={{ fontSize: "8.5px", letterSpacing: ".26em", textTransform: "uppercase", color: "var(--paper-dim)", marginTop: "4px" }}>Converting Machinery Solutions · Est. 1989</div>
@@ -59,7 +59,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
         {!doc.hasPhoto && (
           <div style={{ margin: "24px 0 8px", height: "200px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px", background: "#fbfbfa", border: "1px solid var(--hairline-2)", borderRadius: "var(--r-1)" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "74px", opacity: 0.5, display: "block" }} />
+            <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "74px", opacity: 0.5, display: "block" }} />
             <span style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "11px", letterSpacing: ".2em", color: "var(--subtle)" }}>Photography available on request</span>
           </div>
         )}
@@ -223,7 +223,7 @@ export function QuoteDoc({ doc }: { doc: QuoteDocModel }) {
         <div style={{ background: "var(--jme-charcoal)", color: "#fff", borderRadius: "var(--r-1)", marginTop: "28px", padding: "18px 22px", display: "flex", justifyContent: "space-between", alignItems: "center", breakInside: "avoid" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "30px", display: "block" }} />
+            <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "30px", display: "block" }} />
             <div>
               <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "16px", letterSpacing: ".05em" }}>JM Equipment Inc.</div>
               <div style={{ fontSize: "9px", color: "var(--paper-dim)", marginTop: "2px" }}>{doc.company.addr} · {doc.company.phone}</div>

@@ -16,8 +16,8 @@ export const details: Record<string, MachineDetail> = {
     ],
     badge: { band: "Quote Required" },
     gallery: [
-      { src: "core-splitter.png", cap: "Full machine — 75″ frame", fit: "contain" },
-      { src: "core-splitter-pump.png", cap: "Hydraulic power pack — 5 HP", fit: "contain" },
+      { src: "core-splitter.webp", cap: "Full machine — 75″ frame", fit: "contain" },
+      { src: "core-splitter-pump.webp", cap: "Hydraulic power pack — 5 HP", fit: "contain" },
     ],
     options: [
       {
@@ -91,8 +91,8 @@ export const details: Record<string, MachineDetail> = {
     ],
     badge: { band: "Quote Required" },
     gallery: [
-      { src: "sheeter-1650.jpg", cap: "GMC-TCII 1650 sheeting line", fit: "cover" },
-      { src: "sheeter-1600e.jpg", cap: "GMC-TCII 1600-E variant", fit: "cover" },
+      { src: "sheeter-1650.webp", cap: "GMC-TCII 1650 sheeting line", fit: "cover" },
+      { src: "sheeter-1600e.webp", cap: "GMC-TCII 1600-E variant", fit: "cover" },
     ],
     options: [
       {
@@ -155,8 +155,8 @@ export const details: Record<string, MachineDetail> = {
     ],
     badge: { band: "Quote Required" },
     gallery: [
-      { src: "sheeter-1600e.jpg", cap: "GMC 1600-E dual rotary sheeter", fit: "cover" },
-      { src: "sheeter-1650.jpg", cap: "1650 flagship variant", fit: "cover" },
+      { src: "sheeter-1600e.webp", cap: "GMC 1600-E dual rotary sheeter", fit: "cover" },
+      { src: "sheeter-1650.webp", cap: "1650 flagship variant", fit: "cover" },
     ],
     options: [
       {
@@ -269,7 +269,7 @@ export const details: Record<string, MachineDetail> = {
       { value: "63 in", label: "Max web width" },
     ],
     badge: { band: "Quote Required" },
-    gallery: [{ src: "rollrite-gmc.jpg", cap: "GMC-built shaftless pivot-arm unwind — the RollRite platform", fit: "cover" }],
+    gallery: [{ src: "rollrite-gmc.webp", cap: "GMC-built shaftless pivot-arm unwind — the RollRite platform", fit: "cover" }],
     options: [
       {
         id: "core",
@@ -318,7 +318,7 @@ export const details: Record<string, MachineDetail> = {
       { html: "150<em>%</em>", label: "Test pressure" },
     ],
     badge: { band: "Quote Required" },
-    gallery: [{ src: "martin-rollstand.jpg", cap: "Geo M. Martin rollstand — rebuilt in the JME shop, Sturgis MI", fit: "cover" }],
+    gallery: [{ src: "martin-rollstand.webp", cap: "Geo M. Martin rollstand — rebuilt in the JME shop, Sturgis MI", fit: "cover" }],
     options: [
       {
         id: "chuck",

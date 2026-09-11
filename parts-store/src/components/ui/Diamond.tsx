@@ -9,7 +9,7 @@ import { asset } from "@/lib/utils";
 export function Diamond({ size = 34 }: { size?: number }) {
   return (
     <img
-      src={asset("jme-diamond-cut.png")}
+      src={asset("jme-diamond-cut.webp")}
       alt="JME"
       width={size}
       height={Math.round(size * 1.02)}

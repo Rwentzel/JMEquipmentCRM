@@ -158,7 +158,7 @@ export function BuilderView({ app }: { app: QcApp }) {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "11px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "28px", display: "block" }} />
+            <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "28px", display: "block" }} />
             <div>
               <b
                 style={{

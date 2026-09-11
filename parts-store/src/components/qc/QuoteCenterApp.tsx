@@ -116,7 +116,7 @@ export function QuoteCenterApp({
         >
           <div className="qc-brand" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "2px 8px 20px", borderBottom: "1px solid #2a2a2e", marginBottom: "18px" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "34px", height: "auto", display: "block" }} />
+            <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "34px", height: "auto", display: "block" }} />
             <div>
               <b style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".05em", color: "#fff", display: "block", lineHeight: 1 }}>JM Equipment</b>
               <small style={{ fontSize: "8px", letterSpacing: ".24em", textTransform: "uppercase", color: "#7d7d82", display: "block", marginTop: "4px" }}>Quote Center</small>
