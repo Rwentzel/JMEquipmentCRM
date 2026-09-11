@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 import type { DiagramPart } from "@/data/types";
 
 const KEYPAD_DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "back"];
@@ -45,8 +46,7 @@ export function QtyPickerModal({
   }
 
   return (
-    <div className="gs-modal-overlay" role="dialog" aria-modal="true" aria-label="Choose quantity" onClick={onClose}>
-      <div className="jme-card gs-modal gs-qtymodal" onClick={(e) => e.stopPropagation()}>
+    <Modal label="Choose quantity" onClose={onClose} className="gs-qtymodal">
         <div className="jme-card__hd">
           <h3>Add to request</h3>
           <button className="gs-modal__close" aria-label="Close" onClick={onClose}>
@@ -126,7 +126,6 @@ export function QtyPickerModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

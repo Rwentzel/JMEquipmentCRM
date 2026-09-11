@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { Button, Diamond } from "@/components/ui";
 
@@ -37,6 +37,15 @@ export function SiteNav({
   children?: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  // Escape closes the phone menu, as it closes every other overlay here.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
   const close = () => setOpen(false);
   return (
     <nav className={"ps-nav" + (className ? ` ${className}` : "")} aria-label="Site">

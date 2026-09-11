@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Field } from "@/components/ui";
+import { Modal } from "@/components/ui/Modal";
 import { matchSerialToModel } from "@/data/goodstrong";
 import { catalog } from "@/data/catalog";
 
@@ -29,8 +30,7 @@ export function SerialLookupModal({
   }
 
   return (
-    <div className="gs-modal-overlay" role="dialog" aria-modal="true" aria-label="Serial number lookup" onClick={onClose}>
-      <div className="jme-card gs-modal" onClick={(e) => e.stopPropagation()}>
+    <Modal label="Serial number lookup" onClose={onClose}>
         <div className="jme-card__hd">
           <h3>Find your sheeter by serial number</h3>
           <button className="gs-modal__close" aria-label="Close" onClick={onClose}>
@@ -73,7 +73,6 @@ export function SerialLookupModal({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }
