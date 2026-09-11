@@ -62,6 +62,14 @@ PRICE_NOISE = [
     re.compile(r'\bwholesale\b[^,;)]*', re.I),
     # any leftover clause that still talks about price
     re.compile(r'[^,;.\-]*\bprices?\b[^,;.\-]*', re.I),
+    # Purchasing notes are internal reorder rules, never a public description
+    # (DATA_BOUNDARIES.md: "internal reorder notes"). "Min buy 10", "MOQ 4".
+    re.compile(r'\bmin(?:imum)?\.?\s*(?:buy|order|purchase)\b[^,;)]*', re.I),
+    re.compile(r'\bmoq\b[^,;)]*', re.I),
+    # "= /each", "/ea" — the unit-price stub left when the amount was struck.
+    re.compile(r'=?\s*/\s*(?:each|ea)\b', re.I),
+    # A supplier name fragment: "from Powell", "from Pow" (truncated).
+    re.compile(r'\bfrom\s+[A-Z][a-z]{2,}\s*$'),
 ]
 
 def clean(desc):

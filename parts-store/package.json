@@ -24,7 +24,8 @@
     "serve:standalone": "node scripts/serve-standalone.mjs",
     "smoke": "node scripts/smoke.mjs",
     "a11y": "node scripts/a11y-audit.mjs",
-    "lcp": "node scripts/lcp.mjs"
+    "lcp": "node scripts/lcp.mjs",
+    "scan:artifacts": "tsx scripts/scanArtifacts.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",
