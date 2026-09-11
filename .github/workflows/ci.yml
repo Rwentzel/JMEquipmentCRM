@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
@@ -117,8 +117,8 @@ jobs:
           OPS_TOKEN: ci-smoke-only-token
         run: npm run fuzz -- http://127.0.0.1:3100 --seeds=3 --steps=140
 
-      # Mobile LCP on the slow-4G profile. Runner timings vary, so this
-      # reports rather than gates; read it when a page grows.
-      - name: Mobile LCP (report only)
-        run: npm run lcp -- http://127.0.0.1:3100 || true
-        continue-on-error: true
+      # Mobile LCP on the slow-4G profile with 4x CPU slowdown, gate 2.5 s
+      # (the brief's performance gate). Runner readings sit at 1.2-1.6 s, so
+      # the gate has room; if it ever trips, the page grew, not the runner.
+      - name: Mobile LCP gate (2.5 s, slow 4G)
+        run: npm run lcp -- http://127.0.0.1:3100
