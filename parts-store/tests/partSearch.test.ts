@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compactSku, partMatches, queryTokens } from "../src/lib/partSearch";
+import { compactSku, machineMatches, partMatches, queryTokens, searchRank } from "../src/lib/partSearch";
 import { catalog } from "../src/data/catalog";
 
 const find = (q: string) => catalog.parts.filter((p) => partMatches(p, queryTokens(q)));
@@ -100,4 +100,29 @@ test("highlight ranges always cover exactly the query tokens' text", () => {
     const piece = text.slice(s, e).toLowerCase();
     assert.ok(["diaphragm", "kit", "dia"].some((t) => piece.includes(t)), `"${piece}" is not a token`);
   }
+});
+
+test("searchRank puts the typed SKU first however it was typed, then SKU prefixes, then names", () => {
+  const exact = { sku: "JME-VCS-BLD-001", name: "Splitter Blade" };
+  const sibling = { sku: "JME-VCS-BLD-0010", name: "Splitter Blade, wide" };
+  const byName = { sku: "JME-SHT-0001", name: "JME VCS BLD 001 compatible guard" };
+  for (const typed of ["JME-VCS-BLD-001", "jme vcs bld 001", "jmevcsbld001", " JME-VCS-BLD-001 "]) {
+    assert.equal(searchRank(exact, typed), 0, `exact for ${JSON.stringify(typed)}`);
+    assert.equal(searchRank(sibling, typed), 1, `prefix for ${JSON.stringify(typed)}`);
+  }
+  assert.equal(searchRank(byName, "jme vcs bld 001"), 2, "a name that starts with the words typed");
+  assert.equal(searchRank({ sku: "JME-SHT-0002", name: "Feeder roll bearing" }, "bearing"), 3);
+  assert.equal(searchRank({ sku: "JME-SHT-0003", name: "Ball-bearing housing" }, "bearing"), 3);
+  assert.equal(searchRank({ sku: "JME-SHT-0004", name: "Sheeter belt" }, "bearing"), 4);
+  assert.equal(searchRank(exact, ""), 0);
+});
+
+test("a machine-name query resolves to the machine, by name, family or SKU however typed", () => {
+  const sheeter = catalog.machines.find((m) => m.sku === "GMC-TCII-1650")!;
+  for (const q of ["1650", "sheeter 1650", "gmc tcii 1650", "GMC-TCII-1650", "dual rotary"]) {
+    assert.ok(machineMatches(sheeter, queryTokens(q)), `${JSON.stringify(q)} should find the 1650`);
+  }
+  assert.ok(!machineMatches(sheeter, queryTokens("rollstand")));
+  assert.ok(!machineMatches(sheeter, queryTokens("")), "an empty query matches no machine");
+  assert.equal(catalog.machines.filter((m) => machineMatches(m, queryTokens("rollstand"))).length, 2);
 });

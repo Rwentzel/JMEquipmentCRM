@@ -2131,6 +2131,49 @@
   justify-self: end;
 }
 
+/* Machine hits above the parts rows: a machine-name search resolves to the
+   machine page as well as to its parts. */
+.ps-cat__machines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+.ps-cat__machine {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-4);
+  border: 1px solid var(--line-lt);
+  border-left: 3px solid var(--jme-red);
+  border-radius: var(--r-1);
+  background: var(--plate);
+  color: var(--paper);
+  text-decoration: none;
+  font-size: var(--t-sm);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.ps-cat__machine:hover {
+  border-color: var(--jme-red);
+}
+
+.ps-cat__machine-sku {
+  font-size: var(--t-xs);
+  color: var(--jme-red-text);
+}
+
+.ps-cat__machine-name {
+  font-weight: var(--fw-semi);
+}
+
+.ps-cat__machine-go {
+  font-size: var(--t-xs);
+  color: var(--paper-dim);
+  white-space: nowrap;
+}
+
 .ps-cat__empty {
   padding: var(--s-5);
   font-size: var(--t-sm);

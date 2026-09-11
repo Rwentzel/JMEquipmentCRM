@@ -61,7 +61,7 @@ export function SettingsView({ app }: { app: QcApp }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", marginBottom: "22px", flexWrap: "wrap" }}>
         <div>
           <div className="jme-eyebrow">System</div>
-          <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Settings</h2>
+          <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Settings</h1>
           <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>Company details and defaults applied to every new quote.</div>
         </div>
         <button className="jme-btn jme-btn--sm" onClick={app.saveSettings}>Save Settings</button>
@@ -69,7 +69,7 @@ export function SettingsView({ app }: { app: QcApp }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px", alignItems: "start" }}>
         <div style={card}>
-          <h3 style={{ ...h3, margin: "0 0 16px" }}>Company</h3>
+          <h2 style={{ ...h3, margin: "0 0 16px" }}>Company</h2>
           <div style={{ marginBottom: "12px" }}><Field app={app} label="Company Name" k="company" /></div>
           <div style={{ marginBottom: "12px" }}><Field app={app} label="Address" k="addr" /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
@@ -79,7 +79,7 @@ export function SettingsView({ app }: { app: QcApp }) {
           <Field app={app} label="Default Sales Rep" k="rep" />
         </div>
         <div style={card}>
-          <h3 style={{ ...h3, margin: "0 0 16px" }}>Quote Defaults</h3>
+          <h2 style={{ ...h3, margin: "0 0 16px" }}>Quote Defaults</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <Field app={app} label="Validity (days)" k="validity" num />
             <Field app={app} label="FOB" k="fob" />
@@ -99,7 +99,7 @@ export function SettingsView({ app }: { app: QcApp }) {
       </div>
 
       <div style={{ ...card, marginTop: "18px" }}>
-        <h3 style={{ ...h3, margin: "0 0 6px" }}>Standard Terms &amp; Conditions</h3>
+        <h2 style={{ ...h3, margin: "0 0 6px" }}>Standard Terms &amp; Conditions</h2>
         <p style={{ fontSize: "12.5px", color: "var(--muted)", margin: "0 0 14px" }}>
           Applied to every quotation. {"{VALIDITY}"} and {"{FOB}"} fill in from each quote.
         </p>

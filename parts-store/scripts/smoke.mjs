@@ -59,6 +59,11 @@ await flow("hero search filters the catalog and ?q= deep-links it", async (page)
   await page.goto(`${BASE}/?q=bearing`, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
   ok(/bearing/i.test(await page.locator(".ps-row").first().innerText()), "?q= did not filter to bearings");
+  await page.goto(`${BASE}/?q=1650`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(400);
+  const hit = page.locator(".ps-cat__machine").first();
+  ok((await hit.count()) === 1, "a machine-name query did not surface the machine");
+  ok((await hit.getAttribute("href")) === "/machine/GMC-TCII-1650", "the machine hit does not link to the machine page");
 });
 
 await flow("a parts link pre-fills the list and a quote request returns a reference", async (page) => {

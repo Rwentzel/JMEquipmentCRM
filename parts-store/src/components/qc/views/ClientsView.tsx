@@ -53,7 +53,7 @@ export function ClientsView({ app }: { app: QcApp }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", marginBottom: "20px", flexWrap: "wrap" }}>
         <div>
           <div className="jme-eyebrow">Records</div>
-          <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Client Database</h2>
+          <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Client Database</h1>
           <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>Accounts, contacts, and the quotes tied to each.</div>
         </div>
         <button className="jme-btn jme-btn--sm" onClick={app.addClient}>+ Add Client</button>

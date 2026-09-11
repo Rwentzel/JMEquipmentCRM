@@ -56,3 +56,22 @@ Every reference screen has a route in the Next.js app; the designs stay the visu
 | JME Support Hub | `/support` (`?panel=`, `?serial=`, `?sku=&machine=`) |
 | JME RFQ Flow | `/how-quoting-works` |
 | JME Governance Console | Track B only — it governs the import pipeline, which lives in `deploy/` |
+
+## Launch gates the app runs itself (2026-09-11)
+
+The handoff's E1 and Stage C gates have counterparts in `parts-store` that CI runs on every push (`.github/workflows/ci.yml`); LAUNCH.md and REPLICATION.md point at each.
+
+| Gate (LAUNCH.md / REPLICATION.md) | App counterpart |
+|---|---|
+| Stage A regression tests (idempotence, NAME_FIX, HOLD flagged) | `npm run export:woocommerce` from the catalogue, then the handoff's own `test_regression.py` (8/8); `tests/woocommerceExport.test.ts` asserts two runs are byte-identical |
+| Worker smoke tests (422/200/429/honeypot, per type) | `tests/rfqWorker.test.ts` drives `deploy/worker/rfq-worker.js` in-process with KV and Resend stubs; all six `request_type`s, the comma-separated `ALLOW_ORIGIN` list, Resend failure |
+| Stage C zero-console-error | `npm run smoke` fails on any console error across 11 browser flows |
+| Stage C axe | `npm run a11y` — WCAG 2.2 AA + axe best-practice over 27 page states, including the staff surfaces and a minted customer quote link, plus 44 px tap targets on every customer route in a phone touch context |
+| Stage C RFQ flow | smoke flows: storefront request → `RFQ-` reference → ops inbox; Support Hub request → `REQ-`; configurator ids never reach a screen |
+| Fuzz harness (3+ seeds × 140 steps) | `npm run fuzz -- <base> --seeds=3 --steps=140` — seeded random walks over customer and staff surfaces, replayable by seed |
+| Data-boundary scan of build artifacts | `npm run verify:bundles` (client bundles) and `npm run scan:artifacts` (every rendered customer page); the maintenance agent sweeps every catalog record |
+| Part-number provenance | `tests/provenance.test.ts`, `tests/optionIdGate.test.ts`, `tests/publicNames.test.ts`; the QuickBooks resolution stays a release-time step with the private workbook |
+| Performance (LCP < 2.5 s mobile) | `npm run lcp` on the slow-4G, 4× CPU profile; gates CI |
+| Design tokens shared across tracks | `tests/tokenParity.test.ts` pins every colour token shared with `wp-theme/jme-child/assets/css/tokens/colors.css`; `tests/noHexInMarkup.test.ts` keeps hex out of markup |
+
+Still owner-side: the WordPress host and the Stage B–E steps on it, `wrangler deploy` with the four secrets, Fly's `FLY_API_TOKEN`, the GitHub Pages setting for the preview, Riley's sign-off, and Seth's five price rulings.

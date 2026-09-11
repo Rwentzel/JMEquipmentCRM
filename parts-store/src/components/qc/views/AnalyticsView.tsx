@@ -104,7 +104,7 @@ export function AnalyticsView({ app }: { app: QcApp }) {
     <div style={{ padding: "34px 40px" }} data-screen-label="Analytics">
       <div style={{ marginBottom: "22px" }}>
         <div className="jme-eyebrow">Records</div>
-        <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Quote Analytics</h2>
+        <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Quote Analytics</h1>
         <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>Pipeline health across all quotations.</div>
       </div>
 
@@ -118,7 +118,7 @@ export function AnalyticsView({ app }: { app: QcApp }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px", alignItems: "start" }}>
         <div style={{ ...card, padding: "22px 24px" }}>
-          <h3 style={{ ...h3, margin: "0 0 18px" }}>Value by Stage</h3>
+          <h2 style={{ ...h3, margin: "0 0 18px" }}>Value by Stage</h2>
           {byStage.map((s) => (
             <Bar
               key={s.label}
@@ -130,7 +130,7 @@ export function AnalyticsView({ app }: { app: QcApp }) {
           ))}
         </div>
         <div style={{ ...card, padding: "22px 24px" }}>
-          <h3 style={{ ...h3, margin: "0 0 18px" }}>Top Machines by Value</h3>
+          <h2 style={{ ...h3, margin: "0 0 18px" }}>Top Machines by Value</h2>
           {byMachine.map((m) => (
             <Bar
               key={m.name}
@@ -146,7 +146,7 @@ export function AnalyticsView({ app }: { app: QcApp }) {
       <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "18px", alignItems: "start", marginTop: "18px" }}>
         <div style={{ ...card, padding: "22px 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
-            <h3 style={{ ...h3, margin: 0 }}>Weighted Forecast</h3>
+            <h2 style={{ ...h3, margin: 0 }}>Weighted Forecast</h2>
             <span style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "10px", letterSpacing: ".14em", color: "var(--jme-gold)" }}>Probability-adjusted</span>
           </div>
           <p style={{ fontSize: "12px", color: "var(--muted)", margin: "0 0 14px", lineHeight: 1.5 }}>
@@ -180,7 +180,7 @@ export function AnalyticsView({ app }: { app: QcApp }) {
           </div>
         </div>
         <div style={{ ...card, padding: "22px 24px" }}>
-          <h3 style={{ ...h3, margin: "0 0 4px" }}>Loss Reasons</h3>
+          <h2 style={{ ...h3, margin: "0 0 4px" }}>Loss Reasons</h2>
           <p style={{ fontSize: "12px", color: "var(--muted)", margin: "0 0 16px", lineHeight: 1.5 }}>
             Why quotes were lost — set a reason on any quote marked lost.
           </p>

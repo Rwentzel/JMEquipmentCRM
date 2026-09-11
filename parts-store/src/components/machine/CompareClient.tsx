@@ -82,7 +82,9 @@ export function CompareClient({ rows }: { rows: CompareRow[] }) {
         <table className="cmp-table">
           <thead>
             <tr>
-              <th />
+              <th scope="col">
+                <span className="ps-vh">Specification</span>
+              </th>
               {rows.map((r) => (
                 <th key={r.sku} scope="col">
                   <h2>

@@ -490,7 +490,7 @@ export function MachineDetailClient({
                     key: "status",
                     label: related.tier === "fits" ? "Availability" : "Fitment",
                   },
-                  { key: "act", label: "", align: "right" },
+                  { key: "act", label: "", srLabel: "Request", align: "right" },
                 ]}
               >
                 {related.parts.map((p) => (

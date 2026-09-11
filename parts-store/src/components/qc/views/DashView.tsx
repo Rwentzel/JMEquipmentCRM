@@ -67,7 +67,7 @@ export function DashView({ app }: { app: QcApp }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "30px", flexWrap: "wrap" }}>
           <div style={{ maxWidth: "600px" }}>
             <div className="jme-eyebrow" style={{ color: "var(--jme-red-bright)" }}>JM Equipment · Quote Center</div>
-            <h2 className="jme-h2" style={{ color: "var(--canvas)", fontSize: "40px", margin: "13px 0 0" }}>Built here. Quoted here.</h2>
+            <h1 className="jme-h2" style={{ color: "var(--canvas)", fontSize: "40px", margin: "13px 0 0" }}>Built here. Quoted here.</h1>
             <p style={{ fontSize: "14.5px", color: "var(--paper-dim)", lineHeight: 1.6, margin: "11px 0 0" }}>
               Configure, send, and track firm written quotations for the full converting line — dual rotary sheeters, Martin rollstands, the JME-VCS core splitter, and the 24/7 parts desk. One floor in Sturgis, Michigan.
             </p>
@@ -114,7 +114,7 @@ export function DashView({ app }: { app: QcApp }) {
       <div style={{ display: "grid", gridTemplateColumns: "1.55fr 1fr", gap: "16px", alignItems: "start" }}>
         <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", padding: "18px 22px", borderBottom: "1px solid var(--hairline)" }}>
-            <h3 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Recent Quotes</h3>
+            <h2 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "18px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Recent Quotes</h2>
             <a onClick={() => app.go("pipeline")} style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "12px", letterSpacing: ".06em", color: "var(--jme-red)", cursor: "pointer" }}>View Pipeline →</a>
           </div>
           <div className="jq-tbl scroll" style={{ "--minw": "440px", "--cols": "104px minmax(0,1.3fr) minmax(0,1.2fr) 86px 92px" } as React.CSSProperties}>
@@ -136,7 +136,7 @@ export function DashView({ app }: { app: QcApp }) {
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           <div style={{ background: "var(--canvas)", border: "1px solid var(--hairline)", borderRadius: "var(--r-2)", boxShadow: "var(--sh-raise)", overflow: "hidden" }}>
             <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <h3 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "16px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Follow-ups</h3>
+              <h2 style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "16px", letterSpacing: ".04em", color: "var(--ink-text)", margin: 0 }}>Follow-ups</h2>
               <span className="jme-mono" style={{ fontSize: "11px", color: "var(--muted)" }}>{fu.length}</span>
             </div>
             <div style={{ padding: "6px 0" }}>

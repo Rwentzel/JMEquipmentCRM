@@ -64,6 +64,7 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
     <div style={{ minHeight: "100vh", background: "var(--qc-backdrop)" }} data-screen-label="Client Quote View">
       <div
         data-print-hide
+        role="banner"
         className="qc-clienthead"
         style={{ background: "var(--ink-2)", color: "var(--canvas)", padding: "13px 26px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 6, borderBottom: "1px solid var(--black)" }}
       >
@@ -94,7 +95,7 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
         </div>
       </div>
 
-      <div id="clientPreviewCol" style={{ padding: "30px 16px 70px" }}>
+      <div id="clientPreviewCol" role="main" style={{ padding: "30px 16px 70px" }}>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <div id="clientPreviewStage" style={{ width: "790px", maxWidth: "100%", flex: "none" }}>
             <QuoteDoc doc={doc} />

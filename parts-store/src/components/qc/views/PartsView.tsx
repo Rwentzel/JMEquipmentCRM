@@ -54,7 +54,7 @@ export function PartsView({ app }: { app: QcApp }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", marginBottom: "18px", flexWrap: "wrap" }}>
         <div>
           <div className="jme-eyebrow">Quoting</div>
-          <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Parts Catalog</h2>
+          <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Parts Catalog</h1>
           <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>
             1,900+ genuine and refurbished parts across rollstands, sheeters, core splitters, brakes, and web handling —
             most stocked in Sturgis. Search or filter by system, then add line items to the active quote.

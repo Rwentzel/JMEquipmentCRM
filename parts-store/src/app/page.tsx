@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
-import { highlightRanges, partMatches, queryTokens } from "@/lib/partSearch";
+import { highlightRanges, machineMatches, partMatches, queryTokens, searchRank } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import type { ReorderItem as ReorderLine } from "@/lib/reorder";
 import { goodstrongModels } from "@/data/goodstrong";
@@ -551,17 +551,7 @@ function Parts({
         (!inStock || p.statusBand === "In Stock" || p.statusBand === "Limited Stock") &&
         partMatches(p, tokens),
     );
-    const rank = (p: Part) => {
-      if (!nq) return 0;
-      const s = p.sku.toLowerCase();
-      const n = p.name.toLowerCase();
-      if (s === nq) return 0;
-      if (s.startsWith(nq)) return 1;
-      if (n.startsWith(nq)) return 2;
-      const safe = nq.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      if (new RegExp("\\b" + safe).test(n)) return 3;
-      return 4;
-    };
+    const rank = (p: Part) => searchRank(p, nq);
     const bandRank: Record<string, number> = { "In Stock": 0, "Limited Stock": 1 };
     return [...list].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name);
@@ -571,6 +561,12 @@ function Parts({
       return rank(a) - rank(b) || a.name.localeCompare(b.name);
     });
   }, [dq, family, sub, inStock, sort]);
+
+  // A machine-name query resolves to the machine page as well as its parts.
+  const machineHits = useMemo(() => {
+    const tokens = queryTokens(dq);
+    return tokens.length ? D.machines.filter((m) => machineMatches(m, tokens)) : [];
+  }, [dq]);
 
   // Reset paging when any filter changes — adjust during render (React-endorsed
   // pattern) rather than in an effect, which would double-render.
@@ -698,6 +694,18 @@ function Parts({
                 <button className="ps-cat__clear" onClick={() => { pickFamily(null); setInStock(false); setQ(""); }}>
                   Clear all
                 </button>
+              </div>
+            )}
+
+            {machineHits.length > 0 && (
+              <div className="ps-cat__machines" role="list" aria-label="Machines matching your search">
+                {machineHits.map((m) => (
+                  <Link key={m.sku} href={`/machine/${m.sku}`} className="ps-cat__machine" role="listitem">
+                    <span className="jme-mono ps-cat__machine-sku"><Highlight text={m.sku} q={dq} /></span>
+                    <span className="ps-cat__machine-name"><Highlight text={m.name} q={dq} /></span>
+                    <span className="ps-cat__machine-go">View machine →</span>
+                  </Link>
+                ))}
               </div>
             )}
 

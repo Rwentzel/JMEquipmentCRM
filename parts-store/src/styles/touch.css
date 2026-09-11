@@ -11,6 +11,7 @@
  * and the audit (scripts/a11y-audit.mjs) skips them the same way.
  */
 @media (pointer: coarse) {
+  .ps-cat__machine,
   .jme-btn,
   .jme-btn--sm,
   .jme-btn--ghost,

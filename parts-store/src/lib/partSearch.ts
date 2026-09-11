@@ -1,4 +1,4 @@
-import type { Part } from "@/data/types";
+import type { Machine, Part } from "@/data/types";
 
 /**
  * Catalogue search, the way customers actually type.
@@ -92,4 +92,38 @@ export function highlightRanges(text: string, tokens: string[]): Array<[number, 
     else merged.push([s, e]);
   }
   return merged;
+}
+
+/**
+ * Sort key for a query: 0 the SKU itself (however it was typed — "JME VCS
+ * BLD 001", "jmevcsbld001" and "JME-VCS-BLD-001" are the same part), 1 a SKU
+ * that starts with it, 2 a name that starts with it, 3 a name with a word
+ * that starts with it, 4 everything else that matched. Lower sorts first;
+ * ties are broken by name at the call site.
+ */
+export function searchRank(p: Pick<Part, "sku" | "name">, q: string): number {
+  const nq = q.trim().toLowerCase();
+  if (!nq) return 0;
+  const sku = compactSku(p.sku);
+  const cq = compactSku(nq);
+  const n = p.name.toLowerCase();
+  if (cq && sku === cq) return 0;
+  if (cq && sku.startsWith(cq)) return 1;
+  if (n.startsWith(nq)) return 2;
+  const safe = nq.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  if (new RegExp("\\b" + safe).test(n)) return 3;
+  return 4;
+}
+
+/**
+ * A machine matches a query the way a part does: every token in its SKU,
+ * name or family, with the SKU compared compacted so "gmc tcii 1650" and
+ * "GMC-TCII-1650" are the same machine. Lets a machine-name search on the
+ * storefront resolve to the machine page, not only to its parts.
+ */
+export function machineMatches(m: Pick<Machine, "sku" | "name" | "family">, tokens: string[]): boolean {
+  if (tokens.length === 0) return false;
+  const hay = [m.sku, m.name, m.family].join(" ").toLowerCase();
+  const sku = compactSku(m.sku);
+  return tokens.every((t) => hay.includes(t) || sku.includes(compactSku(t)));
 }
