@@ -3,7 +3,7 @@
 ## Prerequisites (Gate E1)
 
 - [ ] Stage A regression tests pass (idempotence, NAME_FIX applied, HOLD SKUs present and flagged Quote Required)
-- [ ] Worker smoke tests pass (422/200/429/honeypot paths)
+- [ ] Worker smoke tests pass (422/200/429/honeypot paths) — `parts-store/tests/rfqWorker.test.ts` drives the Worker module in-process on every CI run (all six request types, CORS list, Resend failure); re-run against the deployed URL after `wrangler deploy`
 - [ ] All Stage C gates pass (zero-console-error, axe, FiboSearch, RFQ flow)
 - [ ] Fuzz harness clean on portal v2 (3+ seeds × 140 steps)
 - [ ] Riley sign-off recorded

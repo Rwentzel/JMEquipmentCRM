@@ -112,6 +112,14 @@ wrangler secret put ALLOW_ORIGIN
 #  echoes the request's Origin only when it is on this list)
 ```
 
+Before deploying, the same handler is exercised in-process by
+`parts-store/tests/rfqWorker.test.ts` (part of `npm test` and CI): 405/400,
+422 with per-type details for all six `request_type`s, honeypot, 429 on the
+eleventh request in the hour, 200 with an `RFQ-`/`REQ-` reference and one
+Resend call, 500 when Resend fails, and the comma-separated `ALLOW_ORIGIN`
+list. Deploy only when it is green; then repeat the smoke against the live URL.
+
+
 ### B2. Deploy
 
 ```bash
