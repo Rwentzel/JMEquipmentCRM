@@ -95,6 +95,66 @@ async function audit(label, route, setup, viewport = DESKTOP, opsCookie = null) 
   }
 }
 
+// Tap targets. The brief's floor is 44 px on phones; the stylesheet that
+// delivers it (styles/touch.css) is scoped to (pointer: coarse), so the
+// check runs in a touch context. Inline links in running text are exempt,
+// as WCAG 2.5.8 exempts them; a checkbox inside its label is measured by
+// the label; a link whose hit area is widened with a pseudo-element
+// counts that box, which is what the finger actually lands on.
+async function auditTargets(route) {
+  const ctx = await browser.newContext({ viewport: MOBILE, hasTouch: true, isMobile: true });
+  const page = await ctx.newPage();
+  try {
+    await page.goto(BASE + route, { waitUntil: "networkidle" });
+    const small = await page.evaluate(() => {
+      const MIN = 44;
+      const out = [];
+      const els = document.querySelectorAll(
+        "a[href],button,input:not([type=hidden]),select,textarea,[role=button],[role=tab],summary",
+      );
+      for (const el of els) {
+        if (el.closest("[aria-hidden='true']") || el.tabIndex < 0 && el.tagName !== "A") continue;
+        const cs = getComputedStyle(el);
+        if (cs.display === "none" || cs.visibility === "hidden") continue;
+        let box = el.getBoundingClientRect();
+        if (box.width === 0 || box.height === 0) continue;
+        if (el.tagName === "A" && cs.display === "inline" && el.closest("p,li,td,dd,small,figcaption,label,address,span")) continue;
+        if ((el.type === "checkbox" || el.type === "radio") && el.closest("label")) {
+          box = el.closest("label").getBoundingClientRect();
+        }
+        let w = box.width;
+        let h = box.height;
+        for (const pseudo of ["::before", "::after"]) {
+          const ps = getComputedStyle(el, pseudo);
+          if (ps.content !== "none" && ps.position === "absolute") {
+            w = Math.max(w, parseFloat(ps.width) || 0);
+            h = Math.max(h, parseFloat(ps.height) || 0);
+          }
+        }
+        if (w < MIN || h < MIN) {
+          const name = (el.getAttribute("aria-label") || el.textContent || "").trim().slice(0, 32);
+          out.push(`${Math.round(w)}x${Math.round(h)} ${el.tagName.toLowerCase()}${el.className ? "." + String(el.className).split(" ")[0] : ""} "${name}"`);
+        }
+      }
+      return out;
+    });
+    if (small.length === 0) {
+      console.log(`PASS  tap targets ${route}`);
+    } else {
+      failures += 1;
+      console.log(`FAIL  tap targets ${route} — ${small.length} under 44 px`);
+      for (const line of small.slice(0, 12)) console.log(`          ${line}`);
+    }
+  } catch (err) {
+    failures += 1;
+    console.log(`ERROR tap targets ${route} — ${err.message.split("\n")[0]}`);
+  } finally {
+    await ctx.close();
+  }
+}
+
+for (const route of ROUTES) await auditTargets(route);
+
 // Static routes, desktop and mobile.
 for (const route of ROUTES) await audit(`route ${route}`, route);
 await audit("route / (mobile)", "/", null, MOBILE);
@@ -224,5 +284,5 @@ if (failures > 0) {
 const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
 const quoteCount = quotePath ? 2 : 0;
 console.log(
-  `\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states.`,
+  `\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states; tap targets 44 px on ${ROUTES.length} customer routes.`,
 );

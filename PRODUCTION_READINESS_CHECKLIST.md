@@ -103,6 +103,9 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
   (every customer route + mobile + assistant widget, category rail, mobile nav,
   populated request list, `/ops` and the Quote Center screens, and the
   customer's quote share link the audit mints for itself): **0 violations**.
+  The same run measures every tap target on the 11 customer routes in a phone
+  touch context and fails under 44 px (`styles/touch.css` delivers the size on
+  coarse pointers only, so the desktop reference proportions are untouched).
   Reproduce with `OPS_TOKEN=<token> node scripts/a11y-audit.mjs`; CI runs it on
   every push.
 - Contrast fixes made to reach it: an AA-safe `--jme-red-text` token for red type
