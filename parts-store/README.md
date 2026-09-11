@@ -107,6 +107,10 @@ the environment — never in the repo.
   customer flows through a real Chromium (hero search, quote request, Support
   Hub form → ops inbox, Machine Platform, fitment hand-off, unmatched serial,
   assistant, phone menu). CI runs both after the build.
+- `npm run export:woocommerce` — Track B, Stage A, from this catalogue: writes the
+  WooCommerce product CSV (`.data/track-b/products.csv`, same columns and RFQ-only
+  flags as the handoff's `export_woocommerce.py`) plus `validation_report.json`.
+  Gate it with the handoff's own `test_regression.py`; CI does both.
 - `npm run lcp -- <baseUrl>` — mobile LCP on Lighthouse's slow-4G profile with 4× CPU
   slowdown, one row per customer page, exit 1 over 2.5 s (the brief's gate; CI reports it).
 - `npm run a11y -- [baseUrl]` (`scripts/a11y-audit.mjs`) — WCAG 2.1 AA audit via axe-core over

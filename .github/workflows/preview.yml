@@ -78,16 +78,24 @@ jobs:
       # Source: "GitHub Actions". The workflow token cannot create the Pages
       # site itself (that needs repo-admin rights), so this step reports the
       # required action instead of failing with a bare 403.
+      # Ask the action to enable Pages itself when the token is allowed to;
+      # on a repo where it is not, the step fails and the job explains below.
       - name: Configure GitHub Pages
         id: pages
         continue-on-error: true
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
+      # Not a failure of the site: the build above produced a complete, working
+      # copy (the "github-pages" artifact on this run). Publishing it needs a
+      # one-time admin setting, so say so as a warning rather than turning
+      # every push to main red and hiding real failures behind it.
       - name: Explain missing Pages setup
         if: steps.pages.outcome == 'failure'
         run: |
-          echo "::error::GitHub Pages is not enabled for this repository, so the preview cannot publish. A repo admin must set Settings -> Pages -> Source to 'GitHub Actions'. Note that a GitHub Pages site is reachable by anyone who knows the URL (it is noindexed, but not password protected) — enable it only if a publicly-reachable preview is acceptable. The build artifact above is a complete, working copy of the site in the meantime."
-          exit 1
+          echo "::warning::GitHub Pages is not enabled for this repository, so the preview was built but not published. A repo admin must set Settings -> Pages -> Source to 'GitHub Actions' (the token in this workflow was not allowed to enable it). Note that a GitHub Pages site is reachable by anyone who knows the URL (it is noindexed, but not password protected) — enable it only if a publicly-reachable preview is acceptable. The 'github-pages' artifact on this run is the complete site in the meantime."
 
       - id: deployment
+        if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4

@@ -25,7 +25,8 @@
     "smoke": "node scripts/smoke.mjs",
     "a11y": "node scripts/a11y-audit.mjs",
     "lcp": "node scripts/lcp.mjs",
-    "scan:artifacts": "tsx scripts/scanArtifacts.ts"
+    "scan:artifacts": "tsx scripts/scanArtifacts.ts",
+    "export:woocommerce": "tsx scripts/export-woocommerce.ts"
   },
   "dependencies": {
     "@types/nodemailer": "^8.0.1",

@@ -21,7 +21,7 @@ import type { StoredRfq } from "@/lib/rfqStore";
  * trade — a stray apostrophe in front of an odd company name is a smaller
  * problem than the desk's spreadsheet dialling out.
  */
-function deFormula(s: string): string {
+export function deFormula(s: string): string {
   return /^[=+\-@\t\r]/.test(s) ? "'" + s : s;
 }
 

@@ -34,6 +34,22 @@ Expected output:
 
 Abort if counts do not match; verify rev-2 workbook integrity.
 
+### A1-alt. Export from the app's catalogue (no workbook needed)
+
+The Next.js app carries the same full catalogue (2,223 parts) as the
+QuickBooks export. When the workbook is not to hand, build the artifact from
+it — same columns, same category paths, same RFQ-only flags — and gate it with
+A3 unchanged:
+
+```bash
+cd parts-store && npm run export:woocommerce -- --out /tmp/track-b/products.csv
+python3 test_regression.py --artifact /tmp/track-b/products.csv \
+  --expect-sku-count 2223 --expect-hold-count 0 --allowlist redaction_allowlist.json
+```
+
+The app's catalogue carries no HOLD rows (those live in the desk's workbook),
+so `--expect-hold-count 0`. CI runs both steps on every push.
+
 ### A2. Export to WooCommerce Format
 
 ```bash
