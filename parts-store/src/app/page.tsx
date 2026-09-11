@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
-import { highlightRanges, partMatches, queryTokens } from "@/lib/partSearch";
+import { highlightRanges, partMatches, queryTokens, searchRank } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import type { ReorderItem as ReorderLine } from "@/lib/reorder";
 import { goodstrongModels } from "@/data/goodstrong";
@@ -551,17 +551,7 @@ function Parts({
         (!inStock || p.statusBand === "In Stock" || p.statusBand === "Limited Stock") &&
         partMatches(p, tokens),
     );
-    const rank = (p: Part) => {
-      if (!nq) return 0;
-      const s = p.sku.toLowerCase();
-      const n = p.name.toLowerCase();
-      if (s === nq) return 0;
-      if (s.startsWith(nq)) return 1;
-      if (n.startsWith(nq)) return 2;
-      const safe = nq.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      if (new RegExp("\\b" + safe).test(n)) return 3;
-      return 4;
-    };
+    const rank = (p: Part) => searchRank(p, nq);
     const bandRank: Record<string, number> = { "In Stock": 0, "Limited Stock": 1 };
     return [...list].sort((a, b) => {
       if (sort === "name") return a.name.localeCompare(b.name);
