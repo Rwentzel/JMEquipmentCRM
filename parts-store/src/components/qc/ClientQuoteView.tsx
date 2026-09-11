@@ -69,7 +69,7 @@ export function ClientQuoteView({ id, token, initialDoc, initialCanAccept }: { i
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/jme-diamond-cut.png" alt="JME" style={{ width: "30px", display: "block" }} />
+          <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "30px", display: "block" }} />
           <div>
             <div style={{ fontFamily: "var(--font-display)", textTransform: "uppercase", fontSize: "15px", letterSpacing: ".05em", lineHeight: 1 }}>Secure Quotation</div>
             <div className="jme-mono" style={{ fontSize: "10px", color: "var(--paper-dim)", marginTop: "3px", letterSpacing: ".1em" }}>

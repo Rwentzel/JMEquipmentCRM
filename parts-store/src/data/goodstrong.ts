@@ -256,7 +256,7 @@ export const goodstrongModels: GoodstrongModel[] = [
     id: "1600e",
     label: "Goodstrong 1600-E (GMC-TC 1600 E)",
     machineSku: "GMC-1600E",
-    photo: "sheeter-1600e.jpg",
+    photo: "sheeter-1600e.webp",
     serialPattern: "Matched against known serials from the factory Part Catalogue (e.g. S/N 37422)",
     sections: GMC_TC_1600E_SECTIONS,
     diagrams: {
@@ -268,7 +268,7 @@ export const goodstrongModels: GoodstrongModel[] = [
     id: "1650",
     label: "Goodstrong 1650 (GMC-TC II)",
     machineSku: "GMC-TCII-1650",
-    photo: "sheeter-1650.jpg",
+    photo: "sheeter-1650.webp",
     serialPattern: "Pending — no 1650 catalogue in the Drive folder yet",
     sectionsFrom: "1600e",
     sections: GMC_TC_1600E_SECTIONS.map(({ drawings: _d, ...s }) => s),

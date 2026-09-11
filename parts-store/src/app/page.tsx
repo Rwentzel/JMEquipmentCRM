@@ -173,7 +173,7 @@ function Hero({
           )}
         </div>
         <div className="ps-hero__photo">
-          <SmartImg src={asset("core-splitter.png")} alt="JME Hydraulic Core Splitter" priority />
+          <SmartImg src={asset("core-splitter.webp")} alt="JME Hydraulic Core Splitter" priority />
           <span className="ps-hero__cap">JME Core Splitter · Sturgis, MI</span>
         </div>
       </div>

@@ -31,7 +31,7 @@ export const catalog: Catalog = {
       tagLabel: "JME Build · Flagship",
       statusBand: "Freight Quote Required",
       action: "request-quote",
-      photo: "core-splitter.png",
+      photo: "core-splitter.webp",
       fit: "contain",
       blurb:
         'Vertical single-stroke hydraulic core splitter — turns spent OCC/kraft cores into clean, stackable recyclable material in under 30 seconds, with virtually no noise or dust. 12" head · 75" frame.',
@@ -57,7 +57,7 @@ export const catalog: Catalog = {
       tagLabel: "Goodstrong · Factory-Direct",
       statusBand: "Freight Quote Required",
       action: "request-quote",
-      photo: "sheeter-1650.jpg",
+      photo: "sheeter-1650.webp",
       fit: "cover",
       blurb:
         "Goodstrong's high-end dual rotary sheeter, factory-direct through JME — new cutter-head design for a faster speed curve, with upgraded overlap and stacker sections standard.",
@@ -84,7 +84,7 @@ export const catalog: Catalog = {
       tagLabel: "Goodstrong · Value Line",
       statusBand: "Freight Quote Required",
       action: "request-quote",
-      photo: "sheeter-1600e.jpg",
+      photo: "sheeter-1600e.webp",
       fit: "cover",
       blurb:
         "The proven Goodstrong dual-rotary platform in a right-sized package — dependable sheeting for shops that don't need every option on the 1650.",
@@ -109,7 +109,7 @@ export const catalog: Catalog = {
       tagLabel: "JME Build · New",
       statusBand: "Freight Quote Required",
       action: "request-quote",
-      photo: "rollrite-gmc.jpg",
+      photo: "rollrite-gmc.webp",
       fit: "cover",
       blurb:
         "JME's own shaftless rollstand — dependable unwinding ahead of slitters, sheeters, bag machines, forming presses, and laminators.",
@@ -135,7 +135,7 @@ export const catalog: Catalog = {
       tagLabel: "Rebuilt OEM+",
       statusBand: "Freight Quote Required",
       action: "request-quote",
-      photo: "martin-rollstand.jpg",
+      photo: "martin-rollstand.webp",
       fit: "cover",
       blurb:
         "Geo M. Martin rollstands rebuilt to tighter-than-original spec — like-new performance that extends the life of your original investment, with repair parts stocked in Sturgis.",
