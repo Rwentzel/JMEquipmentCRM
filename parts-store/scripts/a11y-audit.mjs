@@ -18,6 +18,8 @@
  * desk and every Quote Center screen — are audited too. Without it they are
  * skipped with a notice rather than silently passing: they went unaudited for
  * their whole life that way, and were carrying 39 unlabelled form controls.
+ * With the token the audit also mints a real quote (storefront request, then
+ * the desk's from-rfq call) and audits the customer's share-link page.
  *
  * Exits non-zero if any violation is found, so it can gate a release when a
  * browser is available in the runner.
@@ -168,15 +170,49 @@ if (process.env.OPS_TOKEN) {
   console.log(`\nSKIP  ${STAFF_ROUTES.length} staff routes — set OPS_TOKEN to audit /ops and the Quote Center.`);
 }
 
-// The customer's quote page needs a real id and capability token, so it can
-// only be audited against a server that has one. Pass the path to include it:
+// The customer's quote page needs a real id and capability token. With the
+// staff token in hand the audit mints one itself: a storefront request, then
+// the desk's "turn this into a quote" call, then the share link the desk would
+// send. Without the token, pass a path from a server that has one:
 //   A11Y_QUOTE_PATH=/q/<id>/<token> node scripts/a11y-audit.mjs
 // It is the page the buyer opens and prints, so it is worth the extra step.
-if (process.env.A11Y_QUOTE_PATH) {
-  await audit("client quote link", process.env.A11Y_QUOTE_PATH);
-  await audit("client quote link (mobile)", process.env.A11Y_QUOTE_PATH, null, MOBILE);
+async function mintQuotePath(cookie) {
+  const json = { "Content-Type": "application/json" };
+  const staff = { ...json, cookie: `jme_ops=${cookie}` };
+  const rfqRes = await fetch(`${BASE}/api/quote`, {
+    method: "POST",
+    headers: json,
+    body: JSON.stringify({
+      contact: { company: "Accessibility audit", name: "Axe run", email: "a11y@example.test", consent: true },
+      items: [{ sku: "JME-VCS-BLD-001", qty: 1 }],
+    }),
+  });
+  const rfq = await rfqRes.json().catch(() => ({}));
+  if (!rfqRes.ok || !rfq.ref) throw new Error(`storefront request failed (${rfqRes.status})`);
+  const conv = await fetch(`${BASE}/api/qc/from-rfq`, { method: "POST", headers: staff, body: JSON.stringify({ ref: rfq.ref }) });
+  const made = await conv.json().catch(() => ({}));
+  if (!conv.ok || !made.id) throw new Error(`from-rfq failed (${conv.status})`);
+  const stateRes = await fetch(`${BASE}/api/qc/state`, { headers: staff });
+  const { state } = await stateRes.json();
+  const quote = state?.quotes?.find((q) => q.id === made.id);
+  if (!quote?.token) throw new Error("minted quote carries no share token");
+  return `/q/${made.id}/${quote.token}`;
+}
+
+let quotePath = process.env.A11Y_QUOTE_PATH || null;
+if (!quotePath && process.env.OPS_TOKEN) {
+  try {
+    quotePath = await mintQuotePath(await staffCookie());
+  } catch (err) {
+    failures += 1;
+    console.log(`ERROR client quote page — could not mint a quote to audit: ${err.message}`);
+  }
+}
+if (quotePath) {
+  await audit("client quote link", quotePath);
+  await audit("client quote link (mobile)", quotePath, null, MOBILE);
 } else {
-  console.log("\nSKIP  client quote page — set A11Y_QUOTE_PATH=/q/<id>/<token> to audit it.");
+  console.log("\nSKIP  client quote page — set OPS_TOKEN (the audit mints a quote) or A11Y_QUOTE_PATH=/q/<id>/<token>.");
 }
 
 await browser.close();
@@ -186,7 +222,7 @@ if (failures > 0) {
   process.exit(1);
 }
 const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
-const quoteCount = process.env.A11Y_QUOTE_PATH ? 2 : 0;
+const quoteCount = quotePath ? 2 : 0;
 console.log(
   `\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states.`,
 );
