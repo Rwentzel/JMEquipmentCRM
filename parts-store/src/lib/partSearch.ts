@@ -1,4 +1,4 @@
-import type { Part } from "@/data/types";
+import type { Machine, Part } from "@/data/types";
 
 /**
  * Catalogue search, the way customers actually type.
@@ -113,4 +113,17 @@ export function searchRank(p: Pick<Part, "sku" | "name">, q: string): number {
   const safe = nq.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (new RegExp("\\b" + safe).test(n)) return 3;
   return 4;
+}
+
+/**
+ * A machine matches a query the way a part does: every token in its SKU,
+ * name or family, with the SKU compared compacted so "gmc tcii 1650" and
+ * "GMC-TCII-1650" are the same machine. Lets a machine-name search on the
+ * storefront resolve to the machine page, not only to its parts.
+ */
+export function machineMatches(m: Pick<Machine, "sku" | "name" | "family">, tokens: string[]): boolean {
+  if (tokens.length === 0) return false;
+  const hay = [m.sku, m.name, m.family].join(" ").toLowerCase();
+  const sku = compactSku(m.sku);
+  return tokens.every((t) => hay.includes(t) || sku.includes(compactSku(t)));
 }

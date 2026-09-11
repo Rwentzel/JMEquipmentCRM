@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compactSku, partMatches, queryTokens, searchRank } from "../src/lib/partSearch";
+import { compactSku, machineMatches, partMatches, queryTokens, searchRank } from "../src/lib/partSearch";
 import { catalog } from "../src/data/catalog";
 
 const find = (q: string) => catalog.parts.filter((p) => partMatches(p, queryTokens(q)));
@@ -115,4 +115,14 @@ test("searchRank puts the typed SKU first however it was typed, then SKU prefixe
   assert.equal(searchRank({ sku: "JME-SHT-0003", name: "Ball-bearing housing" }, "bearing"), 3);
   assert.equal(searchRank({ sku: "JME-SHT-0004", name: "Sheeter belt" }, "bearing"), 4);
   assert.equal(searchRank(exact, ""), 0);
+});
+
+test("a machine-name query resolves to the machine, by name, family or SKU however typed", () => {
+  const sheeter = catalog.machines.find((m) => m.sku === "GMC-TCII-1650")!;
+  for (const q of ["1650", "sheeter 1650", "gmc tcii 1650", "GMC-TCII-1650", "dual rotary"]) {
+    assert.ok(machineMatches(sheeter, queryTokens(q)), `${JSON.stringify(q)} should find the 1650`);
+  }
+  assert.ok(!machineMatches(sheeter, queryTokens("rollstand")));
+  assert.ok(!machineMatches(sheeter, queryTokens("")), "an empty query matches no machine");
+  assert.equal(catalog.machines.filter((m) => machineMatches(m, queryTokens("rollstand"))).length, 2);
 });

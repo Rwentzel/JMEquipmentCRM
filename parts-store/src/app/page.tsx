@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { formatPhone } from "@/lib/phone";
-import { highlightRanges, partMatches, queryTokens, searchRank } from "@/lib/partSearch";
+import { highlightRanges, machineMatches, partMatches, queryTokens, searchRank } from "@/lib/partSearch";
 import { buildSkuLookup, parsePartsParam, PARTS_PARAM } from "@/lib/partsLink";
 import type { ReorderItem as ReorderLine } from "@/lib/reorder";
 import { goodstrongModels } from "@/data/goodstrong";
@@ -562,6 +562,12 @@ function Parts({
     });
   }, [dq, family, sub, inStock, sort]);
 
+  // A machine-name query resolves to the machine page as well as its parts.
+  const machineHits = useMemo(() => {
+    const tokens = queryTokens(dq);
+    return tokens.length ? D.machines.filter((m) => machineMatches(m, tokens)) : [];
+  }, [dq]);
+
   // Reset paging when any filter changes — adjust during render (React-endorsed
   // pattern) rather than in an effect, which would double-render.
   const filterKey = `${dq}|${family}|${sub}|${inStock}|${sort}`;
@@ -688,6 +694,18 @@ function Parts({
                 <button className="ps-cat__clear" onClick={() => { pickFamily(null); setInStock(false); setQ(""); }}>
                   Clear all
                 </button>
+              </div>
+            )}
+
+            {machineHits.length > 0 && (
+              <div className="ps-cat__machines" role="list" aria-label="Machines matching your search">
+                {machineHits.map((m) => (
+                  <Link key={m.sku} href={`/machine/${m.sku}`} className="ps-cat__machine" role="listitem">
+                    <span className="jme-mono ps-cat__machine-sku"><Highlight text={m.sku} q={dq} /></span>
+                    <span className="ps-cat__machine-name"><Highlight text={m.name} q={dq} /></span>
+                    <span className="ps-cat__machine-go">View machine →</span>
+                  </Link>
+                ))}
               </div>
             )}
 
