@@ -160,7 +160,7 @@ export function BuilderView({ app }: { app: QcApp }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/jme-diamond-cut.webp" alt="JME" style={{ width: "28px", display: "block" }} />
             <div>
-              <b
+              <h1
                 style={{
                   fontFamily: "var(--font-display)",
                   textTransform: "uppercase",
@@ -172,7 +172,7 @@ export function BuilderView({ app }: { app: QcApp }) {
                 }}
               >
                 Quote Builder
-              </b>
+              </h1>
               <small style={{ fontSize: "11px", color: "var(--muted)" }} className="jme-mono">
                 {bq.number}
               </small>

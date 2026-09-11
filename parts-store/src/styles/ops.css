@@ -450,3 +450,11 @@
 }
 .ops__quotebtn:hover:not(:disabled) { background: var(--jme-red-deep); }
 .ops__quotebtn:disabled { opacity: 0.5; cursor: default; }
+
+/* The desk's name is the page's h1; it keeps the header's inline bold look. */
+.ops__title {
+  display: inline;
+  font: inherit;
+  font-weight: 700;
+  margin: 0;
+}

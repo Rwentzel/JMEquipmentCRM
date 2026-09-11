@@ -138,7 +138,7 @@ export function PipelineView({ app }: { app: QcApp }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", marginBottom: "20px", flexWrap: "wrap" }}>
         <div>
           <div className="jme-eyebrow">Workspace</div>
-          <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Quote Pipeline</h2>
+          <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Quote Pipeline</h1>
           <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>Track every quotation from draft to close. Click a quote to open it in the builder.</div>
         </div>
         <button className="jme-btn jme-btn--sm" onClick={() => app.startQuote()}>+ New Quote</button>

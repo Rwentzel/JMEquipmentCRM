@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 interface Column {
   key: string;
   label: string;
+  /** Screen-reader header for a column whose visible label is empty (an action column). */
+  srLabel?: string;
   align?: "left" | "right";
 }
 
@@ -23,7 +25,7 @@ export function SpecTable({
         <tr>
           {columns.map((c) => (
             <th key={c.key} className={cn(c.align === "right" && "r")}>
-              {c.label}
+              {c.label || <span className="ps-vh">{c.srLabel ?? "Action"}</span>}
             </th>
           ))}
         </tr>

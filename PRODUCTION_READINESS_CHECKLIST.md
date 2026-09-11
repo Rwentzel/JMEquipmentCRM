@@ -112,7 +112,7 @@ Legend: ✅ done · 🟡 partial · ⬜ not started · 🔒 blocked on approval/
   on dark surfaces (the fill-weight `--jme-red-bright` was 3.08:1 as body text),
   light-surface overrides for badges/eyebrows inside the paper-background parts
   catalog (as low as 1.82:1), and light-on-maroon for the assistant button.
-- ⬜ Manual audit still worth doing before launch: screen-reader walkthrough
+- 🟡 Screen-reader walkthrough before launch is still worth a human's hour; the audit now also runs axe's WCAG 2.2 AA and best-practice rules (one h1 per page, heading order, landmarks on every page, no empty table headers), which are the structural checks that walkthrough would make
   (NVDA/VoiceOver) and full keyboard-only journey — axe catches roughly a third
   of WCAG issues and cannot judge focus order or announcement quality.
 

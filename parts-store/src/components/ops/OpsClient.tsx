@@ -147,7 +147,7 @@ export function OpsClient({ devOpen }: { devOpen: boolean }) {
     <main className="ops">
       <header className="ops__hd">
         <Diamond size={14} />
-        <b>JM Equipment · Ops Desk</b>
+        <h1 className="ops__title">JM Equipment · Ops Desk</h1>
         <span className="ops__hd-note">internal — RFQ inbox &amp; automation</span>
         <Link className="ops__logout" href="/quotes" style={{ marginLeft: "12px" }}>Quote Center →</Link>
         {devOpen ? (

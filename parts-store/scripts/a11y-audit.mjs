@@ -40,7 +40,10 @@ try {
   process.exit(2);
 }
 
-const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"];
+// WCAG 2.1 AA plus 2.2 AA and axe's best-practice rules (heading order, one
+// h1 per page, landmarks, empty table headers): the checks a screen-reader
+// walkthrough would make by hand.
+const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"];
 const ROUTES = [
   "/", "/machines", "/support", "/how-quoting-works", "/compare", "/freight", "/terms", "/privacy",
   "/machine/JME-VCS12-75", "/parts/goodstrong", "/parts/goodstrong/1600e",
@@ -249,5 +252,5 @@ if (failures > 0) {
 const staffCount = process.env.OPS_TOKEN ? STAFF_ROUTES.length : 0;
 const quoteCount = quotePath ? 2 : 0;
 console.log(
-  `\nPASS  no WCAG 2.1 AA violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states; tap targets 44 px on ${ROUTES.length} customer routes.`,
+  `\nPASS  no WCAG 2.2 AA or best-practice violations across ${ROUTES.length + 5 + staffCount + quoteCount} page states; tap targets 44 px on ${ROUTES.length} customer routes.`,
 );

@@ -179,7 +179,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
             Configurable
           </div>
         )}
-        <h3
+        <h2
           style={{
             fontFamily: "var(--font-display)",
             textTransform: "uppercase",
@@ -191,7 +191,7 @@ function MachineCard({ app, m }: { app: QcApp; m: QcMachine }) {
           }}
         >
           {m.name}
-        </h3>
+        </h2>
         <div style={{ fontSize: "12px", color: "var(--muted)" }}>{m.sub}</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "6px" }}>
           <div style={{ background: "var(--canvas-tint)", borderRadius: "var(--r-1)", padding: "8px 10px" }}>
@@ -377,7 +377,7 @@ export function EquipmentView({ app }: { app: QcApp }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "24px", marginBottom: "18px", flexWrap: "wrap" }}>
         <div>
           <div className="jme-eyebrow">Quoting</div>
-          <h2 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Equipment Catalog</h2>
+          <h1 className="jme-h2" style={{ color: "var(--ink-text)", marginTop: "10px" }}>Equipment Catalog</h1>
           <div style={{ fontSize: "14px", color: "var(--muted)", marginTop: "7px" }}>
             Sheeters, rollstands, guillotine cutters, the JME-VCS core splitter, and accessories — built, imported, and rebuilt under one roof. Pick
             one to start a configured quote.
